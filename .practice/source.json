@@ -1,0 +1,9 @@
+{
+  "schema": "project-template.practice-source/v1",
+  "repository": "blackmath88/development-practice",
+  "tracking_ref": "main",
+  "reference_commit": "8a416833d269475653861964984cb8cfb6aa37c1",
+  "reference_checked_on": "2026-11-11",
+  "mode": "read-on-task",
+  "note": "Reference revision is inspected provenance, not automatic approval. Latest source is advisory; project rules remain authoritative."
+}
