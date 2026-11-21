@@ -16,6 +16,7 @@ import {
   UnknownCapability,
   describeError,
 } from './errors.ts'
+import { PageFetched, fetchPage, siteUrls } from './fetch.ts'
 import {
   type ComponentId,
   EngineEvent,
@@ -32,17 +33,21 @@ export const CapabilityName = Schema.Literals([
   'find_route',
   'build_path',
   'connect_places',
+  'fetch_page',
 ])
 export type CapabilityName = typeof CapabilityName.Type
 
 export type Affordance = 'readable' | 'queryable' | 'operable' | 'program'
 
+export type Specimen = 'valley' | 'fetch'
+
 export type Capability = Readonly<{
   name: CapabilityName
+  specimen: Specimen
   title: string
   affordance: Affordance
   description: string
-  takesEndpoints: boolean
+  input: 'none' | 'endpoints' | 'url'
   observe: string
   request: string
   produces: string
@@ -58,7 +63,8 @@ export const catalogue: ReadonlyArray<Capability> = [
     affordance: 'readable',
     description:
       'Read the map of the valley: every place, every path and the span limit.',
-    takesEndpoints: false,
+    specimen: 'valley',
+    input: 'none',
     observe: 'Places, paths, the current revision and the span limit.',
     request: 'Nothing. It takes no input.',
     produces: 'A snapshot of the map.',
@@ -72,7 +78,8 @@ export const catalogue: ReadonlyArray<Capability> = [
     affordance: 'queryable',
     description:
       'Find the shortest route between two places along existing paths.',
-    takesEndpoints: true,
+    specimen: 'valley',
+    input: 'endpoints',
     observe: 'Whether two places are connected, and how far apart.',
     request: 'A start and an end place.',
     produces: 'A route, or the answer that none exists.',
@@ -86,7 +93,8 @@ export const catalogue: ReadonlyArray<Capability> = [
     affordance: 'operable',
     description:
       'Build one new path between two places. Refused when the span exceeds the limit or the path exists.',
-    takesEndpoints: true,
+    specimen: 'valley',
+    input: 'endpoints',
     observe: 'Nothing beyond the result.',
     request: 'The two places to join directly.',
     produces: 'A path artifact.',
@@ -100,13 +108,29 @@ export const catalogue: ReadonlyArray<Capability> = [
     affordance: 'program',
     description:
       'Connect two places by any means: inspect the map, plan the shortest missing link, validate it, build it and report.',
-    takesEndpoints: true,
+    specimen: 'valley',
+    input: 'endpoints',
     observe: 'The map, through its own inspection.',
     request: 'A goal: two places that should be connected.',
     produces: 'A connection report, and a path artifact if it built one.',
     changes: 'It may build a path. It decides which one.',
     finishes: 'After four stages, or stops at the first that fails.',
     dependsOn: ['planner', 'map', 'validator', 'world-store', 'artifact-store'],
+  },
+  {
+    name: 'fetch_page',
+    specimen: 'fetch',
+    title: 'Page fetcher',
+    affordance: 'queryable',
+    description:
+      'Fetch a page of the synthetic site valley.test and return it as Markdown. Follows redirects.',
+    input: 'url',
+    observe: 'A page of valley.test, as Markdown.',
+    request: 'One URL.',
+    produces: 'Text. Nothing is stored.',
+    changes: 'Nothing in the valley. It does make requests in your name.',
+    finishes: 'After at most three redirects.',
+    dependsOn: ['fetcher', 'robots-policy', 'synthetic-web'],
   },
 ]
 
@@ -129,8 +153,19 @@ const endpointsJsonSchema = {
   additionalProperties: false,
 } as const
 
+const urlJsonSchema = {
+  type: 'object',
+  properties: { url: { type: 'string', enum: siteUrls } },
+  required: ['url'],
+  additionalProperties: false,
+} as const
+
 export const inputJsonSchema = (capability: Capability) =>
-  capability.takesEndpoints ? endpointsJsonSchema : emptyInputJsonSchema
+  capability.input === 'endpoints'
+    ? endpointsJsonSchema
+    : capability.input === 'url'
+      ? urlJsonSchema
+      : emptyInputJsonSchema
 
 // EXECUTION
 
@@ -139,6 +174,7 @@ export const CapabilityOutput = Schema.Union([
   RouteFound,
   PathBuilt,
   PlacesConnected,
+  PageFetched,
 ])
 export type CapabilityOutput = typeof CapabilityOutput.Type
 
@@ -157,6 +193,14 @@ const decodeEndpoints = (input: unknown) =>
     ),
   )
 
+const decodeUrl = (input: unknown) =>
+  Schema.decodeUnknownEffect(Schema.Struct({ url: Schema.String }))(input).pipe(
+    Effect.map(decoded => decoded.url),
+    Effect.mapError(
+      () => new InvalidInput({ message: 'expected { url } with a string' }),
+    ),
+  )
+
 const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
   const trace = yield* Trace
   const step = {
@@ -168,10 +212,11 @@ const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
   const resolved = yield* Effect.gen(function* () {
     const capability = yield* decodeName(name)
     const endpoints =
-      capability === 'read_map'
+      capability === 'read_map' || capability === 'fetch_page'
         ? { from: 'forge' as const, to: 'forge' as const }
         : yield* decodeEndpoints(input)
-    return { capability, endpoints }
+    const url = capability === 'fetch_page' ? yield* decodeUrl(input) : ''
+    return { capability, endpoints, url }
   }).pipe(
     Effect.tapError(error =>
       trace.emit({ ...step, kind: 'failed', detail: describeError(error) }),
@@ -189,7 +234,7 @@ export const execute = Effect.fnUntraced(function* (
   name: string,
   input: unknown,
 ): Effect.fn.Return<CapabilityOutput, DomainError, Trace | WorldStore | Pace> {
-  const { capability, endpoints } = yield* resolve(name, input)
+  const { capability, endpoints, url } = yield* resolve(name, input)
   const { from, to } = endpoints
   return yield* Match.value(capability).pipe(
     Match.when('read_map', () => readMap('catalogue')),
@@ -200,6 +245,7 @@ export const execute = Effect.fnUntraced(function* (
     ),
     Match.when('build_path', () => buildPath('catalogue', from, to)),
     Match.when('connect_places', () => connectPlaces('catalogue', from, to)),
+    Match.when('fetch_page', () => fetchPage('catalogue', url)),
     Match.exhaustive,
   )
 })

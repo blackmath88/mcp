@@ -36,7 +36,25 @@ export class PathTooLong extends Schema.TaggedError<PathTooLong>()(
   },
 ) {}
 
+export class RobotsDisallowed extends Schema.TaggedError<RobotsDisallowed>()(
+  'RobotsDisallowed',
+  { url: Schema.String, hop: Schema.Number },
+) {}
+
+export class TooManyRedirects extends Schema.TaggedError<TooManyRedirects>()(
+  'TooManyRedirects',
+  { url: Schema.String },
+) {}
+
+export class UnknownPage extends Schema.TaggedError<UnknownPage>()(
+  'UnknownPage',
+  { url: Schema.String },
+) {}
+
 export type DomainError =
+  | RobotsDisallowed
+  | TooManyRedirects
+  | UnknownPage
   | InvalidInput
   | UnknownCapability
   | SamePlace
@@ -47,6 +65,11 @@ export type DomainError =
 export const describeError = (error: DomainError): string =>
   Match.value(error).pipe(
     Match.tagsExhaustive({
+      RobotsDisallowed: ({ url, hop }) =>
+        `robots.txt disallows ${url} (hop ${hop}).`,
+      TooManyRedirects: ({ url }) =>
+        `${url} redirected more than the allowed number of times.`,
+      UnknownPage: ({ url }) => `${url} is not a page of the synthetic site.`,
       InvalidInput: ({ message }) => `Invalid input: ${message}`,
       UnknownCapability: ({ name }) => `There is no capability named ${name}.`,
       SamePlace: ({ place }) => `${place} cannot be connected to itself.`,

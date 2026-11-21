@@ -22,6 +22,11 @@ const MAP_URI = 'valley://map/current'
 const held = {
   world: seedWorld(
     process.argv.includes('--storm') ? STORM_MAX_SPAN : CALM_MAX_SPAN,
+    process.argv.includes('--policy=first-hop')
+      ? 'first-hop'
+      : process.argv.includes('--policy=none')
+        ? 'none'
+        : 'every-hop',
   ),
 }
 

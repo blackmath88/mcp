@@ -33,9 +33,13 @@ export const Artifact = Schema.Struct({
 })
 export type Artifact = typeof Artifact.Type
 
+export const FetchPolicy = Schema.Literals(['every-hop', 'first-hop', 'none'])
+export type FetchPolicy = typeof FetchPolicy.Type
+
 export const World = Schema.Struct({
   revision: Schema.Number,
   maxSpan: Schema.Number,
+  fetchPolicy: FetchPolicy,
   places: Schema.Array(Place),
   paths: Schema.Array(Path),
   artifacts: Schema.Array(Artifact),
@@ -79,9 +83,13 @@ const seedPath = (from: PlaceId, to: PlaceId): Path => {
   }
 }
 
-export const seedWorld = (maxSpan: number): World => ({
+export const seedWorld = (
+  maxSpan: number,
+  fetchPolicy: FetchPolicy = 'every-hop',
+): World => ({
   revision: 0,
   maxSpan,
+  fetchPolicy,
   places: seedPlaces,
   paths: [seedPath('forge', 'mill'), seedPath('kiln', 'dock')],
   artifacts: [],

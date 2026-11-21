@@ -36,23 +36,25 @@ Reveal mixed modules, aggregation versus orchestration, a replaceable component,
 
 Research candidates from the conversation. Record primary sources, official/community status, exact capabilities, versions, client support, credentials, cost, effects, and documented versus executed evidence. Select examples for distinct lessons.
 
-## MCP work plan (simulation first)
+## Route plan (simulation first)
 
-Agreed 2026-11-21: no live connection yet. Each MCP chapter is simulated in the browser and backed by a recording from the real stdio server driven by the SDK client. Nothing below is started.
+Agreed 2026-11-21: the lab follows the twelve specimens in specimens/route.json. Each station is simulated on synthetic data in the shared engine, reachable through the browser, the CLI and the MCP stdio server. Live connections wait for a later decision.
 
-1. **Check the facts.** Read the current specification for every feature a chapter uses and pin the revision. The SDK negotiated 2025-11-25 in our recording; that is an observation, not a reviewed choice.
-2. **Tools versus resources versus prompts.** Show the map as a resource beside `read_map` as a tool, and add one prompt. The server already exposes the resource.
-3. **Descriptions as interface (E01).** Same operation, vague and precise description; then the harmless hidden-instruction specimen from `lab/concept.html`.
-4. **A kit that changes.** Tool list changes mid-session, including the changed-definition specimen and the maze.
-5. **The server asks back.** Elicitation and sampling, only after step 1 confirms status and client support.
-6. **An item with its own screen.** MCP Apps, same condition.
-7. **Live examples.** Chosen with the owner later; the transport and the browser path are decided then.
+| Station | State |
+| --- | --- |
+| 00 The valley (the lab's own specimen) | working, seven steps |
+| 01 Fetch a page | simulated: three robots policies, redirect, loop |
+| 02 Memory | next: storage path, restart, conflicting observation |
+| 03 "Thinking" as a tool | then: record, compute, consult behind one icon |
+| 04 to 12 | reference cards only |
 
-Each chapter ships with its recording script, a recording and a test that the recording still matches the engine.
+Per station, before calling it done: pin the upstream revision, check the documented behaviour against the source, and fill the evidence record in its README. None of that has been done for any station.
+
+Protocol facts (revision, feature status, client support) still need a check against the specification before stations 04, 07, 08 and 12, which depend on Roots, transports, MCP Apps and gateways.
 
 ## Immediate next action
 
-Try the slice with one person from the intended audience. Then start MCP work at steps 1 and 2.
+Build station 02 (Memory) as a simulation, then 03. In parallel, verify the Fetch claims against the upstream README and advisory and pin the revisions.
 
 ## Explicit exclusions for this change
 

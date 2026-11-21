@@ -723,3 +723,74 @@ tbody th {
     animation: none !important;
   }
 }
+
+.fold > summary {
+  cursor: pointer;
+  font: 600 12.5px/1.4 var(--body);
+  color: var(--muted);
+  padding: 4px 0;
+}
+.fold[open] > summary {
+  color: var(--ink);
+}
+.fold > p,
+.fold > ul {
+  margin-top: 6px;
+  font-size: 13.5px;
+  max-width: 68ch;
+}
+.steps {
+  margin-left: 14px;
+  border-left: 1px solid var(--line);
+  padding-left: 4px;
+}
+.rung[aria-current='page'] {
+  background: var(--ink);
+  color: var(--bg);
+}
+.rung[aria-current='page'] .k {
+  color: inherit;
+}
+.steps .rung[aria-current='step'] {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.steps .rung[aria-current='step'] .k {
+  color: var(--res);
+}
+.rung .k.reference {
+  color: var(--muted);
+}
+.rung .k.simulated {
+  color: var(--back);
+}
+.specimen {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.question {
+  font: 500 17px/1.35 var(--body);
+  color: var(--ink) !important;
+  max-width: 48ch;
+}
+.sources {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font: 400 12.5px/1.5 var(--mono);
+  overflow-wrap: anywhere;
+}
+.sources a {
+  color: var(--req);
+}
+.page {
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  font: 400 13px/1.6 var(--mono);
+  white-space: pre-wrap;
+}

@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-11-21T14:46:28.100Z",
+  "recordedAt": "2026-11-21T15:10:38.407Z",
   "node": "v22.23.5",
   "mcpSdk": "1.32.2",
   "calm": {
@@ -337,6 +337,30 @@
                 },
                 "annotations": {
                   "readOnlyHint": false
+                }
+              },
+              {
+                "name": "fetch_page",
+                "title": "Page fetcher",
+                "description": "Fetch a page of the synthetic site valley.test and return it as Markdown. Follows redirects.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "enum": [
+                        "https://valley.test/welcome",
+                        "https://valley.test/notice",
+                        "https://valley.test/ledger",
+                        "https://valley.test/loop"
+                      ]
+                    }
+                  },
+                  "required": ["url"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
                 }
               }
             ]
@@ -836,6 +860,30 @@
                 },
                 "annotations": {
                   "readOnlyHint": false
+                }
+              },
+              {
+                "name": "fetch_page",
+                "title": "Page fetcher",
+                "description": "Fetch a page of the synthetic site valley.test and return it as Markdown. Follows redirects.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "enum": [
+                        "https://valley.test/welcome",
+                        "https://valley.test/notice",
+                        "https://valley.test/ledger",
+                        "https://valley.test/loop"
+                      ]
+                    }
+                  },
+                  "required": ["url"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
                 }
               }
             ]

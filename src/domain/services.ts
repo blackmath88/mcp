@@ -10,6 +10,9 @@ export const ComponentId = Schema.Literals([
   'validator',
   'world-store',
   'artifact-store',
+  'fetcher',
+  'robots-policy',
+  'synthetic-web',
 ])
 export type ComponentId = typeof ComponentId.Type
 

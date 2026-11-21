@@ -1,5 +1,23 @@
 # Handoff
 
+## Specimen route and Fetch station — 2026-11-21
+
+Owner supplied a research drop: twelve stations with anchor, diversion and experiment, and the direction that every chapter gets a bend (D10). Also: less text on screen (D11).
+
+Changed:
+
+- `specimens/route.json` (single source), `specimens/README.md` and one README per station with an empty evidence record; `docs/research/2026-11-21-specimen-route.md` as an editorial capture of the drop.
+- `src/domain/fetch.ts`: the lab's own simulation of a page fetcher on a four-page synthetic site, with three robots policies (every hop, first URL only, never), a redirect to a disallowed page and a redirect loop. New capability `fetch_page`, available in the browser, the CLI (`--url`, `--policy`) and the MCP server (`--policy=first-hop`).
+- Lab: sidebar lists the valley and the twelve stations; reference stations show their question with folded detail and sources; the Fetch station runs. The titlebar bend switches with the station. Item facts, five questions and the honesty note are fold-outs.
+- Recording refreshed, because the tool list grew to five.
+
+Evidence: typecheck, lint and build pass; 51 tests pass, including the same URL giving different results under different policies through the CLI and through MCP. Headless Chromium at 1440, 1000 and 400 px: no console errors, no overflow. Screenshot: `docs/reports/first-slice/fetch-station.png`.
+
+Not done: no upstream repository was opened, pinned or run; every claim in the route is the owner's research lead. The Fetch simulation models documented behaviour as described in the drop, not upstream code. The model-initiated versus user-initiated distinction in the reference server is not simulated. Stations 02 to 12 have no simulation.
+
+Caught during this work: `fetch_page` was executable but missing from the catalogue, so it had no kit entry and was not listed as an MCP tool. A test now asserts every executable capability has a catalogue entry.
+
+
 ## IDE layout and MCP plan — 2026-11-21
 
 Owner direction: simulation is enough for now, plan the MCP work, and use an IDE-style layout with the workbench in the middle and the easy-to-complex navigation always visible (D08, D09).

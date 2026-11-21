@@ -92,6 +92,18 @@ Status: agreed direction from owner, 2026-11-21. Implemented.
 
 Journey (easy to complex) and kit stay visible in a left sidebar, the workbench sits in the middle, evidence is a bottom panel, the inspector is on the right. Later chapters are listed as planned so the whole path is visible.
 
+## D10 — A route of twelve specimens, each with a bend
+
+Status: agreed direction from owner, 2026-11-21. Data and navigation implemented; one station simulated.
+
+The lab follows the owner-supplied route from Fetch to the network (see specimens/README.md). Every station gets an anchor, a diversion and a "bend it" experiment, starting with the basics. Stations are specimen folders, not integrations to install. Upstream claims stay unverified until an evidence record says otherwise.
+
+## D11 — Less text on screen
+
+Status: agreed direction from owner, 2026-11-21. First pass implemented.
+
+Detail moves behind fold-outs; the workbench shows the question, the control and the result.
+
 ## Still undecided
 
 Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.

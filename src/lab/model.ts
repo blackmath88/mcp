@@ -4,6 +4,7 @@ import { defineTaggedUnion } from 'foldkit/schema'
 import { CapabilityName, RunRecord } from '../domain/capabilities.ts'
 import {
   CALM_MAX_SPAN,
+  FetchPolicy,
   PlaceId,
   STORM_MAX_SPAN,
   World,
@@ -26,6 +27,23 @@ export const Chapter = Schema.Literals([
   'entrances',
 ])
 export type Chapter = typeof Chapter.Type
+
+export const Station = Schema.Literals([
+  'valley',
+  'fetch',
+  'memory',
+  'thinking',
+  'filesystem',
+  'perception',
+  'cli',
+  'local-remote',
+  'apps',
+  'code-mode',
+  'delegation',
+  'iteration',
+  'network',
+])
+export type Station = typeof Station.Type
 
 export const BackstageTab = Schema.Literals([
   'engine',
@@ -58,9 +76,12 @@ export const AppLogEntry = Schema.Struct({
 export type AppLogEntry = typeof AppLogEntry.Type
 
 export const Model = Schema.Struct({
+  station: Station,
   chapter: Chapter,
   completedChapters: Schema.Array(Chapter),
   weather: Weather,
+  fetchPolicy: FetchPolicy,
+  url: Schema.String,
   world: World,
   maybeSelected: Schema.Option(CapabilityName),
   from: PlaceId,
@@ -74,5 +95,7 @@ export const Model = Schema.Struct({
 })
 export type Model = typeof Model.Type
 
-export const worldFor = (weather: Weather): World =>
-  seedWorld(maxSpanIn(weather))
+export const worldFor = (
+  weather: Weather,
+  fetchPolicy: FetchPolicy = 'every-hop',
+): World => seedWorld(maxSpanIn(weather), fetchPolicy)

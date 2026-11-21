@@ -1,6 +1,7 @@
 import { Array, Option, pipe } from 'effect'
 import { type Document, type Html, type HtmlBuilder } from 'foldkit/html'
 
+import route from '../../specimens/route.json'
 import { STAGE_PAUSE_MILLISECONDS } from '../adapters/in-process.ts'
 import {
   type Capability,
@@ -8,8 +9,15 @@ import {
   type RunRecord,
   catalogue,
 } from '../domain/capabilities.ts'
+import { siteUrls } from '../domain/fetch.ts'
 import type { ComponentId, EngineEvent } from '../domain/services.ts'
-import { type Path, type PlaceId, type World, joins } from '../domain/world.ts'
+import {
+  type FetchPolicy,
+  type Path,
+  type PlaceId,
+  type World,
+  joins,
+} from '../domain/world.ts'
 import recording from '../recordings/entrances.json'
 import { Message } from './message.ts'
 import {
@@ -18,6 +26,7 @@ import {
   type Model,
   Replay,
   RunState,
+  type Station,
   type Weather,
   maxSpanIn,
 } from './model.ts'
@@ -32,14 +41,6 @@ type ChapterInfo = Readonly<{
   name: string
   prompt: string
 }>
-
-const plannedChapters: ReadonlyArray<string> = [
-  'Local and remote',
-  'Workflows and loops',
-  'A stronger model inside',
-  'The network of workshops',
-  'Real MCP examples',
-]
 
 const chapters: ReadonlyArray<ChapterInfo> = [
   {
@@ -101,6 +102,9 @@ const componentNames: Record<ComponentId, string> = {
   validator: 'Validator',
   'world-store': 'World store',
   'artifact-store': 'Artifact store',
+  fetcher: 'Fetcher',
+  'robots-policy': 'Robots policy',
+  'synthetic-web': 'Synthetic web',
 }
 
 const componentRoles: Record<ComponentId, string> = {
@@ -113,16 +117,57 @@ const componentRoles: Record<ComponentId, string> = {
   validator: 'Enforces the span limit and refuses duplicate paths.',
   'world-store': 'Holds the map and its revision.',
   'artifact-store': 'Keeps what runs produce.',
+  fetcher:
+    'Follows the URL and every redirect, and decides when to ask the policy.',
+  'robots-policy':
+    'Says whether one URL may be fetched. It only answers when asked.',
+  'synthetic-web': 'Four made-up pages on valley.test. No real network.',
 }
 
-const engineComponents: ReadonlyArray<ComponentId> = [
-  'adapter',
-  'catalogue',
-  'planner',
-  'map',
-  'validator',
-  'world-store',
-  'artifact-store',
+const componentsOf = (station: Station): ReadonlyArray<ComponentId> =>
+  station === 'fetch'
+    ? ['adapter', 'catalogue', 'fetcher', 'robots-policy', 'synthetic-web']
+    : [
+        'adapter',
+        'catalogue',
+        'planner',
+        'map',
+        'validator',
+        'world-store',
+        'artifact-store',
+      ]
+
+type Specimen = (typeof route.specimens)[number]
+
+const stations: ReadonlyArray<Station> = [
+  'valley',
+  'fetch',
+  'memory',
+  'thinking',
+  'filesystem',
+  'perception',
+  'cli',
+  'local-remote',
+  'apps',
+  'code-mode',
+  'delegation',
+  'iteration',
+  'network',
+]
+
+const stationOf = (id: string): Station =>
+  Option.getOrElse(
+    Array.findFirst(stations, station => station === id),
+    () => 'valley' as const,
+  )
+
+const findSpecimen = (station: Station): Option.Option<Specimen> =>
+  Array.findFirst(route.specimens, specimen => specimen.id === station)
+
+const policies: ReadonlyArray<Readonly<{ id: FetchPolicy; label: string }>> = [
+  { id: 'every-hop', label: 'Check every hop' },
+  { id: 'first-hop', label: 'First URL only' },
+  { id: 'none', label: 'Never check' },
 ]
 
 // DERIVED
@@ -168,6 +213,9 @@ const outcomeText = (record: RunRecord): string => {
   if (output._tag === 'RouteFound') {
     return `Route: ${output.route.places.join(' → ')} (span ${output.route.span}).`
   }
+  if (output._tag === 'PageFetched') {
+    return `Returned “${output.title}” from ${output.finalUrl} after ${output.hops.length} hop(s) and ${output.robotsChecks} robots check(s).`
+  }
   return output.artifact.summary
 }
 
@@ -199,7 +247,9 @@ const fiveAnswers = (model: Model): ReadonlyArray<Answer> => {
     ask('Who authorised it?', record =>
       record.events.some(event => event.component === 'validator')
         ? 'Nobody was asked. The validator enforced the span limit in code; there is no approval step here.'
-        : 'Nobody was asked, and nothing could change.',
+        : record.events.some(event => event.component === 'fetcher')
+          ? 'Nobody asked you. The server’s robots policy decided, and only for the hops it was consulted on.'
+          : 'Nobody was asked, and nothing could change.',
     ),
     ask(
       'Where did it run?',
@@ -254,19 +304,42 @@ const titlebarView = (model: Model, h: H): Html =>
     [
       h.h1([], ['MCP Lab']),
       h.p([h.Class('tagline')], ['What were you just handed?']),
-      h.div(
-        [h.Class('bend')],
-        [
-          h.span([h.Class('bendlabel')], ['Bend it']),
-          h.div(
-            [h.Class('seg'), h.Role('group'), h.AriaLabel('Weather')],
+      model.station === 'valley'
+        ? bendView(
+            'Weather',
             [
               weatherButton(model, 'calm', 'Calm', h),
               weatherButton(model, 'storm', 'Storm', h),
             ],
-          ),
-        ],
-      ),
+            h,
+          )
+        : model.station === 'fetch'
+          ? bendView(
+              'Robots policy',
+              Array.map(policies, policy =>
+                h.button(
+                  [
+                    h.Type('button'),
+                    h.AriaPressed(
+                      model.fetchPolicy === policy.id ? 'true' : 'false',
+                    ),
+                    h.OnClick(Message.SelectedPolicy({ policy: policy.id })),
+                  ],
+                  [policy.label],
+                ),
+              ),
+              h,
+            )
+          : h.empty,
+    ],
+  )
+
+const bendView = (label: string, buttons: ReadonlyArray<Html>, h: H): Html =>
+  h.div(
+    [h.Class('bend')],
+    [
+      h.span([h.Class('bendlabel')], ['Bend it']),
+      h.div([h.Class('seg'), h.Role('group'), h.AriaLabel(label)], buttons),
     ],
   )
 
@@ -291,77 +364,123 @@ const journeyView = (model: Model, h: H): Html =>
   h.section(
     [h.Class('side-section')],
     [
-      h.h2([h.Class('side-title')], ['Journey · easy to complex']),
+      h.h2([h.Class('side-title')], ['Start here']),
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('rung'),
+          h.AriaCurrent(model.station === 'valley' ? 'page' : 'false'),
+          h.OnClick(Message.SelectedStation({ station: 'valley' })),
+        ],
+        [
+          h.span([h.Class('n')], ['00']),
+          h.span([h.Class('t')], ['The valley']),
+          h.span([h.Class('k')], ['ours']),
+        ],
+      ),
+      model.station === 'valley'
+        ? h.ol(
+            [h.Class('journey steps')],
+            Array.map(chapters, (chapter, index) =>
+              h.keyed('li')(
+                chapter.id,
+                [],
+                [
+                  h.button(
+                    [
+                      h.Type('button'),
+                      h.Class('rung'),
+                      h.AriaCurrent(
+                        model.chapter === chapter.id ? 'step' : 'false',
+                      ),
+                      h.OnClick(
+                        Message.ClickedChapter({ chapter: chapter.id }),
+                      ),
+                    ],
+                    [
+                      h.span([h.Class('n')], [`${index + 1}`]),
+                      h.span([h.Class('t')], [chapter.name]),
+                      h.span(
+                        [h.Class('k')],
+                        [
+                          model.completedChapters.includes(chapter.id)
+                            ? 'done'
+                            : '',
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          )
+        : h.empty,
+      h.h2([h.Class('side-title')], ['Route · easy to complex']),
       h.ol(
         [h.Class('journey')],
-        [
-          ...Array.map(chapters, (chapter, index) =>
-            h.keyed('li')(
-              chapter.id,
-              [],
-              [
-                h.button(
-                  [
-                    h.Type('button'),
-                    h.Class('rung'),
-                    h.AriaCurrent(
-                      model.chapter === chapter.id ? 'step' : 'false',
-                    ),
-                    h.OnClick(Message.ClickedChapter({ chapter: chapter.id })),
-                  ],
-                  [
-                    h.span([h.Class('n')], [`0${index + 1}`]),
-                    h.span([h.Class('t')], [chapter.name]),
-                    h.span(
-                      [h.Class('k')],
-                      [
-                        model.completedChapters.includes(chapter.id)
-                          ? 'done'
-                          : '',
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
+        Array.map(route.specimens, specimen =>
+          h.keyed('li')(
+            specimen.id,
+            [],
+            [
+              h.button(
+                [
+                  h.Type('button'),
+                  h.Class('rung'),
+                  h.AriaCurrent(
+                    model.station === specimen.id ? 'page' : 'false',
+                  ),
+                  h.OnClick(
+                    Message.SelectedStation({
+                      station: stationOf(specimen.id),
+                    }),
+                  ),
+                ],
+                [
+                  h.span(
+                    [h.Class('n')],
+                    [String(specimen.number).padStart(2, '0')],
+                  ),
+                  h.span([h.Class('t')], [specimen.title]),
+                  h.span(
+                    [h.Class(`k ${specimen.status}`)],
+                    [specimen.status === 'simulated' ? 'try it' : 'read'],
+                  ),
+                ],
+              ),
+            ],
           ),
-          ...Array.map(plannedChapters, (name, index) =>
-            h.keyed('li')(
-              name,
-              [h.Class('rung planned')],
-              [
-                h.span(
-                  [h.Class('n')],
-                  [String(chapters.length + index + 1).padStart(2, '0')],
-                ),
-                h.span([h.Class('t')], [name]),
-                h.span([h.Class('k')], ['planned']),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     ],
   )
 
 const kitView = (model: Model, h: H): Html =>
-  h.section(
-    [h.Class('side-section')],
-    [
-      h.h2([h.Class('side-title')], ['Your kit · 4 items']),
-      h.ul(
-        [h.Class('slots')],
-        Array.map(catalogue, capability =>
-          h.keyed('li')(capability.name, [], [slotView(model, capability, h)]),
+  Array.match(
+    Array.filter(
+      catalogue,
+      capability => capability.specimen === model.station,
+    ),
+    {
+      onEmpty: () => h.empty,
+      onNonEmpty: items =>
+        h.section(
+          [h.Class('side-section')],
+          [
+            h.h2([h.Class('side-title')], ['Your kit']),
+            h.ul(
+              [h.Class('slots')],
+              Array.map(items, capability =>
+                h.keyed('li')(
+                  capability.name,
+                  [],
+                  [slotView(model, capability, h)],
+                ),
+              ),
+            ),
+          ],
         ),
-      ),
-      h.p(
-        [h.Class('side-note')],
-        [
-          'Discovering an item is not permission to use it. On this page nothing checks who you are.',
-        ],
-      ),
-    ],
+    },
   )
 
 const slotView = (model: Model, capability: Capability, h: H): Html =>
@@ -394,14 +513,32 @@ const inspectorView = (model: Model, h: H): Html =>
       h.h2([h.Class('side-title')], ['Inspector']),
       Option.match(Option.flatMap(model.maybeSelected, findCapability), {
         onNone: () =>
-          h.p(
-            [h.Class('side-note')],
-            ['Pick an item from the kit to see what it really is.'],
-          ),
+          h.p([h.Class('side-note')], ['Pick an item from the kit.']),
         onSome: capability => cardView(capability, h),
       }),
-      h.h2([h.Class('side-title')], ['Five questions about your last run']),
-      fiveView(model, h),
+      Option.match(finishedRecord(model.run), {
+        onNone: () => h.empty,
+        onSome: () =>
+          h.details(
+            [h.Class('fold'), h.Open(true)],
+            [
+              h.summary([], ['Five questions about your last run']),
+              fiveView(model, h),
+            ],
+          ),
+      }),
+      h.details(
+        [h.Class('fold')],
+        [
+          h.summary([], ['What is real on this page']),
+          h.p(
+            [h.Class('side-note')],
+            [
+              'The engine runs in this tab on synthetic data. There is no model, no approval step and no live MCP connection. Discovering an item is not permission to use it; here nothing checks who you are.',
+            ],
+          ),
+        ],
+      ),
     ],
   )
 
@@ -411,21 +548,27 @@ const cardView = (capability: Capability, h: H): Html =>
     [
       h.h3([], [`${capability.title} · ${capability.name}`]),
       h.p([h.Class('desc')], [capability.description]),
-      h.dl(
-        [h.Class('facts')],
+      h.details(
+        [h.Class('fold')],
         [
-          factView('What can I observe?', capability.observe, h),
-          factView('What can I request?', capability.request, h),
-          factView('What does it produce?', capability.produces, h),
-          factView('What can change?', capability.changes, h),
-          factView('When does it finish?', capability.finishes, h),
-          factView(
-            'What does it depend on?',
-            Array.map(
-              capability.dependsOn,
-              component => componentNames[component],
-            ).join(', '),
-            h,
+          h.summary([], ['Six facts about this item']),
+          h.dl(
+            [h.Class('facts')],
+            [
+              factView('What can I observe?', capability.observe, h),
+              factView('What can I request?', capability.request, h),
+              factView('What does it produce?', capability.produces, h),
+              factView('What can change?', capability.changes, h),
+              factView('When does it finish?', capability.finishes, h),
+              factView(
+                'What does it depend on?',
+                Array.map(
+                  capability.dependsOn,
+                  component => componentNames[component],
+                ).join(', '),
+                h,
+              ),
+            ],
           ),
         ],
       ),
@@ -441,18 +584,186 @@ const statusbarView = (model: Model, h: H): Html =>
   h.footer(
     [h.Class('statusbar')],
     [
-      h.span([], ['Simulation: the engine runs in this tab']),
-      h.span([], ['No model · no live MCP connection']),
+      h.span([], ['Simulation · engine in this tab']),
+      h.span([], ['No model · no live MCP']),
       h.span(
         [],
-        [`${model.weather} valley · map revision ${model.world.revision}`],
+        [
+          model.station === 'valley'
+            ? `${model.weather} valley · map revision ${model.world.revision}`
+            : model.station === 'fetch'
+              ? `robots policy: ${model.fetchPolicy}`
+              : 'reference only · unverified',
+        ],
       ),
     ],
   )
 
+// SPECIMEN
+
+const specimenView = (specimen: Specimen, h: H): Html =>
+  h.div(
+    [h.Class('specimen')],
+    [
+      h.div(
+        [h.Class('prompt')],
+        [
+          h.div(
+            [],
+            [
+              h.h2(
+                [],
+                [
+                  `${String(specimen.number).padStart(2, '0')} · ${specimen.title}`,
+                ],
+              ),
+              h.p([h.Class('question')], [specimen.question]),
+            ],
+          ),
+          h.span(
+            [h.Class('pill')],
+            [
+              specimen.status === 'simulated'
+                ? 'Simulated here'
+                : 'Reference only · not built',
+            ],
+          ),
+        ],
+      ),
+      h.details(
+        [h.Class('fold')],
+        [
+          h.summary([], [`Anchor: ${specimen.anchor.repo}`]),
+          h.p([], [specimen.anchor.note]),
+          ...Array.map(specimen.diversions, diversion =>
+            h.p(
+              [],
+              [h.b([], [`Diversion, ${diversion.repo}: `]), diversion.note],
+            ),
+          ),
+        ],
+      ),
+      h.details(
+        [h.Class('fold')],
+        [
+          h.summary([], ['Where it bends, and the experiment']),
+          h.p([], [specimen.bent]),
+          h.p([], [h.b([], ['Experiment: ']), specimen.experiment]),
+        ],
+      ),
+      h.details(
+        [h.Class('fold')],
+        [
+          h.summary([], [`Sources (${specimen.sources.length}), unverified`]),
+          h.ul(
+            [h.Class('sources')],
+            Array.map(specimen.sources, source =>
+              h.keyed('li')(
+                source,
+                [],
+                [
+                  h.a(
+                    [h.Href(source), h.Target('_blank'), h.Rel('noreferrer')],
+                    [source.replace('https://github.com/', '')],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ],
+  )
+
+const fetchBenchView = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('ctl')],
+    [
+      h.label(
+        [h.For('url'), h.Class('field')],
+        [
+          h.span([], ['URL on the synthetic site']),
+          h.select(
+            [
+              h.Id('url'),
+              h.Value(model.url),
+              h.OnChange(value => Message.SelectedUrl({ value })),
+            ],
+            Array.map(siteUrls, url =>
+              h.option([h.Value(url), h.Selected(url === model.url)], [url]),
+            ),
+          ),
+        ],
+      ),
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('btn'),
+          h.Disabled(RunState.isAnyOf(['Running'])(model.run)),
+          h.OnClick(Message.ClickedExecute()),
+        ],
+        ['Execute fetch_page'],
+      ),
+    ],
+  )
+
+const fetchedPageView = (model: Model, h: H): Html =>
+  Option.match(finishedRecord(model.run), {
+    onNone: () => h.empty,
+    onSome: record =>
+      record.outcome._tag === 'Succeeded' &&
+      record.outcome.output._tag === 'PageFetched'
+        ? h.div(
+            [h.Class('card')],
+            [
+              h.h3([], ['What came back']),
+              h.p(
+                [h.Class('pathlist')],
+                [record.outcome.output.hops.join(' → ')],
+              ),
+              h.pre([h.Class('page')], [record.outcome.output.markdown]),
+            ],
+          )
+        : h.empty,
+  })
+
 // ONSTAGE
 
-const workbenchView = (model: Model, h: H): Html => {
+const workbenchView = (model: Model, h: H): Html =>
+  model.station === 'valley'
+    ? valleyBenchView(model, h)
+    : h.main(
+        [h.Class('workbench'), h.AriaLabel('Workbench')],
+        [
+          h.div(
+            [h.Class('panehead')],
+            [
+              h.span([h.Class('eyebrow')], ['Onstage · what you see']),
+              model.station === 'fetch' ? runPill(model.run, h) : h.empty,
+            ],
+          ),
+          Option.match(findSpecimen(model.station), {
+            onNone: () => h.empty,
+            onSome: specimen => specimenView(specimen, h),
+          }),
+          ...(model.station === 'fetch'
+            ? [
+                fetchBenchView(model, h),
+                resultView(model, h),
+                fetchedPageView(model, h),
+              ]
+            : [
+                h.p(
+                  [h.Class('empty')],
+                  [
+                    'Nothing to run yet. This station is a research lead waiting for its simulation.',
+                  ],
+                ),
+              ]),
+        ],
+      )
+
+const valleyBenchView = (model: Model, h: H): Html => {
   const index = chapters.findIndex(chapter => chapter.id === model.chapter)
   const maybeNext = Option.fromNullishOr(chapters[index + 1])
   return h.main(
@@ -616,7 +927,7 @@ const controlsView = (model: Model, h: H): Html => {
       h.div(
         [h.Class('ctl')],
         [
-          capability.takesEndpoints
+          capability.input === 'endpoints'
             ? placeSelect(
                 'from',
                 'From',
@@ -626,7 +937,7 @@ const controlsView = (model: Model, h: H): Html => {
                 h,
               )
             : h.empty,
-          capability.takesEndpoints
+          capability.input === 'endpoints'
             ? placeSelect(
                 'to',
                 'To',
@@ -689,7 +1000,9 @@ const resultView = (model: Model, h: H): Html =>
             [],
             [
               record.revisionAfter === record.revisionBefore
-                ? `Nothing was built. The map is still at revision ${record.revisionAfter}.`
+                ? record.capability === 'fetch_page'
+                  ? 'No page content was returned.'
+                  : `Nothing was built. The map is still at revision ${record.revisionAfter}.`
                 : `The map changed before the failure: revision ${record.revisionBefore} → ${record.revisionAfter}.`,
             ],
           ),
@@ -909,6 +1222,17 @@ const frameLabel = (message: unknown): string => {
 }
 
 const recordingTabView = (model: Model, h: H): Html => {
+  if (model.station !== 'valley') {
+    return h.div(
+      [h.Class('tabpane')],
+      [
+        h.p(
+          [h.Class('quiet')],
+          ['No recording for this station yet. The valley has one.'],
+        ),
+      ],
+    )
+  }
   const take = model.weather === 'storm' ? recording.storm : recording.calm
   const cliEvents = JSON.stringify(take.cli.stdout.events)
   const matchesLastRun = Option.match(finishedRecord(model.run), {
@@ -1059,7 +1383,7 @@ const networkView = (model: Model, h: H): Html => {
                     lastRun(() => 'Dispatched the command.'),
                     h,
                   ),
-                  ...Array.map(engineComponents, component =>
+                  ...Array.map(componentsOf(model.station), component =>
                     networkRow(
                       componentNames[component],
                       componentRoles[component],

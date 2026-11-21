@@ -7,6 +7,7 @@ import { catalogue, runOn } from '../domain/capabilities.ts'
 import { Pace } from '../domain/services.ts'
 import {
   CALM_MAX_SPAN,
+  FetchPolicy,
   STORM_MAX_SPAN,
   World,
   seedWorld,
@@ -17,6 +18,8 @@ const usage = `Usage: lab <capability> [--from <place>] [--to <place>] [options]
        lab list
 
 Options:
+  --url <url>     the page for fetch_page, e.g. https://valley.test/notice
+  --policy <p>    robots policy for fetch_page: every-hop (default), first-hop, none
   --storm         start from the storm world (span limit ${STORM_MAX_SPAN} instead of ${CALM_MAX_SPAN})
   --state <file>  keep the world in this file between runs (default: a fresh world each run)
   --json          print the full run record as JSON
@@ -29,6 +32,8 @@ const { values, positionals } = parseArgs({
   options: {
     from: { type: 'string' },
     to: { type: 'string' },
+    url: { type: 'string' },
+    policy: { type: 'string' },
     storm: { type: 'boolean', default: false },
     state: { type: 'string' },
     json: { type: 'boolean', default: false },
@@ -41,7 +46,10 @@ const loadWorld = (statePath: string | undefined, storm: boolean): World =>
     ? Schema.decodeUnknownSync(World)(
         JSON.parse(readFileSync(statePath, 'utf8')),
       )
-    : seedWorld(storm ? STORM_MAX_SPAN : CALM_MAX_SPAN)
+    : seedWorld(
+        storm ? STORM_MAX_SPAN : CALM_MAX_SPAN,
+        Schema.decodeUnknownSync(FetchPolicy)(values.policy ?? 'every-hop'),
+      )
 
 const saveWorld = (statePath: string | undefined, world: World): void => {
   if (statePath !== undefined) {
@@ -65,9 +73,11 @@ if (command === 'list') {
 }
 
 const input =
-  values.from === undefined && values.to === undefined
-    ? {}
-    : { from: values.from, to: values.to }
+  values.url !== undefined
+    ? { url: values.url }
+    : values.from === undefined && values.to === undefined
+      ? {}
+      : { from: values.from, to: values.to }
 
 const result = await Effect.runPromise(
   runOn(loadWorld(values.state, values.storm), command, input).pipe(

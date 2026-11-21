@@ -27,11 +27,16 @@ export const RunCapability = Command.define('RunCapability', {
     capability: Schema.String,
     from: PlaceId,
     to: PlaceId,
+    url: Schema.String,
   },
   messages: [Message.CompletedRunCapability],
   interrupt: true,
-  execute: ({ runId, world, capability, from, to }) =>
-    runInProcess(world, capability, { from, to }).pipe(
+  execute: ({ runId, world, capability, from, to, url }) =>
+    runInProcess(
+      world,
+      capability,
+      capability === 'fetch_page' ? { url } : { from, to },
+    ).pipe(
       Effect.map(result =>
         Message.CompletedRunCapability({
           runId,
@@ -54,9 +59,12 @@ export const WaitBeforeNextEvent = Command.define('WaitBeforeNextEvent', {
 // INIT
 
 export const initialModel: Model = {
+  station: 'valley',
   chapter: 'discover',
   completedChapters: [],
   weather: 'calm',
+  fetchPolicy: 'every-hop',
+  url: 'https://valley.test/notice',
   world: worldFor('calm'),
   maybeSelected: Option.none(),
   from: 'forge',
@@ -128,7 +136,7 @@ const interruptIfRunning = (model: Model) =>
 const freshWorld = (model: Model, weather: Weather): Model =>
   modifyFields(model, {
     weather: () => weather,
-    world: () => worldFor(weather),
+    world: () => worldFor(weather, model.fetchPolicy),
     run: () => RunState.Idle(),
     replay: () => Replay.Complete(),
   })
@@ -143,7 +151,10 @@ const withEndpoints = (model: Model, from: PlaceId, to: PlaceId): Model =>
   modifyFields(model, { from: () => from, to: () => to })
 
 const openChapter = (model: Model, chapter: Chapter): UpdateReturn => {
-  const entered = modifyFields(model, { chapter: () => chapter })
+  const entered = modifyFields(model, {
+    chapter: () => chapter,
+    station: () => 'valley',
+  })
   if (chapter === 'discover') {
     return {
       model: complete(
@@ -214,6 +225,28 @@ const advance = (model: Model, cursor: number): Replay =>
 export const update = (current: Model, message: Message) => {
   const model = logged(current, message)
   return Message.match<UpdateReturn>(message, {
+    SelectedStation: ({ station }) => ({
+      model: modifyFields(freshWorld(model, model.weather), {
+        station: () => station,
+        maybeSelected: () =>
+          station === 'fetch' ? Option.some('fetch_page') : Option.none(),
+        tab: () => 'engine',
+      }),
+      commands: interruptIfRunning(model),
+    }),
+
+    SelectedPolicy: ({ policy }) => ({
+      model: freshWorld(
+        modifyFields(model, { fetchPolicy: () => policy }),
+        model.weather,
+      ),
+      commands: interruptIfRunning(model),
+    }),
+
+    SelectedUrl: ({ value }) => ({
+      model: modifyFields(model, { url: () => value }),
+    }),
+
     ClickedChapter: ({ chapter }) => openChapter(model, chapter),
 
     SelectedCapability: ({ name }) => ({ model: select(model, name) }),
@@ -254,6 +287,7 @@ export const update = (current: Model, message: Message) => {
                   capability,
                   from: model.from,
                   to: model.to,
+                  url: model.url,
                 }),
               ],
             }),

@@ -20,6 +20,7 @@ npm run lab -- list
 npm run lab -- connect_places --from forge --to dock            # CLI, succeeds
 npm run lab -- connect_places --from forge --to dock --storm    # CLI, controlled failure, exit 1
 npm run lab -- build_path --from mill --to archive --state .lab/world.json   # keep the world between runs
+npm run lab -- fetch_page --url https://valley.test/notice --policy first-hop   # station 01, bent
 npm run mcp:server   # MCP server over stdio, for any MCP client
 npm run record       # rerun the real CLI and MCP exchange shown in the lab
 ```
@@ -30,6 +31,8 @@ What is real and what is not:
 - The CLI and the MCP stdio server run the same engine. The MCP path is tested with the official SDK client over stdio.
 - The "Recorded CLI + MCP" tab shows `src/recordings/entrances.json`, captured by `npm run record`. It is a recording, labelled as such.
 - There is no model, no approval step and no remote service anywhere in this slice.
+
+The route of twelve specimens lives in [specimens/](specimens/README.md); its claims about upstream projects are unverified research leads.
 
 Layout: `src/domain` (engine, no DOM or transport), `src/adapters` (in-process, CLI, MCP), `src/lab` (Foldkit model, update, view), `lab/concept.html` (the earlier prototype, kept as reference). `npm run infra:deploy` is gated and was not run; nothing is deployed.
 

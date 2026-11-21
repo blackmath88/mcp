@@ -149,6 +149,38 @@ describe('MCP adapter over stdio, driven by the SDK client', () => {
   })
 })
 
+describe('fetch specimen through both entrances', () => {
+  const notice = 'https://valley.test/notice'
+
+  test('CLI: the policy flag changes the outcome of the same URL', () => {
+    expect(cli('fetch_page', '--url', notice).status).toBe(1)
+    const lenient = cli(
+      'fetch_page',
+      '--url',
+      notice,
+      '--policy',
+      'first-hop',
+      '--json',
+    )
+    expect(lenient.status).toBe(0)
+    expect(JSON.parse(lenient.stdout).outcome.output.finalUrl).toBe(
+      'https://valley.test/ledger',
+    )
+  })
+
+  test('MCP: same tool name and schema, different server policy, different result', async () => {
+    const call = (client: Client) =>
+      client.callTool({ name: 'fetch_page', arguments: { url: notice } })
+    const strict = await withClient([], call)
+    const lenient = await withClient(['--policy=first-hop'], call)
+    expect(strict.isError).toBe(true)
+    expect(lenient.isError).toBe(false)
+    expect(lenient.structuredContent).toMatchObject({
+      outcome: { output: { finalUrl: 'https://valley.test/ledger' } },
+    })
+  })
+})
+
 describe('recording shown in the lab', () => {
   test('carries its provenance and a real handshake', () => {
     expect(recording.mcpSdk).toMatch(/^\d+\.\d+\.\d+$/)

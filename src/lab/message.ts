@@ -3,10 +3,13 @@ import { Command } from 'foldkit'
 import { defineMessageUnion } from 'foldkit/message'
 
 import { CapabilityName, RunRecord } from '../domain/capabilities.ts'
-import { World } from '../domain/world.ts'
-import { BackstageTab, Chapter, Weather } from './model.ts'
+import { FetchPolicy, World } from '../domain/world.ts'
+import { BackstageTab, Chapter, Station, Weather } from './model.ts'
 
 export const Message = defineMessageUnion({
+  SelectedStation: { station: Station },
+  SelectedPolicy: { policy: FetchPolicy },
+  SelectedUrl: { value: Schema.String },
   ClickedChapter: { chapter: Chapter },
   SelectedCapability: { name: CapabilityName },
   SelectedFrom: { value: Schema.String },

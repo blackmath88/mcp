@@ -91,6 +91,56 @@ describe('the learning path', () => {
   })
 })
 
+describe('the route of specimens', () => {
+  test('a reference station shows its question and says it is not built', () => {
+    scene(
+      { update, view },
+      given(initialModel),
+      click(role('button', { name: /Memory/ })),
+      expect(
+        text(
+          'What actually remembers, and what decides which stored statement is true?',
+        ),
+      ).toExist(),
+      expect(text('Reference only · not built')).toExist(),
+      expect(role('button', { name: /Execute/ })).toBeAbsent(),
+    )
+  })
+
+  test('the fetch station runs and its bend changes the engine world', () => {
+    const fetched = Effect.runSync(
+      runOn(worldFor('calm', 'first-hop'), 'fetch_page', {
+        url: 'https://valley.test/notice',
+      }).pipe(Effect.provide(Pace.unpaced)),
+    )
+    scene(
+      { update, view },
+      given(initialModel),
+      click(role('button', { name: /Fetch a page/ })),
+      expect(text('Simulated here')).toExist(),
+      click(role('button', { name: 'First URL only' })),
+      click(role('button', { name: 'Execute fetch_page' })),
+      Command.resolve(
+        RunCapability,
+        Message.CompletedRunCapability({
+          runId: 1,
+          record: fetched.record,
+          world: fetched.world,
+        }),
+      ),
+      expect(text('Succeeded')).toExist(),
+      expect(text('What came back')).toExist(),
+      expect(role('button', { name: 'Page fetcher, ask' })).toExist(),
+      expect(text('Page fetcher · fetch_page')).toExist(),
+      expect(
+        text(
+          'robots.txt not consulted for hop 2: policy: check the first URL only',
+        ),
+      ).toExist(),
+    )
+  })
+})
+
 describe('truthful labelling of evidence', () => {
   test('engine events are labelled in-process, never as MCP traffic', () => {
     scene(

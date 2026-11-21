@@ -1,0 +1,303 @@
+{
+  "source": "Owner-supplied research, 2026-11-21. Not verified by the lab: no upstream project was executed, pinned or benchmarked.",
+  "specimens": [
+    {
+      "id": "fetch",
+      "title": "Fetch a page",
+      "status": "simulated",
+      "question": "Does \"fetch this URL\" describe one operation, or a chain of decisions?",
+      "anchor": {
+        "repo": "modelcontextprotocol/servers",
+        "path": "src/fetch",
+        "note": "Reference Fetch server: retrieves a page and converts HTML to Markdown. Documented to treat model-initiated tool calls and user-initiated prompts differently for robots.txt, and to check for non-public destinations."
+      },
+      "diversions": [
+        {
+          "repo": "LangGPT/mcp-fetch",
+          "note": "Fork that removes robots.txt checking: similar capability, different policy."
+        }
+      ],
+      "bent": "A published advisory describes a redirect leading to a disallowed destination without a second robots check. The current README describes per-hop checking. These are different revisions.",
+      "experiment": "Serve an allowed page that redirects to a disallowed one. Compare final destination, returned content and recorded checks under each policy.",
+      "sources": [
+        "https://github.com/modelcontextprotocol/servers/blob/main/src/fetch/README.md",
+        "https://github.com/LangGPT/mcp-fetch",
+        "https://github.com/modelcontextprotocol/servers/security/advisories/GHSA-3jqg-r5pp-rmp2"
+      ],
+      "number": 1
+    },
+    {
+      "id": "memory",
+      "title": "Memory",
+      "status": "reference",
+      "question": "What actually remembers, and what decides which stored statement is true?",
+      "anchor": {
+        "repo": "modelcontextprotocol/servers",
+        "path": "src/memory",
+        "note": "Reference server storing entities, observations and relations in a local knowledge graph. Its README warns the default storage location can sit in a package-managed directory."
+      },
+      "diversions": [
+        {
+          "repo": "shaneholloman/mcp-knowledge-graph",
+          "note": "Adds project/global database handling and a file marker against overwriting unrelated files."
+        },
+        {
+          "repo": "okooo5km/memory-mcp-server",
+          "note": "Reimplements the graph-memory idea in Swift."
+        },
+        {
+          "repo": "CheMiguel23/MemoryMesh",
+          "note": "Applies the same graph concept to RPG worlds, organisations or reading notes."
+        }
+      ],
+      "bent": "The interface promises memory, but persistence depends on where the file lives.",
+      "experiment": "Store two facts about a fictional workshop. Restart the client, restart the server, change the storage path, then add a conflicting observation.",
+      "sources": [
+        "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+        "https://github.com/shaneholloman/mcp-knowledge-graph",
+        "https://github.com/okooo5km/memory-mcp-server",
+        "https://github.com/CheMiguel23/MemoryMesh"
+      ],
+      "number": 2
+    },
+    {
+      "id": "thinking",
+      "title": "\"Thinking\" as a tool",
+      "status": "reference",
+      "question": "Is this item recording thought, computing a plan, or consulting another intelligence?",
+      "anchor": {
+        "repo": "modelcontextprotocol/servers",
+        "path": "src/sequentialthinking",
+        "note": "Exposes a structured thinking process with revision and branching. The interface accepts thought text and sequence metadata from the caller."
+      },
+      "diversions": [],
+      "bent": "A tool with \"thinking\" in its name is not automatically another model.",
+      "experiment": "Put three implementations behind similar icons: store caller-supplied steps, run a deterministic planner, ask another model. These are proposed lab implementations, not claims about the reference server.",
+      "sources": [
+        "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking"
+      ],
+      "number": 3
+    },
+    {
+      "id": "filesystem",
+      "title": "Filesystem",
+      "status": "reference",
+      "question": "Is the boundary defined at launch, by the client, or by the server's effective state?",
+      "anchor": {
+        "repo": "modelcontextprotocol/servers",
+        "path": "src/filesystem",
+        "note": "File operations constrained by allowed directories."
+      },
+      "diversions": [
+        {
+          "repo": "modelcontextprotocol/servers",
+          "note": "Issue 3602: CLI-provided directories versus client-provided Roots."
+        }
+      ],
+      "bent": "Issue 5094 reports a roots update with no valid roots leaving the previous access list active; the thread records a later fix. A historical specimen, not a claim about current builds.",
+      "experiment": "Use disposable directories and change the permitted workspace mid-session.",
+      "sources": [
+        "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
+        "https://github.com/modelcontextprotocol/servers/issues/3602",
+        "https://github.com/modelcontextprotocol/servers/issues/5094"
+      ],
+      "number": 4
+    },
+    {
+      "id": "perception",
+      "title": "Browser perception",
+      "status": "reference",
+      "question": "Can the assistant not perform the action, or can it not perceive the target through this interface?",
+      "anchor": {
+        "repo": "microsoft/playwright-mcp",
+        "path": "",
+        "note": "Exposes structured accessibility snapshots with element references for browser interaction."
+      },
+      "diversions": [
+        {
+          "repo": "microsoft/playwright-mcp",
+          "note": "Compare the structured snapshot with screenshots and visible page content."
+        }
+      ],
+      "bent": "Release notes include fixes around snapshot content: the representation itself has edges.",
+      "experiment": "A synthetic page with a labelled button, an unlabelled visual twin, a canvas and a control that changes after inspection.",
+      "sources": [
+        "https://github.com/microsoft/playwright-mcp",
+        "https://github.com/microsoft/playwright.dev/blob/main/mcp/snapshots.mdx",
+        "https://github.com/microsoft/playwright-mcp/releases"
+      ],
+      "number": 5
+    },
+    {
+      "id": "cli",
+      "title": "CLI, reversed",
+      "status": "reference",
+      "question": "Which parts discover a change dynamically, and which are generated artifacts that go stale?",
+      "anchor": {
+        "repo": "modelcontextprotocol/inspector",
+        "path": "",
+        "note": "An instrument for inspecting a server's capabilities and exchanges."
+      },
+      "diversions": [
+        {
+          "repo": "openclaw/mcporter",
+          "note": "Calls servers from scripts and the terminal, and generates a standalone CLI from a server's tool definitions."
+        }
+      ],
+      "bent": "A generated CLI is a snapshot of a schema.",
+      "experiment": "Generate a CLI, then change the server's schema.",
+      "sources": [
+        "https://github.com/modelcontextprotocol/inspector",
+        "https://github.com/openclaw/mcporter",
+        "https://github.com/openclaw/mcporter/blob/main/docs/cli-generator.md"
+      ],
+      "number": 6
+    },
+    {
+      "id": "local-remote",
+      "title": "Local and remote",
+      "status": "reference",
+      "question": "Who owns this server process, and whose state is it holding?",
+      "anchor": {
+        "repo": "supercorp-ai/supergateway",
+        "path": "",
+        "note": "Bridges local stdio servers and network transports."
+      },
+      "diversions": [],
+      "bent": "Issue history includes a child process shared across clients, reconnection handling and cleanup of abandoned sessions (issues 35, 126, 160). Some record fixes; pin the revision to reproduce.",
+      "experiment": "Connect two clients to a specimen with explicit state. Disconnect one unexpectedly.",
+      "sources": [
+        "https://github.com/supercorp-ai/supergateway",
+        "https://github.com/supercorp-ai/supergateway/issues/35",
+        "https://github.com/supercorp-ai/supergateway/issues/126",
+        "https://github.com/supercorp-ai/supergateway/issues/160"
+      ],
+      "number": 7
+    },
+    {
+      "id": "apps",
+      "title": "The item becomes an application",
+      "status": "reference",
+      "question": "Which participant knows the current state?",
+      "anchor": {
+        "repo": "modelcontextprotocol/ext-apps",
+        "path": "examples/map-server",
+        "note": "Interactive globe with geocoding; declares app resources and permitted external connections."
+      },
+      "diversions": [
+        {
+          "repo": "modelcontextprotocol/ext-apps",
+          "note": "A later tool captures the current map view as a screenshot: human-visible state turned back into an artifact."
+        }
+      ],
+      "bent": "The tool result, the displayed map and the model's information can all differ.",
+      "experiment": "Let a person move the map, then compare the original tool result, the displayed map, a captured screenshot and what the model has.",
+      "sources": [
+        "https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/map-server",
+        "https://github.com/modelcontextprotocol/ext-apps/releases"
+      ],
+      "number": 8
+    },
+    {
+      "id": "code-mode",
+      "title": "One item contains a language",
+      "status": "reference",
+      "question": "Is the unit of responsibility a tool call, an individual effect, or the whole program?",
+      "anchor": {
+        "repo": "cloudflare/mcp",
+        "path": "",
+        "note": "Uses code execution to expose a broad API without sending its whole specification into the model's context."
+      },
+      "diversions": [
+        {
+          "repo": "maietta/mcp-code-mode-demo",
+          "note": "Community demonstration converting MCP tools into TypeScript APIs. Experimental; not a performance validation."
+        }
+      ],
+      "bent": "Batching does not give transaction semantics.",
+      "experiment": "Run a batch as individual calls, then as one program. Fail after the second write.",
+      "sources": [
+        "https://github.com/cloudflare/mcp",
+        "https://github.com/maietta/mcp-code-mode-demo"
+      ],
+      "number": 9
+    },
+    {
+      "id": "delegation",
+      "title": "Another intelligence",
+      "status": "reference",
+      "question": "When did advice become delegated responsibility?",
+      "anchor": {
+        "repo": "sammcj/mcp-llm",
+        "path": "",
+        "note": "Exposes access to other LLMs: a direct model-as-capability example. Maintenance needs checking."
+      },
+      "diversions": [
+        {
+          "repo": "lastmile-ai/mcp-agent",
+          "note": "Composes models and MCP tools through routing, parallelism, orchestration and evaluation."
+        }
+      ],
+      "bent": "A specialist cannot evaluate what it never receives.",
+      "experiment": "Keep the expert fixed and change only the contract: answer a question, review an artifact, deliver a validated artifact. Then remove context from the handoff.",
+      "sources": [
+        "https://github.com/sammcj/mcp-llm",
+        "https://github.com/lastmile-ai/mcp-agent"
+      ],
+      "number": 10
+    },
+    {
+      "id": "iteration",
+      "title": "Iteration and durable execution",
+      "status": "reference",
+      "question": "Who says \"good enough\", what stops the loop, and which component supplies durability?",
+      "anchor": {
+        "repo": "lastmile-ai/mcp-agent",
+        "path": "src/mcp_agent/workflows/evaluator_optimizer",
+        "note": "Evaluator-optimizer with quality evaluation and bounded refinement; examples include Temporal-backed execution."
+      },
+      "diversions": [
+        {
+          "repo": "lastmile-ai/mcp-agent",
+          "note": "Wrap a larger workflow inside the evaluator."
+        }
+      ],
+      "bent": "A model rating is evidence of an assessment, not proof of correctness.",
+      "experiment": "Set criteria that cannot all be satisfied. Interrupt execution and inspect what can resume.",
+      "sources": [
+        "https://github.com/lastmile-ai/mcp-agent",
+        "https://github.com/lastmile-ai/mcp-agent/blob/main/examples/temporal/README.md"
+      ],
+      "number": 11
+    },
+    {
+      "id": "network",
+      "title": "The network and the repair bench",
+      "status": "reference",
+      "question": "Is one entrance also one domain, one authority, or one workflow?",
+      "anchor": {
+        "repo": "IBM/mcp-context-forge",
+        "path": "",
+        "note": "Gateway describing aggregation, virtual servers and federation across capability sources."
+      },
+      "diversions": [
+        {
+          "repo": "tavric-labs/mcp-server-fuzzer",
+          "note": "Malformed and realistic inputs over actual transports."
+        },
+        {
+          "repo": "quanticsoul4772/mcplint",
+          "note": "Advertised protocol-validation and security checks."
+        }
+      ],
+      "bent": "A scanner passing does not establish correctness. Use fuzzers only against authorised, isolated specimens.",
+      "experiment": "Assemble one inventory from two backends, collide names, remove a dependency, change a schema.",
+      "sources": [
+        "https://github.com/IBM/mcp-context-forge",
+        "https://github.com/tavric-labs/mcp-server-fuzzer",
+        "https://github.com/quanticsoul4772/mcplint"
+      ],
+      "number": 12
+    }
+  ]
+}

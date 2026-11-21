@@ -13,6 +13,9 @@ export const outcomeLine = (record: RunRecord): string =>
         if (output._tag === 'RouteFound') {
           return `OK route ${output.route.places.join(' → ')} (span ${output.route.span})`
         }
+        if (output._tag === 'PageFetched') {
+          return `OK "${output.title}" from ${output.finalUrl} (${output.hops.length} hops, ${output.robotsChecks} robots checks)`
+        }
         if (output._tag === 'PathBuilt') {
           return `OK ${output.artifact.id}: ${output.artifact.summary}`
         }
