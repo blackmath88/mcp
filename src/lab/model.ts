@@ -118,6 +118,8 @@ export const Model = Schema.Struct({
   pythonError: Schema.String,
   python: Schema.Literals(['idle', 'running', 'done', 'unavailable']),
   screen: Schema.Literals(['home', 'bench']),
+  atlasView: Schema.Literals(['map', 'list']),
+  lens: Schema.Literals(['family', 'server']),
   transport: Schema.Literals(['mcp-in-tab', 'in-process']),
   tab: BackstageTab,
   backstage: Schema.Literals(['open', 'collapsed']),

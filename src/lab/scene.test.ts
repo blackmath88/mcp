@@ -1,4 +1,4 @@
-import { Effect } from 'effect'
+import { Effect, Option } from 'effect'
 import { Command, click, expect, given, role, scene, text } from 'foldkit/scene'
 import { describe, test } from 'vitest'
 
@@ -28,9 +28,13 @@ describe('the learning path', () => {
     scene(
       { update, view },
       given(initialModel),
-      expect(role('button', { name: 'Map, read' })).toExist(),
       expect(
-        role('button', { name: 'Connection workshop, program' }),
+        role('button', { name: 'Slot 1: Map. Select to inspect.' }),
+      ).toExist(),
+      expect(
+        role('button', {
+          name: 'Slot 4: Connection workshop. Select to inspect.',
+        }),
       ).toExist(),
       expect(role('button', { name: 'Connect them, any way' })).toExist(),
       expect(text('Idle')).toExist(),
@@ -41,7 +45,11 @@ describe('the learning path', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: 'Connection workshop, program' })),
+      click(
+        role('button', {
+          name: 'Slot 4: Connection workshop. Select to inspect.',
+        }),
+      ),
       expect(text('What can change?')).toExist(),
       expect(text('It may build a path. It decides which one.')).toExist(),
       click(role('button', { name: 'Connect them, any way' })),
@@ -62,7 +70,11 @@ describe('the learning path', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: 'Connection workshop, program' })),
+      click(
+        role('button', {
+          name: 'Slot 4: Connection workshop. Select to inspect.',
+        }),
+      ),
       click(role('button', { name: 'Connect them, any way' })),
       Command.resolve(RunCapability, completed('calm')),
       click(role('button', { name: 'Inspect run' })),
@@ -130,8 +142,10 @@ describe('the route of specimens', () => {
       ),
       expect(text('Succeeded')).toExist(),
       expect(text('What came back')).toExist(),
-      expect(role('button', { name: 'Page fetcher, ask' })).toExist(),
-      expect(text('Page fetcher · fetch_page')).toExist(),
+      expect(
+        role('button', { name: 'Slot 1: Page fetcher. Select to inspect.' }),
+      ).toExist(),
+      expect(text('fetch_page')).toExist(),
       click(role('button', { name: 'Inspect run' })),
       expect(
         text(
@@ -296,12 +310,11 @@ describe('orientation', () => {
     scene(
       { update, view },
       given(initialModel),
-      expect(text('Explore the inventory')).toExist(),
-      expect(text('Open the workshop')).toExist(),
-      expect(text('Follow the work')).toExist(),
+      expect(text('Specimens · any order')).toExist(),
+      expect(role('button', { name: '← Atlas' })).toExist(),
+      expect(text('Exposed by the Valley server')).toExist(),
       expect(text('Connecting…')).toExist(),
       expect(role('button', { name: 'Reset experiment' })).toExist(),
-      expect(text('Handed to you here')).toExist(),
     )
   })
 
@@ -323,8 +336,13 @@ describe('orientation', () => {
         ],
       }),
       expect(text('Real MCP · made-up data')).toExist(),
-      expect(role('button', { name: 'Recall, ask' })).toExist(),
-      expect(role('button', { name: 'Remember, act' })).toBeAbsent(),
+      expect(
+        role('button', { name: 'Slot 1: Recall. Select to inspect.' }),
+      ).toExist(),
+      expect(text('its answer to tools/list, just now')).toExist(),
+      expect(
+        role('button', { name: /Remember\. Select to inspect/ }),
+      ).toBeAbsent(),
     )
   })
 
@@ -424,18 +442,47 @@ describe('truthful labelling of evidence', () => {
 })
 
 describe('the home screen and touchable benches', () => {
-  test('the home screen shows the whole route and opens a station', () => {
+  test('the atlas lets you pick anything, shows what is known, and opens its specimen', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'home', maybeSelected: Option.none() }),
+      expect(text('What can a connection hand you?')).toExist(),
+      expect(text('Read and perceive')).toExist(),
+      expect(text('Remember and change')).toExist(),
+      expect(text('Compose and delegate')).toExist(),
+      expect(
+        text('Select something and its server’s tools appear here.'),
+      ).toExist(),
+      click(role('button', { name: /^Recall, Remember, exposed by/ })),
+      expect(text('Exposed by the Memory server')).toExist(),
+      expect(
+        text('per the lab’s catalogue · the server has not been asked'),
+      ).toExist(),
+      expect(
+        role('button', { name: 'Slot 1: Remember. Select to inspect.' }),
+      ).toExist(),
+      expect(text('this simulation never checks who is calling')).toExist(),
+      expect(text('no approval step exists here')).toExist(),
+      click(role('button', { name: 'Open “Memory”' })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
+      expect(
+        role('button', { name: 'Ask what it knows about Workshop A' }),
+      ).toExist(),
+      click(role('button', { name: '← Atlas' })),
+      expect(text('What can a connection hand you?')).toExist(),
+      expect(text('Exposed by the Memory server')).toExist(),
+    )
+  })
+
+  test('the full inventory lists every tool by server, beyond nine', () => {
     scene(
       { update, view },
       given({ ...initialModel, screen: 'home' }),
-      expect(text('What were you just handed?')).toExist(),
-      expect(text('Upstream revisions pinned')).toExist(),
-      expect(text('0 of 12')).toExist(),
-      click(role('button', { name: /A loop that refines/ })),
-      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
-      expect(role('button', { name: 'Run the loop' })).toExist(),
-      click(role('button', { name: 'MCP Lab, the whole route' })),
-      expect(text('Continue at A loop that refines')).toExist(),
+      click(role('button', { name: 'Full inventory' })),
+      expect(text('Ledger server')).toExist(),
+      expect(text('Gateway')).toExist(),
+      expect(role('button', { name: 'Write one entry' })).toExist(),
+      expect(role('button', { name: 'Crash and resume' })).toExist(),
     )
   })
 

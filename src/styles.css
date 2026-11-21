@@ -27,6 +27,7 @@
   --sans:
     Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  --px-ink: #1f1f23;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -46,6 +47,7 @@
     --sky: #38bdf8;
     --rose: #fb7185;
     --rosesub: rgba(251, 113, 133, 0.1);
+    --px-ink: #0b0b0d;
     --lift:
       inset 0 1px 0 rgba(255, 255, 255, 0.04),
       0 6px 16px -4px rgba(0, 0, 0, 0.4);
@@ -100,15 +102,16 @@ h3 {
   height: 100dvh;
   display: grid;
   grid-template-columns: 236px minmax(0, 1fr) 300px;
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
   grid-template-areas:
     'side title insp'
     'side work insp'
     'side panel insp'
+    'belt belt belt'
     'status status status';
 }
 .ide.backstage-open {
-  grid-template-rows: auto minmax(0, 1.3fr) minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1.3fr) minmax(0, 1fr) auto auto;
 }
 
 .sidebar {
@@ -1449,18 +1452,516 @@ textarea.console-text {
   font: 400 11px var(--mono);
 }
 
+/* Pixel sprites. Letters are materials; colour here never means family,
+   success or permission. */
+.px {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  image-rendering: pixelated;
+}
+.px-K {
+  fill: var(--px-ink);
+}
+.px-P {
+  fill: #f6f1e4;
+}
+.px-W {
+  fill: #b98b5e;
+}
+.px-M {
+  fill: #a1a1aa;
+}
+.px-D {
+  fill: #52525b;
+}
+.px-G {
+  fill: #a5dff5;
+}
+.px-R {
+  fill: #e5484d;
+}
+.px-Y {
+  fill: #f2c230;
+}
+.px-B {
+  fill: #3b82f6;
+}
+.px-N {
+  fill: #2fa66a;
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Sprites keep their dark outline, so they sit on a light plate. */
+  .px {
+    background: #d8d5cc;
+    border-radius: 5px;
+    outline: 2px solid #d8d5cc;
+  }
+}
+
+/* Atlas */
+.atlas-main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  width: 100%;
+  padding: 16px max(20px, env(safe-area-inset-right, 0px)) 16px
+    max(20px, env(safe-area-inset-left, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.atlas-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px 24px;
+}
+.atlas-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.atlas-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+.atlas-wrap {
+  container-type: inline-size;
+  min-width: 0;
+}
+.atlas {
+  position: relative;
+  aspect-ratio: 1200 / 584;
+  width: 100%;
+}
+.ground {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.region {
+  fill: var(--bg);
+  stroke: var(--bd);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.link {
+  stroke: var(--fg2);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  opacity: 0.45;
+  vector-effect: non-scaling-stroke;
+}
+.link.on {
+  stroke: var(--sky);
+  stroke-width: 2;
+  stroke-dasharray: none;
+  opacity: 1;
+}
+.hood-name,
+.plot-name {
+  position: absolute;
+  white-space: nowrap;
+}
+.hood-name {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.plot-name {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg2);
+}
+.obj {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 2px 5px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  text-align: center;
+  background: transparent;
+}
+.obj:hover {
+  background: var(--wash);
+}
+.obj[aria-pressed='true'] {
+  background: var(--bg);
+  border-color: var(--fg);
+  box-shadow: var(--lift);
+  z-index: 1;
+}
+.obj.kin {
+  border: 1px dashed var(--sky);
+}
+.obj-name {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.obj-sub {
+  font-size: 10px;
+  color: var(--sky);
+  line-height: 1.15;
+}
+.obj-mark,
+.slot-mark {
+  font: 500 9px var(--mono);
+  color: var(--fg2);
+  border: 1px solid var(--bd);
+  border-radius: 3px;
+  padding: 0 3px;
+  background: var(--bg);
+}
+.obj-mark {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+}
+@container (max-width: 780px) {
+  .atlas {
+    aspect-ratio: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .ground {
+    display: none;
+  }
+  .hood {
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    background: var(--bg);
+    padding: 10px 12px 12px;
+  }
+  .hood-name,
+  .plot-name,
+  .obj {
+    position: static !important;
+    width: auto !important;
+  }
+  .plot-name {
+    margin-top: 10px;
+  }
+  .plot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .obj {
+    width: 84px !important;
+  }
+  .obj-mark {
+    position: static;
+  }
+}
+.atlas-detail {
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  background: var(--bg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13px;
+}
+.atlas-detail h2 {
+  font-size: 15px;
+  font-weight: 600;
+}
+.atlas-detail h3,
+.related h3 {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fg2);
+}
+.atlas-detail > .btn {
+  align-self: flex-start;
+}
+.detail-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.bigicon {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  background: var(--canvas);
+  border: 1px solid var(--bd);
+  flex: none;
+}
+.bigicon .px {
+  width: 48px;
+  height: 48px;
+}
+.mono {
+  font: 400 11.5px var(--mono);
+  color: var(--fg2);
+}
+.evidence {
+  display: flex;
+  flex-direction: column;
+}
+.evidence > div {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 8px;
+  padding: 5px 0;
+  border-top: 1px solid var(--bd);
+  font-size: 12px;
+}
+.evidence dt {
+  color: var(--fg2);
+}
+.evidence dd {
+  display: flex;
+  flex-direction: column;
+}
+.evidence .basis {
+  color: var(--fg2);
+  font-size: 11px;
+}
+.related {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.chiprow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.toolchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 26px;
+  padding: 1px 8px 1px 3px;
+  border-radius: 7px;
+  border: 1px solid var(--bd);
+  background: var(--bg);
+  font-size: 12px;
+  font-weight: 500;
+  vertical-align: middle;
+}
+.toolchip .px {
+  width: 20px;
+  height: 20px;
+}
+.toolchip:hover {
+  border-color: var(--fg2);
+}
+.toolchip[aria-pressed='true'] {
+  border-color: var(--fg);
+  box-shadow: 0 0 0 1px var(--fg);
+}
+.producer {
+  font-size: 12px;
+  color: var(--fg2);
+}
+.atlas-foot {
+  font-size: 11.5px;
+  color: var(--fg2);
+}
+.crumb {
+  color: var(--fg3);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+.crumb:hover {
+  background: var(--wash);
+}
+.walk {
+  margin: 2px 0 4px 18px;
+}
+
+/* Full inventory */
+.inventory {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.inv-server {
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  background: var(--bg);
+  padding: 10px 12px;
+}
+.inv-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  padding-bottom: 6px;
+  font-size: 11.5px;
+  color: var(--fg2);
+}
+.inv-head h2 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sky);
+}
+.inv-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.inv-list li {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2px 8px;
+  padding: 6px 0;
+  border-top: 1px solid var(--bd);
+}
+.inv-family {
+  font-size: 11px;
+  color: var(--fg2);
+}
+.inv-desc {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--fg3);
+}
+
+/* Belt */
+.belt {
+  grid-area: belt;
+  display: flex;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 6px max(14px, env(safe-area-inset-right, 0px)) 6px
+    max(14px, env(safe-area-inset-left, 0px));
+  border-top: 1px solid var(--bd);
+  background: var(--side);
+  min-width: 0;
+}
+.belt-owner {
+  display: flex;
+  flex-direction: column;
+  font-size: 11.5px;
+  color: var(--fg2);
+  min-width: 0;
+  flex: 0 1 230px;
+}
+.belt-owner b {
+  color: var(--sky);
+  font-weight: 600;
+  font-size: 12.5px;
+}
+.belt-slots {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--dot);
+  flex: none;
+}
+.slot {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--bg);
+  border: 1px solid var(--bd);
+}
+.slot .px {
+  width: 32px;
+  height: 32px;
+}
+.slot:hover {
+  border-color: var(--fg2);
+}
+.slot[aria-pressed='true'] {
+  border-color: var(--fg);
+  box-shadow: 0 0 0 2px var(--fg);
+  z-index: 1;
+}
+.slot-key {
+  position: absolute;
+  top: 1px;
+  left: 3px;
+  font: 500 9px var(--mono);
+  color: var(--fg2);
+}
+.slot-mark {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.slot.more {
+  width: auto;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.belt-selected {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: var(--fg2);
+  overflow: hidden;
+}
+.belt-selected b {
+  color: var(--fg);
+  font-size: 12.5px;
+}
+.belt-selected span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 900px) {
+  .atlas-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .belt {
+    flex-wrap: wrap;
+  }
+  .belt-owner {
+    flex: 1 1 100%;
+  }
+  .atlas-main {
+    overflow-y: visible;
+  }
+}
+
 @media (max-width: 1100px) {
   .ide,
   .ide.backstage-open {
     height: auto;
     min-height: 100dvh;
     grid-template-columns: 220px minmax(0, 1fr);
-    grid-template-rows: auto auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto auto;
     grid-template-areas:
       'side title'
       'side work'
       'side panel'
       'insp insp'
+      'belt belt'
       'status status';
   }
   .inspector {
@@ -1495,8 +1996,17 @@ textarea.console-text {
   .inspector {
     order: 4;
   }
+  .belt {
+    order: 2;
+    position: sticky;
+    bottom: 0;
+  }
   .statusbar {
-    order: 5;
+    order: 6;
+  }
+  .belt-selected span,
+  .belt-owner span {
+    display: none;
   }
   .appbench {
     grid-template-columns: minmax(0, 1fr);

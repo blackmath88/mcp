@@ -2,8 +2,10 @@ import { Effect, Option } from 'effect'
 import { Command, given, message, model, story } from 'foldkit/story'
 import { describe, expect, test } from 'vitest'
 
-import { runOn } from '../domain/capabilities.ts'
+import { catalogue, families, runOn } from '../domain/capabilities.ts'
 import { Pace } from '../domain/services.ts'
+import { beltOf, calledTools, slotForKey } from './belt.ts'
+import { ICON_SIZE, sprites } from './icons.ts'
 import { Message } from './message.ts'
 import { type Model, Replay, RunState, worldFor } from './model.ts'
 import {
@@ -690,6 +692,124 @@ describe('the Python program and the home screen', () => {
         expect(current.python).toBe('idle')
         expect(current.pythonOutput).toBe('')
         expect(current.pythonError).toBe('')
+      }),
+    )
+  })
+})
+
+describe('the belt selects and never executes', () => {
+  test('a number key selects the slot and issues no command', () => {
+    story(
+      update,
+      given({ ...initialModel, station: 'code-mode', screen: 'bench' }),
+      message(Message.PressedSlotKey({ slot: 3 })),
+      Command.expectNone(),
+      model(current => {
+        expect(current.maybeSelected).toEqual(Option.some('write_entry'))
+        expect(current.run._tag).toBe('Idle')
+        expect(current.world.ledger.entries).toEqual([])
+      }),
+    )
+  })
+
+  test('clicking a slot selects a writing tool without running it', () => {
+    story(
+      update,
+      given({ ...initialModel, station: 'memory' }),
+      message(Message.SelectedCapability({ name: 'remember' })),
+      Command.expectNone(),
+      model(current => {
+        expect(current.run._tag).toBe('Idle')
+        expect(current.world.memory.packageCache).toEqual([])
+      }),
+    )
+  })
+
+  test('a key beyond the belt changes nothing', () => {
+    story(
+      update,
+      given({ ...initialModel, station: 'memory' }),
+      message(Message.PressedSlotKey({ slot: 9 })),
+      Command.expectNone(),
+      model(current => {
+        expect(current.maybeSelected).toEqual(initialModel.maybeSelected)
+      }),
+    )
+  })
+
+  test('number keys are ignored while typing or with a modifier', () => {
+    expect(
+      slotForKey({ key: '3', hasModifier: false, isTyping: true }),
+    ).toEqual(Option.none())
+    expect(
+      slotForKey({ key: '3', hasModifier: true, isTyping: false }),
+    ).toEqual(Option.none())
+    expect(
+      slotForKey({ key: 'a', hasModifier: false, isTyping: false }),
+    ).toEqual(Option.none())
+    expect(
+      slotForKey({ key: '3', hasModifier: false, isTyping: false }),
+    ).toEqual(Option.some(3))
+  })
+
+  test('the belt says where its contents come from', () => {
+    const asked = beltOf({
+      ...initialModel,
+      station: 'memory',
+      connection: 'connected',
+      tools: [
+        { name: 'recall', title: 'Recall', description: '', readOnly: true },
+      ],
+    })
+    expect(asked.source).toBe('server')
+    expect(asked.tools.map(tool => tool.name)).toEqual(['recall'])
+    const notAsked = beltOf({ ...initialModel, station: 'memory' })
+    expect(notAsked.source).toBe('catalogue')
+    expect(notAsked.tools.map(tool => tool.name)).toEqual([
+      'remember',
+      'recall',
+    ])
+  })
+
+  test('a called tool is read from the frames, not assumed', () => {
+    expect(
+      calledTools([
+        {
+          direction: 'client → server',
+          label: 'tools/call',
+          json: '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"recall","arguments":{}}}',
+        },
+        {
+          direction: 'client → server',
+          label: 'tools/list',
+          json: '{"method":"tools/list"}',
+        },
+      ]),
+    ).toEqual(['recall'])
+  })
+
+  test('every capability has a sprite of the right size and a family', () => {
+    for (const capability of catalogue) {
+      const rows = sprites[capability.name]
+      expect(rows).toHaveLength(ICON_SIZE)
+      expect(rows.every(row => row.length === ICON_SIZE)).toBe(true)
+      expect(families.some(family => family.id === capability.family)).toBe(
+        true,
+      )
+    }
+    expect(sprites.remember).not.toEqual(sprites.recall)
+  })
+
+  test('opening a capability from the atlas enters its specimen with it selected', () => {
+    story(
+      update,
+      given({ ...initialModel, screen: 'home' }),
+      message(Message.ClickedOpenSpecimen({ name: 'recall' })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
+      model(current => {
+        expect(current.screen).toBe('bench')
+        expect(current.station).toBe('memory')
+        expect(current.maybeSelected).toEqual(Option.some('recall'))
       }),
     )
   })

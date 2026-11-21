@@ -128,6 +128,12 @@ Status: agreed direction from owner ("do it for all stations ... python stuff wh
 
 No station asks the person to pick a tool from a list and press Execute. The things on the bench are the controls. Station 09 runs real Python in the tab through a locally served Pyodide, and its writes are real MCP tool calls. Python is not added to stations where it would only decorate. The page opens on a home screen that shows the whole route.
 
+## D16 — Atlas and inventory instead of a route
+
+Status: owner brief and "implement it", 2026-11-21. Implemented.
+
+The lab opens on a capability atlas, not a numbered route. People enter anywhere. Capabilities carry a family (our teaching groups), a fixed place on the atlas and one pixel sprite used everywhere. A nine-slot belt shows what one named server exposes and where that list came from; selecting a slot inspects and never executes. Authorisation and approval are shown as unknown because nothing in the simulation establishes them. Station numbers and ordered phases are removed; the valley's steps stay as an optional walk-through.
+
 ## Still undecided
 
 Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.

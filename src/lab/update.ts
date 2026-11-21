@@ -35,6 +35,7 @@ import {
   useThinkingMode,
   vanishClient,
 } from '../domain/world.ts'
+import { beltOf, findCapability } from './belt.ts'
 import { Message } from './message.ts'
 import {
   type Chapter,
@@ -233,6 +234,8 @@ export const initialModel: Model = {
   pythonError: '',
   python: 'idle',
   screen: 'bench',
+  atlasView: 'map',
+  lens: 'family',
   transport: 'mcp-in-tab',
   tab: 'engine',
   backstage: 'collapsed',
@@ -497,7 +500,7 @@ const advance = (model: Model, cursor: number): Replay =>
     ? Replay.Complete()
     : Replay.Paused({ cursor: cursor + 1 })
 
-export const update = (current: Model, message: Message) => {
+export const update = (current: Model, message: Message): UpdateReturn => {
   const model = logged(current, message)
   return Message.match<UpdateReturn>(message, {
     SelectedStation: ({ station }) => ({
@@ -830,6 +833,61 @@ export const update = (current: Model, message: Message) => {
     ClickedHome: () => ({
       model: modifyFields(model, { screen: () => 'home' }),
     }),
+
+    SelectedAtlasView: ({ view }) => ({
+      model: modifyFields(model, { atlasView: () => view }),
+    }),
+
+    SelectedLens: ({ lens }) => ({
+      model: modifyFields(model, { lens: () => lens }),
+    }),
+
+    ClickedShowOnAtlas: () => ({
+      model: modifyFields(model, {
+        screen: () => 'home',
+        atlasView: () => 'map',
+      }),
+    }),
+
+    ClickedOpenInventory: () => ({
+      model: modifyFields(model, {
+        screen: () => 'home',
+        atlasView: () => 'list',
+      }),
+    }),
+
+    // Selecting a slot inspects it. It never runs anything.
+    PressedSlotKey: ({ slot }) => ({
+      model: Option.match(Option.fromNullishOr(beltOf(model).tools[slot - 1]), {
+        onNone: () => model,
+        onSome: capability => select(model, capability.name),
+      }),
+    }),
+
+    ClickedOpenSpecimen: ({ name }) =>
+      Option.match(findCapability(name), {
+        onNone: () => ({ model }),
+        onSome: capability => {
+          if (capability.specimen === model.station) {
+            return {
+              model: modifyFields(model, {
+                screen: () => 'bench',
+                maybeSelected: () => Option.some(name),
+              }),
+            }
+          }
+          const opened = update(
+            model,
+            Message.SelectedStation({ station: capability.specimen }),
+          )
+          return {
+            ...opened,
+            model: modifyFields(opened.model, {
+              maybeSelected: () => Option.some(name),
+            }),
+          }
+        },
+      }),
 
     ClickedMapPlace: ({ place }) => ({
       model: modifyFields(model, {

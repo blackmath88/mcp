@@ -1,5 +1,50 @@
 # Handoff
 
+## Capability atlas, pixel tool icons, tool belt — 2026-11-21
+
+Brief: `docs/briefs/2026-11-21-capability-atlas.md`. Owner: "Ok implement it".
+
+### Changed
+
+- **Atlas replaces the home screen.** 28 capabilities as objects on three hand-arranged grounds (Read and perceive / Remember and change / Compose and delegate), grouped into ten families. Selecting one shows its details and draws lines to what else the same server exposes. A second lens names the server under every object. `src/lab/atlas.ts`.
+- **One pixel sprite per capability** (12×12, original), used on the atlas, the belt, the inventory, the inspector, the wire rail and "Produced by". `src/lab/icons.ts`. Sprite colours are materials (paper, wood, metal); they do not encode family, success or permission.
+- **Tool belt** at the bottom of both screens: up to nine slots, keys 1–9, always labelled with whose tools they are and where the list came from ("its answer to tools/list, just now" versus "per the lab's catalogue · the server has not been asked"). It replaces the sidebar kit. `src/lab/belt.ts`, `src/lab/subscriptions.ts`.
+- **Full inventory**: all 28 tools grouped by server, as the conventional non-map route.
+- **Families** are a new field on each capability in `src/domain/capabilities.ts`, declared there as this lab's teaching groups, not protocol categories.
+- **No course.** Station numbers, the three ordered phases, "Start in the valley" and the visited tags are gone. The sidebar is "Specimens · any order". The valley's seven steps remain as a collapsed "Optional walk-through".
+- Research leads supplied by the owner are stored in `docs/research/2026-11-21-wild-examples.md`, marked unverified.
+
+### Why this visual model
+
+A list cannot show that a server's tools sit in different families, or that two servers offer the same kind of thing. Fixed positions plus on-selection links show both without a self-arranging graph. The belt is where "exposes / has access to / used" would most easily blur, so it carries the ownership and source label and can only select.
+
+### Preserved
+
+All 13 benches and their direct actions, the real in-tab MCP session, Backstage tabs and their mode labels, real Python in station 09, CLI and stdio entrances. No dependency added.
+
+### Evidence (observed in this session)
+
+- `typecheck`, `lint`, `test` (157 passed), `build` pass.
+- Headless Chromium 1440×900: selected Recall on the atlas; belt showed the Memory server's two tools from the catalogue; opened the specimen; belt source changed to the tools/list answer; pressed `1` (slot selected, frame count unchanged at 10, pill stayed Idle); ran Remember and Recall from the bench; wire rail and "Produced by" showed the Recall sprite; returned to the atlas with Recall still selected and marked "called". Typing `1` in the Python editor left the belt selection alone. Focus plus Enter selected an atlas object. Full inventory listed 28. Dark mode looked at. No page or console error.
+- iPhone 13 emulation: atlas falls back to grouped lists, no horizontal overflow on atlas or bench.
+- Screenshots: `docs/reports/atlas/`.
+- By test: slot key and slot click issue no command and change no world state; keys ignored while typing or with a modifier; belt source; called tools read from frames; every capability has a 12×12 sprite and a family; Remember and Recall sprites differ.
+
+### Left unknown on purpose
+
+"Caller authorised" and "Call approved" are shown as unknown for every capability: the simulation has no identity or approval step.
+
+### Rough edges
+
+- No single server exposes more than four tools, so the belt's "+N more" overflow is implemented but never appears with real data. More than nine is shown only by the full inventory.
+- The four Compose sprites share a workbench and differ in a 5×3 pixel detail; at belt size they are hard to tell apart without the name.
+- Family assignment is a judgement (for example Step planner under Compose, Click under Change). Not reviewed by anyone else.
+- Selecting an object on the atlas does not ask its server; "advertised" stays "not asked yet" until the specimen is opened.
+- In dark mode sprites sit on a light plate, which hides the slot number on the belt.
+- The selected link line can cross a neighbouring label.
+- Not re-checked in a browser after the last layout tweak: the server lens. Not checked at all: a screen reader.
+- Earlier items still open: Backstage takes half the workbench when open; Fetch needs two clicks; valley map circles are mouse-only.
+
 ## Quality pass on the touchable benches — 2026-11-21
 
 Owner request: a quality check and a small UI/UX analysis, with fixes and a report.

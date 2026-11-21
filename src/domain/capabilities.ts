@@ -117,6 +117,63 @@ export type CapabilityName = typeof CapabilityName.Type
 
 export type Affordance = 'readable' | 'queryable' | 'operable' | 'program'
 
+// Teaching groups chosen by this lab. They are not categories of the MCP
+// protocol, which only knows tools, resources and prompts.
+export type Family =
+  | 'read'
+  | 'query'
+  | 'perceive'
+  | 'remember'
+  | 'change'
+  | 'app'
+  | 'compose'
+  | 'delegate'
+  | 'workflow'
+  | 'gateway'
+
+export const families: ReadonlyArray<
+  Readonly<{ id: Family; name: string; means: string }>
+> = [
+  {
+    id: 'read',
+    name: 'Read',
+    means: 'hands back something that already exists',
+  },
+  { id: 'query', name: 'Query', means: 'answers a question you put to it' },
+  {
+    id: 'perceive',
+    name: 'Perceive',
+    means: 'changes what can be seen at all',
+  },
+  {
+    id: 'remember',
+    name: 'Remember',
+    means: 'keeps something beyond this call',
+  },
+  { id: 'change', name: 'Change', means: 'alters state somewhere' },
+  {
+    id: 'app',
+    name: 'Interactive app',
+    means: 'returns an interface a person then uses',
+  },
+  {
+    id: 'compose',
+    name: 'Compose',
+    means: 'decides its own steps and runs them',
+  },
+  {
+    id: 'delegate',
+    name: 'Delegate',
+    means: 'passes the work to another intelligence',
+  },
+  {
+    id: 'workflow',
+    name: 'Workflow',
+    means: 'keeps going across steps and failures',
+  },
+  { id: 'gateway', name: 'Gateway', means: 'stands in front of other servers' },
+]
+
 export type Specimen =
   | 'valley'
   | 'fetch'
@@ -137,6 +194,7 @@ export type Capability = Readonly<{
   specimen: Specimen
   title: string
   affordance: Affordance
+  family: Family
   description: string
   input:
     | 'none'
@@ -163,6 +221,7 @@ export type Capability = Readonly<{
 export const catalogue: ReadonlyArray<Capability> = [
   {
     name: 'read_map',
+    family: 'read',
     title: 'Map',
     affordance: 'readable',
     description:
@@ -178,6 +237,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'find_route',
+    family: 'query',
     title: 'Route finder',
     affordance: 'queryable',
     description:
@@ -193,6 +253,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'build_path',
+    family: 'change',
     title: 'Path builder',
     affordance: 'operable',
     description:
@@ -208,6 +269,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'connect_places',
+    family: 'compose',
     title: 'Connection workshop',
     affordance: 'program',
     description:
@@ -223,6 +285,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'fetch_page',
+    family: 'read',
     specimen: 'fetch',
     title: 'Page fetcher',
     affordance: 'queryable',
@@ -238,6 +301,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'remember',
+    family: 'remember',
     specimen: 'memory',
     title: 'Remember',
     affordance: 'operable',
@@ -253,6 +317,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'recall',
+    family: 'remember',
     specimen: 'memory',
     title: 'Recall',
     affordance: 'queryable',
@@ -267,6 +332,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'plan_steps',
+    family: 'compose',
     specimen: 'thinking',
     title: 'Step planner',
     affordance: 'program',
@@ -281,6 +347,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'read_file',
+    family: 'read',
     specimen: 'filesystem',
     title: 'File reader',
     affordance: 'readable',
@@ -295,6 +362,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'take_snapshot',
+    family: 'perceive',
     specimen: 'perception',
     title: 'Page snapshot',
     affordance: 'readable',
@@ -311,6 +379,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'click',
+    family: 'change',
     specimen: 'perception',
     title: 'Click',
     affordance: 'operable',
@@ -325,6 +394,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'generate_cli',
+    family: 'compose',
     specimen: 'cli',
     title: 'CLI generator',
     affordance: 'operable',
@@ -340,6 +410,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'call_live',
+    family: 'change',
     specimen: 'cli',
     title: 'Live call',
     affordance: 'operable',
@@ -355,6 +426,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'call_generated',
+    family: 'change',
     specimen: 'cli',
     title: 'Generated CLI',
     affordance: 'operable',
@@ -370,6 +442,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'go_to',
+    family: 'change',
     specimen: 'local-remote',
     title: 'Go to',
     affordance: 'operable',
@@ -385,6 +458,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'where_am_i',
+    family: 'query',
     specimen: 'local-remote',
     title: 'Where am I',
     affordance: 'queryable',
@@ -399,6 +473,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'show_map',
+    family: 'app',
     specimen: 'apps',
     title: 'Show map',
     affordance: 'program',
@@ -414,6 +489,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'get_current_view',
+    family: 'query',
     specimen: 'apps',
     title: 'Current view',
     affordance: 'queryable',
@@ -428,6 +504,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'run_as_calls',
+    family: 'change',
     specimen: 'code-mode',
     title: 'Three calls',
     affordance: 'operable',
@@ -442,6 +519,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'run_as_program',
+    family: 'compose',
     specimen: 'code-mode',
     title: 'One program',
     affordance: 'program',
@@ -457,6 +535,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'ask_expert',
+    family: 'delegate',
     specimen: 'delegation',
     title: 'Ask',
     affordance: 'queryable',
@@ -471,6 +550,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'review_plan',
+    family: 'delegate',
     specimen: 'delegation',
     title: 'Review',
     affordance: 'queryable',
@@ -485,6 +565,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'deliver_plan',
+    family: 'delegate',
     specimen: 'delegation',
     title: 'Deliver',
     affordance: 'program',
@@ -500,6 +581,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'refine_plan',
+    family: 'workflow',
     specimen: 'iteration',
     title: 'Refine',
     affordance: 'program',
@@ -515,6 +597,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'crash_and_resume',
+    family: 'workflow',
     specimen: 'iteration',
     title: 'Crash and resume',
     affordance: 'program',
@@ -529,6 +612,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'list_inventory',
+    family: 'gateway',
     specimen: 'network',
     title: 'Inventory',
     affordance: 'readable',
@@ -544,6 +628,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'call_tool',
+    family: 'gateway',
     specimen: 'network',
     title: 'Call',
     affordance: 'operable',
@@ -558,6 +643,7 @@ export const catalogue: ReadonlyArray<Capability> = [
   },
   {
     name: 'write_entry',
+    family: 'change',
     specimen: 'code-mode',
     title: 'Write one entry',
     affordance: 'operable',
