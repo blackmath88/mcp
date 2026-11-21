@@ -1,5 +1,18 @@
 # Handoff
 
+## IDE layout and MCP plan — 2026-11-21
+
+Owner direction: simulation is enough for now, plan the MCP work, and use an IDE-style layout with the workbench in the middle and the easy-to-complex navigation always visible (D08, D09).
+
+Changed: `src/lab/view.ts` and `src/styles.css` only, plus a `network` Backstage tab. Left sidebar holds the journey (seven working chapters, five listed as planned) and the kit; the workbench is centred with a "Next" button; the inspector on the right holds the item card and the five questions; Backstage is a bottom panel with four tabs; a status bar states the mode. The engine, adapters and state logic are unchanged.
+
+Evidence: typecheck, lint, build and 39 tests pass. Headless Chromium at 1440, 1000 and 400 px: no console errors, no horizontal overflow.
+
+Known UX gaps: panes are not resizable; the bottom panel is short on small laptop screens; planned chapters are not clickable; no light/dark toggle.
+
+Next: see "MCP work plan" in docs/PLAN.md.
+
+
 ## First executable slice — 2026-11-21
 
 Status: implemented and checked locally. Not deployed. No learner evaluation.

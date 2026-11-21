@@ -33,6 +33,14 @@ type ChapterInfo = Readonly<{
   prompt: string
 }>
 
+const plannedChapters: ReadonlyArray<string> = [
+  'Local and remote',
+  'Workflows and loops',
+  'A stronger model inside',
+  'The network of workshops',
+  'Real MCP examples',
+]
+
 const chapters: ReadonlyArray<ChapterInfo> = [
   {
     id: 'discover',
@@ -225,107 +233,27 @@ const fiveAnswers = (model: Model): ReadonlyArray<Answer> => {
 export const view = (model: Model, h: H): Document => ({
   title: 'MCP Lab',
   body: h.div(
-    [h.Class('wrap')],
+    [h.Class('ide')],
     [
-      headerView(h),
-      ladderView(model, h),
-      h.main(
-        [h.Class('bench-section')],
-        [
-          benchHeadView(model, h),
-          h.div(
-            [h.Class('bench')],
-            [kitView(model, h), onstageView(model, h), backstageView(model, h)],
-          ),
-          fiveView(model, h),
-        ],
+      titlebarView(model, h),
+      h.nav(
+        [h.Class('sidebar'), h.AriaLabel('Journey and kit')],
+        [journeyView(model, h), kitView(model, h)],
       ),
-      networkView(model, h),
-      evidenceKindsView(h),
+      workbenchView(model, h),
+      inspectorView(model, h),
+      backstageView(model, h),
+      statusbarView(model, h),
     ],
   ),
 })
 
-const headerView = (h: H): Html =>
+const titlebarView = (model: Model, h: H): Html =>
   h.header(
-    [h.Class('head')],
+    [h.Class('titlebar')],
     [
-      h.div(
-        [],
-        [
-          h.div([h.Class('eyebrow')], ['First working slice · synthetic data']),
-          h.h1([], ['MCP Lab']),
-        ],
-      ),
-      h.p(
-        [],
-        [
-          'Enter a domain and you are handed a kit. ',
-          h.b([], ['What were you just handed?']),
-          ' Inspect an item, use it, and follow what actually ran.',
-        ],
-      ),
-    ],
-  )
-
-const ladderView = (model: Model, h: H): Html =>
-  h.nav(
-    [h.Class('ladder'), h.AriaLabel('Chapters')],
-    [
-      h.ol(
-        [],
-        Array.map(chapters, (chapter, index) =>
-          h.keyed('li')(
-            chapter.id,
-            [],
-            [
-              h.button(
-                [
-                  h.Type('button'),
-                  h.Class('rung'),
-                  h.AriaCurrent(
-                    model.chapter === chapter.id ? 'step' : 'false',
-                  ),
-                  h.OnClick(Message.ClickedChapter({ chapter: chapter.id })),
-                ],
-                [
-                  h.span([h.Class('n')], [`0${index + 1}`]),
-                  h.span([h.Class('t')], [chapter.name]),
-                  h.span(
-                    [h.Class('k')],
-                    [
-                      model.completedChapters.includes(chapter.id)
-                        ? 'Done'
-                        : 'Not yet',
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    ],
-  )
-
-const benchHeadView = (model: Model, h: H): Html =>
-  h.div(
-    [h.Class('benchhead')],
-    [
-      h.div(
-        [],
-        pipe(
-          chapters,
-          Array.findFirst(chapter => chapter.id === model.chapter),
-          Option.match({
-            onNone: () => [],
-            onSome: chapter => [
-              h.h2([], [chapter.name]),
-              h.p([], [chapter.prompt]),
-            ],
-          }),
-        ),
-      ),
+      h.h1([], ['MCP Lab']),
+      h.p([h.Class('tagline')], ['What were you just handed?']),
       h.div(
         [h.Class('bend')],
         [
@@ -357,43 +285,82 @@ const weatherButton = (
     [`${label} · span limit ${maxSpanIn(weather)}`],
   )
 
-// KIT
+// SIDEBAR
 
-const kitView = (model: Model, h: H): Html =>
+const journeyView = (model: Model, h: H): Html =>
   h.section(
-    [h.Class('kit'), h.AriaLabel('Kit')],
+    [h.Class('side-section')],
     [
-      h.div(
-        [h.Class('kitrow')],
+      h.h2([h.Class('side-title')], ['Journey · easy to complex']),
+      h.ol(
+        [h.Class('journey')],
         [
-          h.span([h.Class('eyebrow')], ['Your kit']),
-          h.ul(
-            [h.Class('slots')],
-            Array.map(catalogue, capability =>
-              h.keyed('li')(
-                capability.name,
-                [],
-                [slotView(model, capability, h)],
-              ),
+          ...Array.map(chapters, (chapter, index) =>
+            h.keyed('li')(
+              chapter.id,
+              [],
+              [
+                h.button(
+                  [
+                    h.Type('button'),
+                    h.Class('rung'),
+                    h.AriaCurrent(
+                      model.chapter === chapter.id ? 'step' : 'false',
+                    ),
+                    h.OnClick(Message.ClickedChapter({ chapter: chapter.id })),
+                  ],
+                  [
+                    h.span([h.Class('n')], [`0${index + 1}`]),
+                    h.span([h.Class('t')], [chapter.name]),
+                    h.span(
+                      [h.Class('k')],
+                      [
+                        model.completedChapters.includes(chapter.id)
+                          ? 'done'
+                          : '',
+                      ],
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          h.p(
-            [h.Class('kitcap')],
-            [
-              h.b([], [`${catalogue.length} items from the catalogue. `]),
-              'Discovering an item is not permission to use it; on this page nothing checks who you are.',
-            ],
+          ...Array.map(plannedChapters, (name, index) =>
+            h.keyed('li')(
+              name,
+              [h.Class('rung planned')],
+              [
+                h.span(
+                  [h.Class('n')],
+                  [String(chapters.length + index + 1).padStart(2, '0')],
+                ),
+                h.span([h.Class('t')], [name]),
+                h.span([h.Class('k')], ['planned']),
+              ],
+            ),
           ),
         ],
       ),
-      Option.match(model.maybeSelected, {
-        onNone: () => h.empty,
-        onSome: name =>
-          Option.match(findCapability(name), {
-            onNone: () => h.empty,
-            onSome: capability => cardView(capability, h),
-          }),
-      }),
+    ],
+  )
+
+const kitView = (model: Model, h: H): Html =>
+  h.section(
+    [h.Class('side-section')],
+    [
+      h.h2([h.Class('side-title')], ['Your kit · 4 items']),
+      h.ul(
+        [h.Class('slots')],
+        Array.map(catalogue, capability =>
+          h.keyed('li')(capability.name, [], [slotView(model, capability, h)]),
+        ),
+      ),
+      h.p(
+        [h.Class('side-note')],
+        [
+          'Discovering an item is not permission to use it. On this page nothing checks who you are.',
+        ],
+      ),
     ],
   )
 
@@ -418,19 +385,34 @@ const slotView = (model: Model, capability: Capability, h: H): Html =>
     ],
   )
 
+// INSPECTOR
+
+const inspectorView = (model: Model, h: H): Html =>
+  h.aside(
+    [h.Class('inspector'), h.AriaLabel('Inspector')],
+    [
+      h.h2([h.Class('side-title')], ['Inspector']),
+      Option.match(Option.flatMap(model.maybeSelected, findCapability), {
+        onNone: () =>
+          h.p(
+            [h.Class('side-note')],
+            ['Pick an item from the kit to see what it really is.'],
+          ),
+        onSome: capability => cardView(capability, h),
+      }),
+      h.h2([h.Class('side-title')], ['Five questions about your last run']),
+      fiveView(model, h),
+    ],
+  )
+
 const cardView = (capability: Capability, h: H): Html =>
   h.div(
-    [h.Class('tip')],
+    [h.Class('card')],
     [
-      h.div(
-        [h.Class('card')],
-        [
-          h.h3([], [`${capability.title} · ${capability.name}`]),
-          h.p([h.Class('desc')], [capability.description]),
-        ],
-      ),
+      h.h3([], [`${capability.title} · ${capability.name}`]),
+      h.p([h.Class('desc')], [capability.description]),
       h.dl(
-        [h.Class('card facts')],
+        [h.Class('facts')],
         [
           factView('What can I observe?', capability.observe, h),
           factView('What can I request?', capability.request, h),
@@ -453,11 +435,28 @@ const cardView = (capability: Capability, h: H): Html =>
 const factView = (question: string, answer: string, h: H): Html =>
   h.div([], [h.dt([], [question]), h.dd([], [answer])])
 
+// STATUS BAR
+
+const statusbarView = (model: Model, h: H): Html =>
+  h.footer(
+    [h.Class('statusbar')],
+    [
+      h.span([], ['Simulation: the engine runs in this tab']),
+      h.span([], ['No model · no live MCP connection']),
+      h.span(
+        [],
+        [`${model.weather} valley · map revision ${model.world.revision}`],
+      ),
+    ],
+  )
+
 // ONSTAGE
 
-const onstageView = (model: Model, h: H): Html =>
-  h.section(
-    [h.Class('stage'), h.AriaLabel('Onstage')],
+const workbenchView = (model: Model, h: H): Html => {
+  const index = chapters.findIndex(chapter => chapter.id === model.chapter)
+  const maybeNext = Option.fromNullishOr(chapters[index + 1])
+  return h.main(
+    [h.Class('workbench'), h.AriaLabel('Workbench')],
     [
       h.div(
         [h.Class('panehead')],
@@ -466,6 +465,34 @@ const onstageView = (model: Model, h: H): Html =>
           runPill(model.run, h),
         ],
       ),
+      pipe(
+        Option.fromNullishOr(chapters[index]),
+        Option.match({
+          onNone: () => h.empty,
+          onSome: chapter =>
+            h.div(
+              [h.Class('prompt')],
+              [
+                h.div(
+                  [],
+                  [h.h2([], [chapter.name]), h.p([], [chapter.prompt])],
+                ),
+                Option.match(maybeNext, {
+                  onNone: () => h.empty,
+                  onSome: next =>
+                    h.button(
+                      [
+                        h.Type('button'),
+                        h.Class('btn ghost'),
+                        h.OnClick(Message.ClickedChapter({ chapter: next.id })),
+                      ],
+                      [`Next: ${next.name}`],
+                    ),
+                }),
+              ],
+            ),
+        }),
+      ),
       mapView(model, h),
       pathListView(model.world, h),
       controlsView(model, h),
@@ -473,6 +500,7 @@ const onstageView = (model: Model, h: H): Html =>
       artifactsView(model.world, h),
     ],
   )
+}
 
 const runPill = (run: RunState, h: H): Html =>
   RunState.match(run, {
@@ -704,11 +732,12 @@ const tabs: ReadonlyArray<Readonly<{ id: BackstageTab; label: string }>> = [
   { id: 'engine', label: 'Engine events' },
   { id: 'app', label: 'App messages' },
   { id: 'recording', label: 'Recorded CLI + MCP' },
+  { id: 'network', label: 'Network' },
 ]
 
 const backstageView = (model: Model, h: H): Html =>
   h.section(
-    [h.Class('wire'), h.AriaLabel('Backstage')],
+    [h.Class('panel'), h.AriaLabel('Backstage')],
     [
       h.div(
         [h.Class('panehead')],
@@ -731,7 +760,9 @@ const backstageView = (model: Model, h: H): Html =>
         ? engineTabView(model, h)
         : model.tab === 'app'
           ? appTabView(model, h)
-          : recordingTabView(model, h),
+          : model.tab === 'recording'
+            ? recordingTabView(model, h)
+            : networkView(model, h),
     ],
   )
 
@@ -983,15 +1014,13 @@ const networkView = (model: Model, h: H): Html => {
   const maybeRecord = finishedRecord(model.run)
   const lastRun = (text: (record: RunRecord) => string): string =>
     Option.match(maybeRecord, { onNone: () => 'No run yet.', onSome: text })
-  return h.section(
-    [h.Class('network')],
+  return h.div(
+    [h.Class('tabpane')],
     [
-      h.h2([], ['The network behind the kit']),
-      h.p(
-        [h.Class('lede')],
-        [
-          'Every row is a component with one responsibility. The last column comes from the events of your last run, not from a diagram of what should happen.',
-        ],
+      modeView(
+        'Components and their responsibilities',
+        'the last column is derived from the engine events of your last run, not from a diagram of what should happen.',
+        h,
       ),
       h.div(
         [h.Class('tablewrap')],
@@ -1080,41 +1109,3 @@ const networkRow = (
       h.td([], [inRun]),
     ],
   )
-
-// EVIDENCE KINDS
-
-const evidenceKindsView = (h: H): Html =>
-  h.section(
-    [h.Class('kinds')],
-    [
-      h.h2([], ['Four kinds of evidence, kept apart']),
-      h.dl(
-        [h.Class('grid3')],
-        [
-          kindView(
-            'Your interaction',
-            'A click or a choice. It appears as a Foldkit message under App messages.',
-            h,
-          ),
-          kindView(
-            'Engine events',
-            'Emitted by the domain code while it runs. Live on this page, in process.',
-            h,
-          ),
-          kindView(
-            'MCP messages',
-            'JSON-RPC frames between a real client and the real server. Shown here only as a recording.',
-            h,
-          ),
-          kindView(
-            'Not on this page',
-            'No model, no approval prompt, no remote service. Nothing here is a scripted stand-in for them.',
-            h,
-          ),
-        ],
-      ),
-    ],
-  )
-
-const kindView = (term: string, description: string, h: H): Html =>
-  h.div([h.Class('plain')], [h.dt([], [term]), h.dd([], [description])])

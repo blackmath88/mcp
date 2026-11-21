@@ -80,6 +80,18 @@ Status: implemented proposal.
 
 `@modelcontextprotocol/sdk` 1.32.2 is a dev dependency used only by the Node stdio server, the recorder and tests. It does not depend on Effect, so there is no second Effect runtime.
 
+## D08 — Simulation first; live MCP waits for real examples
+
+Status: agreed direction from owner, 2026-11-21.
+
+The lab does not need a live MCP connection yet. Browser chapters stay simulated on the shared engine, with MCP evidence shown as labelled recordings from the real server. Live connections are reconsidered when real-world examples are added. MCP work is planned now (see docs/PLAN.md).
+
+## D09 — IDE-style layout
+
+Status: agreed direction from owner, 2026-11-21. Implemented.
+
+Journey (easy to complex) and kit stay visible in a left sidebar, the workbench sits in the middle, evidence is a bottom panel, the inspector is on the right. Later chapters are listed as planned so the whole path is visible.
+
 ## Still undecided
 
 Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.

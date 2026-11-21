@@ -84,8 +84,9 @@ describe('the learning path', () => {
       expect(
         text('Nothing was built. The map is still at revision 0.'),
       ).toExist(),
-      expect(text('Failed here. Called by Planner · 2 events.')).toExist(),
       expect(text('Nothing. The map stayed at revision 0.')).toExist(),
+      click(role('button', { name: 'Network' })),
+      expect(text('Failed here. Called by Planner · 2 events.')).toExist(),
     )
   })
 })

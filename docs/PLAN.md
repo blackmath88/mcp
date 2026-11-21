@@ -36,9 +36,23 @@ Reveal mixed modules, aggregation versus orchestration, a replaceable component,
 
 Research candidates from the conversation. Record primary sources, official/community status, exact capabilities, versions, client support, credentials, cost, effects, and documented versus executed evidence. Select examples for distinct lessons.
 
+## MCP work plan (simulation first)
+
+Agreed 2026-11-21: no live connection yet. Each MCP chapter is simulated in the browser and backed by a recording from the real stdio server driven by the SDK client. Nothing below is started.
+
+1. **Check the facts.** Read the current specification for every feature a chapter uses and pin the revision. The SDK negotiated 2025-11-25 in our recording; that is an observation, not a reviewed choice.
+2. **Tools versus resources versus prompts.** Show the map as a resource beside `read_map` as a tool, and add one prompt. The server already exposes the resource.
+3. **Descriptions as interface (E01).** Same operation, vague and precise description; then the harmless hidden-instruction specimen from `lab/concept.html`.
+4. **A kit that changes.** Tool list changes mid-session, including the changed-definition specimen and the maze.
+5. **The server asks back.** Elicitation and sampling, only after step 1 confirms status and client support.
+6. **An item with its own screen.** MCP Apps, same condition.
+7. **Live examples.** Chosen with the owner later; the transport and the browser path are decided then.
+
+Each chapter ships with its recording script, a recording and a test that the recording still matches the engine.
+
 ## Immediate next action
 
-Try the slice with one person from the intended audience and record whether they can explain interface versus implementation. Then choose between a live browser-to-MCP path and the placement chapter as the next slice.
+Try the slice with one person from the intended audience. Then start MCP work at steps 1 and 2.
 
 ## Explicit exclusions for this change
 

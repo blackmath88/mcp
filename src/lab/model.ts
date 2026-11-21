@@ -27,7 +27,12 @@ export const Chapter = Schema.Literals([
 ])
 export type Chapter = typeof Chapter.Type
 
-export const BackstageTab = Schema.Literals(['engine', 'app', 'recording'])
+export const BackstageTab = Schema.Literals([
+  'engine',
+  'app',
+  'recording',
+  'network',
+])
 export type BackstageTab = typeof BackstageTab.Type
 
 export const RunState = defineTaggedUnion({
