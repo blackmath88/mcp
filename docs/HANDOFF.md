@@ -2,7 +2,7 @@
 
 ## Capability profile summary · 2026-11-21
 
-The ontology and specimen index now group detailed facets under three learner questions. Observability supplies evidence for each answer. This changes the presentation of the proposed classifier and preserves the ten facet keys.
+The ontology and specimen index now group detailed facets under Interface, Behaviour and Architecture. Observability supplies evidence for each classification. This changes the presentation of the proposed classifier and preserves the ten facet keys.
 
 ## Ontology index · 2026-11-21
 

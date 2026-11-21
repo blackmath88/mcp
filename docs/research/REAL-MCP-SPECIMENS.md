@@ -4,28 +4,28 @@ Research snapshot · 21 November 2026. Use this alongside the [specimen-host and
 
 ## Specimens by MCP Lens ontology
 
-Browse by the question you are asking about a capability. The ten facets below use the order and keys from the [ontology](../concept/MCP-LENS-ONTOLOGY.md). The same specimen appears under multiple facets when different operations supply different evidence. These are documented examples; a specific deployment, principal or run needs its own evidence. The [learner route](../concept/LEARNER-JOURNEY.md) selects a few of these views for each chapter.
+Browse by capability category. The ten facets below use the order and keys from the [ontology](../concept/MCP-LENS-ONTOLOGY.md). The same specimen appears under multiple facets when different operations supply different evidence. These are documented examples; a specific deployment, principal or run needs its own evidence. The [learner route](../concept/LEARNER-JOURNEY.md) selects a few of these views for each chapter.
 
-| Start here | Specimen to compare |
+| Category | Specimen to compare |
 | --- | --- |
-| **What can I do with it?** | Context7 returns a lookup result. tldraw lets the human and agent continue working on a shared canvas. |
-| **What can it change?** | Compare Plotter Studio’s SVG dispatch and camera capture. One requests a physical effect; the other returns information about the paper. |
-| **How does it work?** | Cloudflare runs caller-written code. Consilium asks downstream models to deliberate. Each hides a different process behind a tool call. |
+| **Interface** | Context7 returns a lookup result. tldraw lets the human and agent continue working on a shared canvas. |
+| **Behaviour** | Compare Plotter Studio’s SVG dispatch and camera capture. One requests a physical effect; the other returns information about the paper. |
+| **Architecture** | Cloudflare runs caller-written code. Consilium asks downstream models to deliberate. Each hides a different process behind a tool call. |
 
-Attach the relevant evidence to each answer. The [profile grouping](../concept/MCP-LENS-ONTOLOGY.md#three-questions-for-a-capability-profile) maps the three questions to the detailed keys below.
+Each classification carries evidence. The [capability categories](../concept/MCP-LENS-ONTOLOGY.md#capability-categories) group the detailed facets below.
 
 | Facet | Values illustrated and specimens to open |
 | --- | --- |
-| **surface** · What does the caller encounter? | **Tool:** Context7 library lookup. **Tool with associated app UI:** tldraw canvas and DOOM launch. **Frame-provided action:** WebMCP is an adjacent comparison. The curated shelf still lacks a worked prompt-only example. |
-| **affordance** · What can the caller express? | **Read:** memory graph retrieval. **Query:** Context7 documentation or Seestar’s observing plan. **Mutate:** Zigzag stitch edit or tldraw shape edit. **Execute a caller-supplied program:** Cloudflare Code Mode. **Expose a workspace:** tldraw canvas or the multiplayer RPG world. |
-| **effect** · What changes? | **Information returned:** Playwright snapshot. **Artifact changed:** TouchDesigner operator network. **External design record created:** Figma code-to-canvas. **Hardware actuated:** Plotter Studio dispatch. Plotter camera capture is a separate observation. |
-| **state** · What identifies and retains the target? | **Persistent store:** reference memory graph. **Active document:** Zigzag’s foreground tab. **Shared world:** RPG player state. **Job handle:** Tasks extension contract. Verify retention and restart behaviour independently. |
-| **interaction** · How does the exchange unfold? | **Single lookup:** Context7 query. **Shared UI:** tldraw. **Playable session:** DOOM inline or via browser fallback. **Continuing job:** Tasks contract. **Resumed event stream:** SDK polling demo. |
-| **composition** · What sits behind the call? | **Program composed by caller:** Cloudflare. **Grouped deliberation:** Consilium. **Observation and iteration:** Plotter Studio design, plot and inspect loop. **Aggregation:** ContextForge exposes multiple backends through one endpoint. |
-| **intelligence** · Who chooses the next action? | **Downstream models:** Consilium’s council contributes judgements. **Human:** DOOM’s player supplies game inputs. **Human and caller model:** tldraw’s hand edit followed by the agent’s revision. **Evidence-based recommendation:** Seestar’s suggested horizon change is distinct from applying it. |
-| **placement** · Where is each component? | **Inside the desktop application:** TouchDesigner server. **Inside a compatible chat host:** tldraw’s embedded view. **Browser frame:** WebMCP actions. **Remote execution:** Cloudflare Code Mode. **External device:** Plotter Studio’s pen and camera. |
-| **authority** · Who can affect what, for whom? | **Content author / acting account / public audience:** GitHub research demonstration. **Tenant scope:** Asana incident. **Recipient scope and publisher provenance:** unofficial Postmark package. **Discovery versus invocation:** Hugging Face Spaces catalogue. Effective grants require deployment-specific evidence. |
-| **observability** · What can support the claim? | **Advertised interface:** Inspector listing or an Apps UI declaration. **Host and caller state:** tldraw edit and subsequent caller input. **Independent observation:** Plotter Studio camera versus dispatch receipt. **Downstream record:** delivery evidence in the Postmark teaching case. |
+| **surface** | **Tool:** Context7 library lookup. **Tool with associated app UI:** tldraw canvas and DOOM launch. **Frame-provided action:** WebMCP is an adjacent comparison. The curated shelf still lacks a worked prompt-only example. |
+| **affordance** | **Read:** memory graph retrieval. **Query:** Context7 documentation or Seestar’s observing plan. **Mutate:** Zigzag stitch edit or tldraw shape edit. **Execute a caller-supplied program:** Cloudflare Code Mode. **Expose a workspace:** tldraw canvas or the multiplayer RPG world. |
+| **effect** | **Information returned:** Playwright snapshot. **Artifact changed:** TouchDesigner operator network. **External design record created:** Figma code-to-canvas. **Hardware actuated:** Plotter Studio dispatch. Plotter camera capture is a separate observation. |
+| **state** | **Persistent store:** reference memory graph. **Active document:** Zigzag’s foreground tab. **Shared world:** RPG player state. **Job handle:** Tasks extension contract. Verify retention and restart behaviour independently. |
+| **interaction** | **Single lookup:** Context7 query. **Shared UI:** tldraw. **Playable session:** DOOM inline or via browser fallback. **Continuing job:** Tasks contract. **Resumed event stream:** SDK polling demo. |
+| **composition** | **Program composed by caller:** Cloudflare. **Grouped deliberation:** Consilium. **Observation and iteration:** Plotter Studio design, plot and inspect loop. **Aggregation:** ContextForge exposes multiple backends through one endpoint. |
+| **intelligence** | **Downstream models:** Consilium’s council contributes judgements. **Human:** DOOM’s player supplies game inputs. **Human and caller model:** tldraw’s hand edit followed by the agent’s revision. **Evidence-based recommendation:** Seestar’s suggested horizon change is distinct from applying it. |
+| **placement** | **Inside the desktop application:** TouchDesigner server. **Inside a compatible chat host:** tldraw’s embedded view. **Browser frame:** WebMCP actions. **Remote execution:** Cloudflare Code Mode. **External device:** Plotter Studio’s pen and camera. |
+| **authority** | **Content author / acting account / public audience:** GitHub research demonstration. **Tenant scope:** Asana incident. **Recipient scope and publisher provenance:** unofficial Postmark package. **Discovery versus invocation:** Hugging Face Spaces catalogue. Effective grants require deployment-specific evidence. |
+| **observability** | **Advertised interface:** Inspector listing or an Apps UI declaration. **Host and caller state:** tldraw edit and subsequent caller input. **Independent observation:** Plotter Studio camera versus dispatch receipt. **Downstream record:** delivery evidence in the Postmark teaching case. |
 
 ### Example profiles at capability granularity
 

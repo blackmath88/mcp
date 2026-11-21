@@ -32,15 +32,15 @@ Test design: make one change at a time in each interactive exhibit. A classifier
 
 Browse the [specimen index by ontology facet](../research/REAL-MCP-SPECIMENS.md#specimens-by-mcp-lens-ontology) for examples and multi-facet capability profiles.
 
-### Three questions for a capability profile
+### Capability categories
 
-| Profile question | Facet keys | What belongs together |
+| Category | Facet keys | Scope |
 | --- | --- | --- |
-| What can I do with it? | surface, affordance, interaction | How the capability presents itself, what the caller can request and how the exchange unfolds. |
-| What can it change? | authority, effect, state | Who may act on which target, what the operation can affect and what persists afterwards. Read access also has a scope and a recipient. |
-| How does it work? | composition, intelligence, placement | Which parts do the work, who chooses the next action and where the parts run. |
+| Interface | surface, affordance, interaction | Entry points, available actions and interaction patterns. |
+| Behaviour | authority, effect, state | Permissions, observable effects and persistent state. |
+| Architecture | composition, intelligence, placement | Components, decision ownership and execution location. |
 
-**Evidence belongs beside every answer.** Keep observability as the tenth underlying facet. Give each claim its source and scope. A declaration can support “the server offers this action”; a particular outcome needs run evidence. Keep unknowns visible. Show the three questions as a summary for each capability within the existing learner chapters. Expand a question to inspect its facets and sources.
+**Evidence** applies across all three categories. The observability facet records the source and scope of each claim, including uncertainty about a deployment or run.
 
 ### Detailed classification keys
 
