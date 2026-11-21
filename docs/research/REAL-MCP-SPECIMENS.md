@@ -6,6 +6,14 @@ Research snapshot · 21 November 2026. Use this alongside the [specimen-host and
 
 Browse by the question you are asking about a capability. The ten facets below use the order and keys from the [ontology](../concept/MCP-LENS-ONTOLOGY.md). The same specimen appears under multiple facets when different operations supply different evidence. These are documented examples; a specific deployment, principal or run needs its own evidence. The [learner route](../concept/LEARNER-JOURNEY.md) selects a few of these views for each chapter.
 
+| Start here | Specimen to compare |
+| --- | --- |
+| **What can I do with it?** | Context7 returns a lookup result. tldraw lets the human and agent continue working on a shared canvas. |
+| **What can it change?** | Compare Plotter Studio’s SVG dispatch and camera capture. One requests a physical effect; the other returns information about the paper. |
+| **How does it work?** | Cloudflare runs caller-written code. Consilium asks downstream models to deliberate. Each hides a different process behind a tool call. |
+
+Attach the relevant evidence to each answer. The [profile grouping](../concept/MCP-LENS-ONTOLOGY.md#three-questions-for-a-capability-profile) maps the three questions to the detailed keys below.
+
 | Facet | Values illustrated and specimens to open |
 | --- | --- |
 | **surface** · What does the caller encounter? | **Tool:** Context7 library lookup. **Tool with associated app UI:** tldraw canvas and DOOM launch. **Frame-provided action:** WebMCP is an adjacent comparison. The curated shelf still lacks a worked prompt-only example. |

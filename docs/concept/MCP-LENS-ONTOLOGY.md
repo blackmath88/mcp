@@ -32,6 +32,18 @@ Test design: make one change at a time in each interactive exhibit. A classifier
 
 Browse the [specimen index by ontology facet](../research/REAL-MCP-SPECIMENS.md#specimens-by-mcp-lens-ontology) for examples and multi-facet capability profiles.
 
+### Three questions for a capability profile
+
+| Profile question | Facet keys | What belongs together |
+| --- | --- | --- |
+| What can I do with it? | surface, affordance, interaction | How the capability presents itself, what the caller can request and how the exchange unfolds. |
+| What can it change? | authority, effect, state | Who may act on which target, what the operation can affect and what persists afterwards. Read access also has a scope and a recipient. |
+| How does it work? | composition, intelligence, placement | Which parts do the work, who chooses the next action and where the parts run. |
+
+**Evidence belongs beside every answer.** Keep observability as the tenth underlying facet. Give each claim its source and scope. A declaration can support “the server offers this action”; a particular outcome needs run evidence. Keep unknowns visible. Show the three questions as a summary for each capability within the existing learner chapters. Expand a question to inspect its facets and sources.
+
+### Detailed classification keys
+
 Use stable facet keys. Multiple values can coexist where evidence warrants it. A server overview groups capability profiles and preserves exceptions. A gateway exposing a job tool does not make every backend durable.
 
 | Facet | Initial values or measurements |

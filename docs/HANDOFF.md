@@ -1,5 +1,9 @@
 # Handoff
 
+## Capability profile summary · 2026-11-21
+
+The ontology and specimen index now group detailed facets under three learner questions. Observability supplies evidence for each answer. This changes the presentation of the proposed classifier and preserves the ten facet keys.
+
 ## Ontology index · 2026-11-21
 
 The [specimen index](research/REAL-MCP-SPECIMENS.md#specimens-by-mcp-lens-ontology) groups the research by all ten Lens facets. Five worked profiles distinguish specific operations, including dispatch and camera capture in the same project. This is a documentation change using the existing research and prototype practice selection. No runtime was exercised.
