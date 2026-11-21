@@ -1,6 +1,18 @@
 # Handoff
 
-## Recurring aspects across phases · 2026-11-21
+## Security boundaries — 2026-11-21
+
+Learned: the owner asked where the hacking happens. Answer recorded: at boundaries where information becomes authority, across discovery, descriptions, model and host, gateway identity, server scope, embedded-app bridge, observation, and Lens itself.
+
+Changed: added [docs/concept/SECURITY-BOUNDARIES.md](concept/SECURITY-BOUNDARIES.md) with a boundary table, safe-lab rules, and a proposed local stolen-diamond exhibit (injected document, synthetic secret, local sink, three variants, six-field scoreboard). Added a security section and link in CONCEPT.md and corrected the earlier framing that authentication is encapsulated in the MCP layer.
+
+Evidence: public MCP security guidance was read; no upstream runtime, scan, exploit, or security test was executed. No finding against any named specimen is claimed. The proposal grants no permission to test any system. The newer handoff entries below were re-read immediately before this change and preserved unchanged.
+
+Next: build the stolen-diamond exhibit locally with a scripted caller, owned synthetic data, and an observed enforcement component; add a real-model variant only as a separately labelled run. Consider where security belongs among the recurring aspects in the learner journey.
+
+Practice: the latest practice source revision was not freshly resolved for this change; the prior recorded selection below remains the basis. Limitation disclosed rather than claiming current verification.
+
+## Recurring aspects across phases — 2026-11-21
 
 The original ten-facet ontology remains the background classifier. The [learner journey](concept/LEARNER-JOURNEY.md#recurring-aspects) now carries interface, behaviour, architecture and evidence through each phase of one progressively more complex specimen. This supersedes the category-first presentation below. Design update only.
 

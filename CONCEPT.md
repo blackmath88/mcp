@@ -90,8 +90,15 @@ Read the [concept addendum](docs/concept/ADDENDUM-SPECIMENS-LENS-AND-EMBEDDING.m
 
 The existing Python/HTML registry example remains an untested REST adapter example, not a substitute for a real MCP connection or the planned Foldkit host.
 
+## Security: where the hacking happens
+
+Security runs through every exhibit, not only a final fuzzing chapter. The recurring question is where information is promoted into authority: untrusted text into instruction, proposal into effect, one identity into another, or a narrow capability into a broad resource. This replaces any impression that authentication is simply encapsulated in the MCP layer; several components enforce separate limits.
+
+Read [Security boundaries](docs/concept/SECURITY-BOUNDARIES.md) for the boundary map, the proposed synthetic stolen-diamond exhibit, safe-lab rules, and acceptance. It is a design document: no test or exploit has been run, and it authorizes no testing of any system.
+
 ## Read next
 
+- [Security boundaries](docs/concept/SECURITY-BOUNDARIES.md)
 - [Updated specimens, Lens, and embedding direction](docs/concept/ADDENDUM-SPECIMENS-LENS-AND-EMBEDDING.md)
 - [Narrative and learning design](docs/concept/NARRATIVE.md)
 - [Architecture and composition](docs/concept/ARCHITECTURE.md)
