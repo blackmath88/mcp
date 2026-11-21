@@ -16,6 +16,22 @@ MCP gives provider-authored descriptions and results a route into that decision.
 | Stored history into fresh authority | Durable storage can carry a claim into another session after its original author and audience are lost. Sharing and isolation depend on the backend. The specific *Five Hops Through MCP* chain remains unattributed here. | A second fictional editor opens the same bridge note. Preserve its author and revision. Check the new editor’s own grant before applying it. |
 | Valid arguments into backend effects | ToFu reports 253 distinct verified bugs affecting 343 tools in 118 repositories, from an inventory of 3,405 tools across 273 servers. One implementation defect can affect several tools. | A bridge ID can be syntactically valid and belong to another map. Show the schema result, backend scope decision and resulting state separately. [ToFu study](https://arxiv.org/abs/2610.13651) |
 
+## The shovel exhibit
+
+Keep one tool labelled **Shovel** selected throughout. Give the learner three independently sourced pieces of evidence. The catalogue tells them what the maker promises. A trial in a sand tray tells them what this version did under those conditions. The gardener’s work order tells them where digging is permitted. Any one of the three can change while the other two stay fixed.
+
+| Phase | Learner interaction | What the evidence establishes |
+| --- | --- | --- |
+| Inventory | Reveal the maker’s label and the catalogue excerpt the host supplied to the model. | Discovery can influence selection before any call. Record receipt, model visibility and invocation as distinct events. The host controls placement and review. |
+| Workshop | Replay two labelled fixtures with the same catalogue. Compare yesterday’s sand-tray result with today’s result. | A successful trial establishes an observation for one version, time and setting. Keep release changes distinct from an endpoint changing behaviour between calls. |
+| Follow the work | Open the saved observation in another gardener’s session. Keep its author, trial conditions and date visible beside that gardener’s work order. | A reader may reuse evidence. Permission to act still comes from the applicable grant. If the stored observation has lost its author, mark origin unknown. |
+
+Three real cases ground the exhibit:
+
+- **Release history.** Postmark says a third party impersonated it on npm and added a hidden email recipient in version 1.0.16 after fifteen earlier releases. This is a package update. TrustShiftProbe studies a different path to the same learning point, a server whose responses change over a sequence of interactions. [Postmark incident notice](https://postmarkapp.com/blog/information-regarding-malicious-postmark-mcp-package) · [TrustShiftProbe](https://arxiv.org/abs/2608.23763)
+- **Durable memory.** The reference memory server documents observations as strings attached to entities in a persistent local graph. The documented observation has no required author field. Whether two clients read the same observations depends on the store they reach. Track the store, reader and writer separately. The original Five Hops report and affected client revisions remain unverified. [Reference server README](https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md)
+- **Task ownership.** In TypeScript SDK versions 1.24.0 through versions below 1.32.0, HTTP clients sharing the experimental in-memory task store could list, read or cancel each other’s tasks. The maintainer advisory identifies 1.32.0 as patched. This independently documents a session-ownership failure in task handling. It provides no evidence about the separate memory-chain claim. [Maintainer advisory](https://github.com/modelcontextprotocol/typescript-sdk/security/advisories/GHSA-22jm-h49p-29qw)
+
 ## Boundary map
 
 ```
