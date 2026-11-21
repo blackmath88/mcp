@@ -6,7 +6,7 @@ import { runOn } from '../domain/capabilities.ts'
 import { Pace } from '../domain/services.ts'
 import { Message } from './message.ts'
 import { worldFor } from './model.ts'
-import { RunCapability, initialModel, update } from './update.ts'
+import { EnterDomain, RunCapability, initialModel, update } from './update.ts'
 import { view } from './view.ts'
 
 const completed = (weather: 'calm' | 'storm') => {
@@ -98,8 +98,8 @@ describe('the route of specimens', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: /Follow the work/ })),
       click(role('button', { name: /The network and the repair bench/ })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('Simulated here')).toExist(),
       expect(role('button', { name: 'Execute list_inventory' })).toExist(),
       expect(text('One entrance')).toExist(),
@@ -116,6 +116,7 @@ describe('the route of specimens', () => {
       { update, view },
       given(initialModel),
       click(role('button', { name: /Fetch a page/ })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('Simulated here')).toExist(),
       click(role('button', { name: 'First URL only' })),
       click(role('button', { name: 'Execute fetch_page' })),
@@ -147,6 +148,7 @@ describe('memory and thinking stations', () => {
       { update, view },
       given(initialModel),
       click(role('button', { name: /Memory/ })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('Simulated here')).toExist(),
       expect(text('The conversation')).toExist(),
       expect(text('holds nothing between calls')).toExist(),
@@ -171,6 +173,7 @@ describe('memory and thinking stations', () => {
       { update, view },
       given(initialModel),
       click(role('button', { name: /Thinking/ })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       click(role('button', { name: 'Asks another model' })),
       click(role('button', { name: 'Execute plan_steps' })),
       Command.resolve(
@@ -197,6 +200,7 @@ describe('filesystem and perception stations', () => {
       { update, view },
       given(initialModel),
       click(role('button', { name: /Filesystem/ })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('Set at launch')).toExist(),
       expect(text('What the server enforces now')).toExist(),
       expect(text('no · /valley/mill/ledger.txt')).toExist(),
@@ -211,6 +215,7 @@ describe('filesystem and perception stations', () => {
       { update, view },
       given(initialModel),
       click(role('button', { name: /Browser perception/ })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('The page, as a person sees it')).toExist(),
       expect(text('no snapshot taken yet')).toExist(),
       expect(text('pixels drawn on a canvas')).toExist(),
@@ -223,8 +228,8 @@ describe('cli and gateway stations', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: /Open the workshop/ })),
       click(role('button', { name: /CLI, reversed/ })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('The generated CLI')).toExist(),
       expect(text('not generated yet')).toExist(),
       expect(role('button', { name: 'v2 adds destination' })).toExist(),
@@ -236,8 +241,8 @@ describe('cli and gateway stations', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: /Follow the work/ })),
       click(role('button', { name: /Local and remote/ })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('Server process #1')).toExist(),
       expect(text('shared by every client')).toExist(),
       click(role('button', { name: 'A process per connection' })),
@@ -251,8 +256,8 @@ describe('stations 08 to 11', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: /Open the workshop/ })),
       click(role('button', { name: /The item becomes an application/ })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('Model’s last view')).toExist(),
       expect(text('Read this map as')).toExist(),
       expect(role('button', { name: 'App cannot be asked' })).toExist(),
@@ -264,14 +269,15 @@ describe('stations 08 to 11', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: /Open the workshop/ })),
       click(role('button', { name: /One item contains a language/ })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(role('button', { name: 'Third write fails' })).toExist(),
-      click(role('button', { name: /Follow the work/ })),
       click(role('button', { name: /Another intelligence/ })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(role('button', { name: 'Map left out' })).toExist(),
       expect(text('What was handed over')).toExist(),
       click(role('button', { name: /Iteration and durable execution/ })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(role('button', { name: 'Criteria contradict' })).toExist(),
       expect(text('Return the best-rated draft, not the last one.')).toExist(),
     )
@@ -279,16 +285,50 @@ describe('stations 08 to 11', () => {
 })
 
 describe('orientation', () => {
-  test('the header says where you are and the three phases are always there', () => {
+  test('the page says where you are and always shows the three phases', () => {
     scene(
       { update, view },
       given(initialModel),
-      expect(text('The valley')).toExist(),
-      expect(role('button', { name: /Explore the inventory/ })).toExist(),
-      expect(role('button', { name: /Open the workshop/ })).toExist(),
-      expect(role('button', { name: /Follow the work/ })).toExist(),
-      expect(text('Real MCP · made-up data')).toExist(),
+      expect(text('Explore the inventory')).toExist(),
+      expect(text('Open the workshop')).toExist(),
+      expect(text('Follow the work')).toExist(),
+      expect(text('Connecting…')).toExist(),
       expect(role('button', { name: 'Reset experiment' })).toExist(),
+      expect(text('Handed to you here')).toExist(),
+    )
+  })
+
+  test('once connected, the kit is what the server listed', () => {
+    scene(
+      { update, view },
+      given({
+        ...initialModel,
+        station: 'memory',
+        connection: 'connected',
+        tools: [
+          { name: 'recall', title: 'Recall', description: '', readOnly: true },
+          {
+            name: 'enter_domain',
+            title: 'Enter a domain',
+            description: '',
+            readOnly: false,
+          },
+        ],
+      }),
+      expect(text('Real MCP · made-up data')).toExist(),
+      expect(role('button', { name: 'Recall, ask' })).toExist(),
+      expect(role('button', { name: 'Remember, act' })).toBeAbsent(),
+    )
+  })
+
+  test('the call console offers presets and sends what was written', () => {
+    scene(
+      { update, view },
+      given(initialModel),
+      click(role('button', { name: 'Call console' })),
+      expect(text('Your own message')).toExist(),
+      click(role('button', { name: 'Unknown method' })),
+      expect(role('button', { name: 'Send to the server' })).toExist(),
     )
   })
 

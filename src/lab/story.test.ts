@@ -7,6 +7,7 @@ import { Pace } from '../domain/services.ts'
 import { Message } from './message.ts'
 import { type Model, Replay, RunState, worldFor } from './model.ts'
 import {
+  EnterDomain,
   RunCapability,
   WaitBeforeNextEvent,
   initialModel,
@@ -277,6 +278,7 @@ describe('memory lifecycle', () => {
       update,
       given(initialModel),
       message(Message.SelectedStation({ station: 'memory' })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       message(Message.ClickedExecute()),
       Command.resolve(RunCapability, remembered(1)),
       model(stored => {
@@ -298,6 +300,7 @@ describe('memory lifecycle', () => {
       update,
       given(initialModel),
       message(Message.SelectedStation({ station: 'memory' })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       message(Message.ClickedExecute()),
       Command.resolve(RunCapability, remembered(1)),
       message(Message.SelectedStoragePath({ storagePath: 'home' })),
@@ -344,6 +347,7 @@ describe('filesystem roots', () => {
       update,
       given(initialModel),
       message(Message.SelectedStation({ station: 'filesystem' })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       message(Message.ClickedSendRoots()),
       model(replaced => {
         expect(replaced.world.files.allowed).toEqual(['/valley/mill'])
@@ -360,6 +364,7 @@ describe('filesystem roots', () => {
       update,
       given(initialModel),
       message(Message.SelectedStation({ station: 'filesystem' })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       message(Message.ClickedSendRoots()),
       message(Message.SelectedFsBuild({ build: 'confine' })),
       model(rebuilt => {
@@ -376,6 +381,7 @@ describe('later-station settings', () => {
       update,
       given(initialModel),
       message(Message.SelectedStation({ station: 'delegation' })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       message(Message.SelectedSetting({ setting: 'context=none' })),
       message(Message.ClickedReset()),
       model(reset => {
@@ -441,6 +447,7 @@ describe('browsing between stations', () => {
       update,
       given(initialModel),
       message(Message.SelectedStation({ station: 'memory' })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       message(Message.ClickedExecute()),
       Command.resolve(
         RunCapability,
@@ -451,11 +458,13 @@ describe('browsing between stations', () => {
         }),
       ),
       message(Message.SelectedStation({ station: 'fetch' })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       model(away => {
         expect(away.run).toEqual(RunState.Idle())
         expect(away.world.memory.packageCache).toHaveLength(1)
       }),
       message(Message.SelectedStation({ station: 'memory' })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       model(back => {
         expect(back.run._tag).toBe('Succeeded')
         expect(back.world.memory.packageCache).toHaveLength(1)
@@ -516,6 +525,92 @@ describe('browsing between stations', () => {
           view: 'dock',
           modelKnows: 'forge',
         })
+      }),
+    )
+  })
+})
+
+describe('the live session', () => {
+  const tools = [
+    { name: 'remember', title: 'Remember', description: '', readOnly: false },
+  ]
+
+  test('entering a station asks the server and adopts its tool list', () => {
+    story(
+      update,
+      given(initialModel),
+      message(Message.SelectedStation({ station: 'memory' })),
+      Command.resolve(
+        EnterDomain,
+        Message.CompletedEnterDomain({
+          station: 'memory',
+          tools,
+          frames: [
+            { direction: 'client → server', label: 'tools/list', json: '{}' },
+          ],
+        }),
+      ),
+      model(entered => {
+        expect(entered.connection).toBe('connected')
+        expect(entered.tools).toEqual(tools)
+        expect(entered.frames).toHaveLength(1)
+      }),
+    )
+  })
+
+  test('a tool list that arrives for a station you already left is ignored', () => {
+    story(
+      update,
+      given({ ...initialModel, station: 'fetch' }),
+      message(
+        Message.CompletedEnterDomain({ station: 'memory', tools, frames: [] }),
+      ),
+      model(kept => {
+        expect(kept.tools).toEqual([])
+      }),
+    )
+  })
+
+  test('a console preset fills the message with a real tools/call', () => {
+    story(
+      update,
+      given({ ...initialModel, maybeSelected: Option.some('build_path') }),
+      message(Message.ClickedConsolePreset({ preset: 'valid' })),
+      model(filled => {
+        expect(JSON.parse(filled.consoleText)).toMatchObject({
+          method: 'tools/call',
+          params: {
+            name: 'build_path',
+            arguments: { from: 'forge', to: 'dock' },
+          },
+        })
+      }),
+    )
+  })
+
+  test('a console reply that ran a tool updates the world and the run', () => {
+    const built = Effect.runSync(
+      runOn(worldFor('calm'), 'build_path', {
+        from: 'mill',
+        to: 'archive',
+      }).pipe(Effect.provide(Pace.unpaced)),
+    )
+    story(
+      update,
+      given(initialModel),
+      message(
+        Message.CompletedSendRaw({
+          note: 'Sent.',
+          frames: [],
+          tools: [],
+          world: built.world,
+          record: built.record,
+        }),
+      ),
+      model(after => {
+        expect(after.world.revision).toBe(1)
+        expect(after.run._tag).toBe('Succeeded')
+        expect(after.consoleNote).toBe('Sent.')
       }),
     )
   })

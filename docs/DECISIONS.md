@@ -116,6 +116,12 @@ Status: agreed direction from owner ("really do some stuff in the middle", point
 
 Every run in the lab is now a real `tools/call` from the official SDK client to the lab's own MCP server, both in the tab, joined by the SDK's in-memory transport. The frames are captured and shown. The data stays made up and nothing crosses a network. This supersedes P06 (SDK kept out of the browser bundle) and narrows D08: "simulation" now describes the data and the stand-in models, not the protocol. The SDK is imported on demand, so it loads on the first run.
 
+## D14 — Live session, server-listed kit, call console, and the dashboard look
+
+Status: agreed direction from owner ("do it all"), 2026-11-21. Implemented.
+
+The page keeps one MCP session open. The kit in the sidebar is the server's answer to `tools/list`; entering a station is a real `enter_domain` call, after which the server announces a changed tool list and the client lists again. A call console sends whatever JSON the person writes straight onto the wire. The look follows the approved design canvas: one neutral family, one accent, hairlines, the question as the headline, an evidence rail, and a light Backstage drawer.
+
 ## Still undecided
 
 Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.

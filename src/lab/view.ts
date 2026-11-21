@@ -1,4 +1,4 @@
-import { Array, Option, Order, pipe } from 'effect'
+import { Array, Option, pipe } from 'effect'
 import { type Document, type Html, type HtmlBuilder } from 'foldkit/html'
 
 import route from '../../specimens/route.json'
@@ -309,24 +309,12 @@ const stations: ReadonlyArray<Station> = [
   'network',
 ]
 
-const stationOf = (id: string): Station =>
-  Option.getOrElse(
-    Array.findFirst(stations, station => station === id),
-    () => 'valley' as const,
-  )
-
 type JourneyPhase = 'inventory' | 'workshop' | 'follow'
 
 const phaseNames: Record<JourneyPhase, string> = {
   inventory: 'Explore the inventory',
   workshop: 'Open the workshop',
   follow: 'Follow the work',
-}
-
-const phaseExamples: Record<JourneyPhase, string> = {
-  inventory: 'Maps · fetch · memory · files',
-  workshop: 'Thinking · CLI · apps · code',
-  follow: 'Gateways · delegation · loops',
 }
 
 const phaseOrder: ReadonlyArray<JourneyPhase> = [
@@ -358,12 +346,6 @@ const stationTitle = (station: Station): string =>
   Option.match(findSpecimen(station), {
     onNone: () => 'The valley',
     onSome: specimen => specimen.title,
-  })
-
-const stationSource = (station: Station): string =>
-  Option.match(findSpecimen(station), {
-    onNone: () => 'MCP Lab',
-    onSome: specimen => specimen.anchor.repo,
   })
 
 const findSpecimen = (station: Station): Option.Option<Specimen> =>
@@ -626,44 +608,24 @@ const titlebarView = (model: Model, h: H): Html =>
   h.header(
     [h.Class('titlebar')],
     [
-      h.h1([], ['MCP Lab']),
       h.p(
         [h.Class('location'), h.AriaLabel('Current location')],
         [
-          `${phaseNames[phaseOf[model.station]]} › `,
+          `${phaseNames[phaseOf[model.station]]} / `,
           h.b([], [stationTitle(model.station)]),
         ],
       ),
-      h.span([h.Class('simtag')], ['Real MCP · made-up data']),
-      phaseMapView(model, h),
-    ],
-  )
-
-const phaseMapView = (model: Model, h: H): Html =>
-  h.nav(
-    [h.Class('phase-map'), h.AriaLabel('Learning path, simple to complex')],
-    Array.map(phaseOrder, (phase, index) =>
-      h.button(
+      h.span(
+        [h.Class('simtag')],
         [
-          h.Type('button'),
-          h.Class('phase-stop'),
-          h.AriaCurrent(phaseOf[model.station] === phase ? 'step' : 'false'),
-          h.OnClick(
-            Message.SelectedStation({
-              station: Option.getOrElse(
-                Array.head(phaseStations(phase)),
-                () => 'valley' as const,
-              ),
-            }),
-          ),
-        ],
-        [
-          h.span([h.Class('phase-number')], [String(index + 1)]),
-          h.span([h.Class('phase-name')], [phaseNames[phase]]),
-          h.small([], [phaseExamples[phase]]),
+          model.connection === 'connected'
+            ? 'Real MCP · made-up data'
+            : model.connection === 'connecting'
+              ? 'Connecting…'
+              : 'Offline · made-up data',
         ],
       ),
-    ),
+    ],
   )
 
 const bendRowView = (model: Model, h: H): Html =>
@@ -862,145 +824,147 @@ const weatherButton = (
 
 // SIDEBAR
 
-const journeyView = (model: Model, h: H): Html =>
-  h.section(
-    [h.Class('side-section')],
+const stationButton = (model: Model, station: Station, h: H): Html =>
+  h.button(
     [
-      h.label(
-        [h.For('source-jump'), h.Class('side-title')],
-        ['Browse by source'],
-      ),
-      h.select(
+      h.Type('button'),
+      h.Class('rung'),
+      h.AriaCurrent(station === model.station ? 'page' : 'false'),
+      h.OnClick(Message.SelectedStation({ station })),
+    ],
+    [
+      h.span(
         [
-          h.Id('source-jump'),
-          h.Class('source-jump'),
-          h.Value(model.station),
-          h.OnChange(value =>
-            Message.SelectedStation({ station: stationOf(value) }),
+          h.Class(
+            model.savedRuns.some(
+              entry =>
+                entry.station === station &&
+                !RunState.isAnyOf(['Idle'])(entry.run),
+            ) || station === model.station
+              ? 'dot seen'
+              : 'dot',
           ),
         ],
-        pipe(
-          stations,
-          Array.sort(Order.mapInput(Order.String, stationSource)),
-          Array.map(station =>
-            h.option(
-              [h.Value(station), h.Selected(station === model.station)],
-              [`${stationSource(station)} · ${stationTitle(station)}`],
-            ),
-          ),
-        ),
+        [],
       ),
-      h.h2([h.Class('side-title')], [phaseNames[phaseOf[model.station]]]),
-      h.ol(
-        [h.Class('journey')],
-        Array.map(phaseStations(phaseOf[model.station]), station =>
-          h.keyed('li')(
-            station,
-            [],
-            [
-              h.button(
-                [
-                  h.Type('button'),
-                  h.Class('rung'),
-                  h.AriaCurrent(station === model.station ? 'page' : 'false'),
-                  h.OnClick(Message.SelectedStation({ station })),
-                ],
-                [
-                  h.span(
-                    [h.Class('n')],
-                    [String(stations.indexOf(station)).padStart(2, '0')],
-                  ),
-                  h.span([h.Class('t')], [stationTitle(station)]),
-                  h.span(
-                    [h.Class('k')],
-                    [
-                      model.savedRuns.some(
-                        entry =>
-                          entry.station === station &&
-                          !RunState.isAnyOf(['Idle'])(entry.run),
-                      )
-                        ? 'visited'
-                        : '',
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+      h.span([h.Class('t')], [stationTitle(station)]),
+      h.span(
+        [h.Class('n')],
+        [String(stations.indexOf(station)).padStart(2, '0')],
       ),
-      model.station === 'valley'
-        ? h.details(
-            [h.Class('fold'), h.Open(true)],
-            [
-              h.summary([], ['Valley walkthrough']),
-              h.ol(
-                [h.Class('journey steps')],
-                Array.map(chapters, (chapter, index) =>
-                  h.keyed('li')(
-                    chapter.id,
-                    [],
-                    [
-                      h.button(
-                        [
-                          h.Type('button'),
-                          h.Class('rung'),
-                          h.AriaCurrent(
-                            model.chapter === chapter.id ? 'step' : 'false',
-                          ),
-                          h.OnClick(
-                            Message.ClickedChapter({ chapter: chapter.id }),
-                          ),
-                        ],
-                        [
-                          h.span([h.Class('n')], [`${index + 1}`]),
-                          h.span([h.Class('t')], [chapter.name]),
-                          h.span(
-                            [h.Class('k')],
-                            [
-                              model.completedChapters.includes(chapter.id)
-                                ? 'done'
-                                : '',
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          )
-        : h.empty,
     ],
   )
 
-const kitView = (model: Model, h: H): Html =>
-  Array.match(
-    Array.filter(
-      catalogue,
-      capability => capability.specimen === model.station,
-    ),
-    {
-      onEmpty: () => h.empty,
-      onNonEmpty: items =>
-        h.section(
+const journeyView = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('journey-groups')],
+    [
+      h.div(
+        [h.Class('brand')],
+        [
+          h.span([h.Class('brandmark'), h.AriaHidden(true)], []),
+          h.h1([], ['MCP Lab']),
+        ],
+      ),
+      ...Array.map(phaseOrder, phase =>
+        h.keyed('section')(
+          phase,
           [h.Class('side-section')],
           [
-            h.h2([h.Class('side-title')], ['Your kit']),
-            h.ul(
-              [h.Class('slots')],
-              Array.map(items, capability =>
+            h.h2([h.Class('side-title')], [phaseNames[phase]]),
+            h.ol(
+              [h.Class('journey')],
+              Array.map(phaseStations(phase), station =>
                 h.keyed('li')(
-                  capability.name,
+                  station,
                   [],
-                  [slotView(model, capability, h)],
+                  [
+                    stationButton(model, station, h),
+                    station === 'valley' && model.station === 'valley'
+                      ? h.ol(
+                          [h.Class('journey steps')],
+                          Array.map(chapters, (chapter, index) =>
+                            h.keyed('li')(
+                              chapter.id,
+                              [],
+                              [
+                                h.button(
+                                  [
+                                    h.Type('button'),
+                                    h.Class('rung'),
+                                    h.AriaCurrent(
+                                      model.chapter === chapter.id
+                                        ? 'step'
+                                        : 'false',
+                                    ),
+                                    h.OnClick(
+                                      Message.ClickedChapter({
+                                        chapter: chapter.id,
+                                      }),
+                                    ),
+                                  ],
+                                  [
+                                    h.span([h.Class('n')], [`${index + 1}`]),
+                                    h.span([h.Class('t')], [chapter.name]),
+                                    h.span(
+                                      [h.Class('k')],
+                                      [
+                                        model.completedChapters.includes(
+                                          chapter.id,
+                                        )
+                                          ? 'done'
+                                          : '',
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : h.empty,
+                  ],
                 ),
               ),
             ),
           ],
         ),
-    },
+      ),
+    ],
+  )
+
+const offeredCapabilities = (model: Model): ReadonlyArray<Capability> =>
+  model.connection === 'connected'
+    ? Array.flatMap(model.tools, tool =>
+        Array.filter(catalogue, capability => capability.name === tool.name),
+      )
+    : Array.filter(
+        catalogue,
+        capability => capability.specimen === model.station,
+      )
+
+const kitView = (model: Model, h: H): Html =>
+  h.section(
+    [h.Class('side-section kit')],
+    [
+      h.h2([h.Class('side-title')], ['Handed to you here']),
+      h.ul(
+        [h.Class('slots')],
+        Array.map(offeredCapabilities(model), capability =>
+          h.keyed('li')(capability.name, [], [slotView(model, capability, h)]),
+        ),
+      ),
+      h.p(
+        [h.Class('side-note')],
+        [
+          model.connection === 'connected'
+            ? 'This list is the server’s answer to tools/list. Enter another station and the server sends a new one.'
+            : model.connection === 'connecting'
+              ? 'Connecting to the server in this tab…'
+              : 'The in-tab server is not available. Showing the lab’s own list.',
+        ],
+      ),
+    ],
   )
 
 const slotView = (model: Model, capability: Capability, h: H): Html =>
@@ -1028,23 +992,67 @@ const slotView = (model: Model, capability: Capability, h: H): Html =>
 
 const inspectorView = (model: Model, h: H): Html =>
   h.aside(
-    [h.Class('inspector'), h.AriaLabel('Inspector')],
+    [h.Class('inspector'), h.AriaLabel('Evidence')],
     [
-      h.h2([h.Class('side-title')], ['Inspector']),
+      h.div(
+        [h.Class('card ran')],
+        [
+          h.div(
+            [h.Class('cardhead')],
+            [
+              h.h3([], ['On the wire']),
+              h.span(
+                [h.Class('meta')],
+                [`${model.frames.length} frames in this tab`],
+              ),
+            ],
+          ),
+          Array.match(Array.takeRight(model.frames, 6), {
+            onEmpty: () =>
+              h.p([h.Class('side-note')], ['Nothing has crossed yet.']),
+            onNonEmpty: frames =>
+              h.ol(
+                [h.Class('wire')],
+                Array.map(frames, (frame, index) =>
+                  h.keyed('li')(
+                    `${model.frames.length}-${index}`,
+                    [
+                      h.DataAttribute(
+                        'kind',
+                        frame.direction === 'client → server' ? 'req' : 'res',
+                      ),
+                    ],
+                    [
+                      h.span(
+                        [h.Class('arrow'), h.AriaHidden(true)],
+                        [frame.direction === 'client → server' ? '→' : '←'],
+                      ),
+                      h.span([h.Class('lab')], [frame.label]),
+                    ],
+                  ),
+                ),
+              ),
+          }),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('btn ghost small'),
+              h.OnClick(Message.SelectedTab({ tab: 'frames' })),
+            ],
+            ['Open the frames'],
+          ),
+        ],
+      ),
       Option.match(Option.flatMap(model.maybeSelected, findCapability), {
-        onNone: () =>
-          h.p([h.Class('side-note')], ['Pick an item from the kit.']),
+        onNone: () => h.empty,
         onSome: capability => cardView(capability, h),
       }),
       Option.match(finishedRecord(model.run), {
         onNone: () => h.empty,
         onSome: () =>
-          h.details(
-            [h.Class('fold'), h.Open(true)],
-            [
-              h.summary([], ['Five questions about your last run']),
-              fiveView(model, h),
-            ],
+          h.div(
+            [h.Class('card')],
+            [h.h3([], ['About your last run']), fiveView(model, h)],
           ),
       }),
       h.details(
@@ -1145,13 +1153,13 @@ const specimenView = (specimen: Specimen, h: H): Html =>
           h.div(
             [],
             [
-              h.h2(
-                [],
+              h.p(
+                [h.Class('kicker')],
                 [
-                  `${String(specimen.number).padStart(2, '0')} · ${specimen.title}`,
+                  `Station ${String(specimen.number).padStart(2, '0')} · ${specimen.title} · after ${specimen.anchor.repo}`,
                 ],
               ),
-              h.p([h.Class('question')], [specimen.question]),
+              h.h2([h.Class('question')], [specimen.question]),
             ],
           ),
           h.span(
@@ -2594,7 +2602,13 @@ const valleyBenchView = (model: Model, h: H): Html => {
               [
                 h.div(
                   [],
-                  [h.h2([], [chapter.name]), h.p([], [chapter.prompt])],
+                  [
+                    h.p(
+                      [h.Class('kicker')],
+                      [`Station 00 · The valley · ${chapter.name}`],
+                    ),
+                    h.h2([h.Class('question')], [chapter.prompt]),
+                  ],
                 ),
                 Option.match(maybeNext, {
                   onNone: () => h.empty,
@@ -2888,6 +2902,7 @@ const artifactsView = (world: World, h: H): Html =>
 
 const tabs: ReadonlyArray<Readonly<{ id: BackstageTab; label: string }>> = [
   { id: 'frames', label: 'MCP frames' },
+  { id: 'console', label: 'Call console' },
   { id: 'engine', label: 'Engine events' },
   { id: 'app', label: 'App messages' },
   { id: 'recording', label: 'Recorded CLI + MCP' },
@@ -2928,20 +2943,104 @@ const backstageView = (model: Model, h: H): Html =>
       ),
       model.backstage === 'collapsed'
         ? h.empty
-        : model.tab === 'frames'
-          ? framesTabView(model, h)
-          : model.tab === 'engine'
-            ? engineTabView(model, h)
-            : model.tab === 'app'
-              ? appTabView(model, h)
-              : model.tab === 'recording'
-                ? recordingTabView(model, h)
-                : networkView(model, h),
+        : model.tab === 'console'
+          ? consoleTabView(model, h)
+          : model.tab === 'frames'
+            ? framesTabView(model, h)
+            : model.tab === 'engine'
+              ? engineTabView(model, h)
+              : model.tab === 'app'
+                ? appTabView(model, h)
+                : model.tab === 'recording'
+                  ? recordingTabView(model, h)
+                  : networkView(model, h),
     ],
   )
 
 const modeView = (mode: string, detail: string, h: H): Html =>
   h.p([h.Class('mode')], [h.b([], [mode]), ` · ${detail}`])
+
+const consolePresets: ReadonlyArray<Readonly<{ id: string; label: string }>> = [
+  { id: 'valid', label: 'A valid call' },
+  { id: 'wrong-arguments', label: 'Wrong arguments' },
+  { id: 'no-name', label: 'No tool name' },
+  { id: 'unknown-method', label: 'Unknown method' },
+  { id: 'not-a-request', label: 'Not a request' },
+  { id: 'not-json', label: 'Not JSON' },
+]
+
+const consoleTabView = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('tabpane')],
+    [
+      modeView(
+        'Your own message',
+        'sent exactly as written to the real server in this tab, past the client’s checks. Break it and see what comes back.',
+        h,
+      ),
+      h.div(
+        [h.Class('presets'), h.Role('group'), h.AriaLabel('Start from')],
+        Array.map(consolePresets, preset =>
+          h.button(
+            [
+              h.Type('button'),
+              h.OnClick(Message.ClickedConsolePreset({ preset: preset.id })),
+            ],
+            [preset.label],
+          ),
+        ),
+      ),
+      h.label(
+        [h.For('console-text'), h.Class('console-label')],
+        ['Message to send'],
+      ),
+      h.textarea([
+        h.Id('console-text'),
+        h.Class('console-text'),
+        h.Rows(9),
+        h.Spellcheck(false),
+        h.Value(model.consoleText),
+        h.OnInput(value => Message.UpdatedConsoleText({ value })),
+      ]),
+      h.div(
+        [h.Class('replay')],
+        [
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('send'),
+              h.Disabled(model.consoleText.trim() === ''),
+              h.OnClick(Message.ClickedSendRaw()),
+            ],
+            ['Send to the server'],
+          ),
+          h.span([h.Class('count'), h.AriaLive('polite')], [model.consoleNote]),
+        ],
+      ),
+      h.ol(
+        [h.Class('log')],
+        Array.map(Array.takeRight(model.frames, 4), (frame, index) =>
+          h.keyed('li')(
+            `${model.frames.length}-${index}`,
+            [
+              h.DataAttribute(
+                'kind',
+                frame.direction === 'client → server' ? 'req' : 'res',
+              ),
+            ],
+            [
+              h.span([h.Class('n')], ['·']),
+              h.span([h.Class('hop')], [frame.direction]),
+              h.details(
+                [h.Class('lab'), h.Open(true)],
+                [h.summary([], [frame.label]), h.pre([], [frame.json])],
+              ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  )
 
 const framesTabView = (model: Model, h: H): Html =>
   h.div(

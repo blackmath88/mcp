@@ -15,7 +15,9 @@ import { recordText } from './text.ts'
 
 export const MAP_URI = 'valley://map/current'
 
-export type Held = { world: World }
+export type Held = { world: World; domain?: string }
+
+export const ENTER_DOMAIN = 'enter_domain'
 
 // NOTE: The one MCP server of the lab. The stdio entry point and the in-tab
 // connection both use it; only the transport and the pacing differ.
@@ -25,24 +27,58 @@ export const createLabServer = (
 ): Server => {
   const server = new Server(
     { name: 'mcp-lab-valley', version: '0.1.0' },
-    { capabilities: { tools: {}, resources: {} } },
+    { capabilities: { tools: { listChanged: true }, resources: {} } },
   )
 
+  // NOTE: With a domain set, the server offers only that domain's kit plus
+  // the door to another domain. The stdio entry point sets none and lists all.
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: catalogue.map(capability => ({
-      name: capability.name,
-      title: capability.title,
-      description: capability.description,
-      inputSchema: inputJsonSchema(capability),
-      annotations: {
-        readOnlyHint:
-          capability.affordance === 'readable' ||
-          capability.affordance === 'queryable',
-      },
-    })),
+    tools: [
+      ...catalogue
+        .filter(
+          capability =>
+            held.domain === undefined || capability.specimen === held.domain,
+        )
+        .map(capability => ({
+          name: capability.name,
+          title: capability.title,
+          description: capability.description,
+          inputSchema: inputJsonSchema(capability),
+          annotations: {
+            readOnlyHint:
+              capability.affordance === 'readable' ||
+              capability.affordance === 'queryable',
+          },
+        })),
+      ...(held.domain === undefined
+        ? []
+        : [
+            {
+              name: ENTER_DOMAIN,
+              title: 'Enter a domain',
+              description:
+                'Walk into another domain of the lab. The server then offers that domain’s kit instead of this one.',
+              inputSchema: {
+                type: 'object' as const,
+                properties: { domain: { type: 'string' } },
+                required: ['domain'],
+              },
+            },
+          ]),
+    ],
   }))
 
   server.setRequestHandler(CallToolRequestSchema, async request => {
+    if (request.params.name === ENTER_DOMAIN && held.domain !== undefined) {
+      const domain = String(request.params.arguments?.domain ?? '')
+      held.domain = domain
+      await server.sendToolListChanged()
+      return {
+        content: [
+          { type: 'text', text: `You are now in ${domain}. The kit changed.` },
+        ],
+      }
+    }
     const result = await Effect.runPromise(
       runOn(
         held.world,

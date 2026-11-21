@@ -2,7 +2,7 @@ import { Schema } from 'effect'
 import { Command } from 'foldkit'
 import { defineMessageUnion } from 'foldkit/message'
 
-import { Frame } from '../adapters/in-tab-mcp.ts'
+import { Frame, OfferedTool } from '../adapters/in-tab-mcp.ts'
 import { CapabilityName, RunRecord } from '../domain/capabilities.ts'
 import {
   FetchPolicy,
@@ -58,7 +58,25 @@ export const Message = defineMessageUnion({
     record: RunRecord,
     world: World,
     frames: Schema.optional(Schema.Array(Frame)),
+    tools: Schema.optional(Schema.Array(OfferedTool)),
   },
+  CompletedEnterDomain: {
+    station: Station,
+    tools: Schema.Array(OfferedTool),
+    frames: Schema.Array(Frame),
+  },
+  FailedEnterDomain: {},
+  UpdatedConsoleText: { value: Schema.String },
+  ClickedConsolePreset: { preset: Schema.String },
+  ClickedSendRaw: {},
+  CompletedSendRaw: {
+    note: Schema.String,
+    frames: Schema.Array(Frame),
+    tools: Schema.Array(OfferedTool),
+    world: World,
+    record: Schema.optional(RunRecord),
+  },
+  FailedSendRaw: {},
   ClickedCancel: {},
   ClickedReset: {},
   CompletedCancelRunCapability: { outcome: Command.Interruptible.Outcome },

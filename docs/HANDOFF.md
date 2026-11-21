@@ -1,5 +1,22 @@
 # Handoff
 
+## Live session, server-listed kit, call console, redesign — 2026-11-21
+
+Changed:
+
+- `src/adapters/in-tab-mcp.ts`: one long-lived session per page (the only mutable state outside the Foldkit model). `enterDomain`, `runOverMcp` and `sendRaw` each return the frames, tool list and world that resulted.
+- `src/adapters/lab-server.ts`: when a domain is set, `tools/list` returns only that domain's tools plus `enter_domain`; calling it switches domain and sends `notifications/tools/list_changed`. The stdio entry point sets no domain and still lists everything.
+- Lab: on load and on every station change an `EnterDomain` command runs; the sidebar kit shows what the server listed (falling back to the lab's own catalogue when offline, and saying so). Frames accumulate for the session (last 80).
+- Call console (Backstage tab): six presets and a free text box. Not-JSON text is refused in the page and never sent; anything that parses goes onto the wire past the SDK client's checks. A reply that ran a tool updates the lab state.
+- Redesign: new stylesheet written from scratch on the approved tokens; sidebar lists all thirteen stations under the three phases; breadcrumb bar; the question is the headline; right rail shows the last frames, the item and the run summary; Backstage is a light drawer. Inter and JetBrains Mono replace IBM Plex. Dark mode follows the system.
+
+Observed with SDK 1.32.2 through the console (real behaviour, covered by tests): an unknown method returns error -32601; `tools/call` without a tool name returns -32603, an internal error, not -32602; a message without `id` or without `jsonrpc` gets no reply; wrong arguments reach the tool and come back as a result with `isError: true`.
+
+Evidence: typecheck, lint, build pass; 139 tests pass. Headless Chromium on the production build at 1440, 1000 and 390 px: kit changes from four valley tools to two memory tools after a real `enter_domain`, with `list_changed` and `tools/list` visible; three console sends (unknown method, not JSON, valid call) behave as described; no console errors, no overflow. Screenshots: `docs/reports/first-slice/redesign-station-08.png`, `redesign-console.png`.
+
+Limits: `enter_domain` is the lab's own device for making kits change; it is not part of MCP. Station titles still come from the research route, not the friendlier names on the design canvas. Only station 08 has a direct-manipulation specimen. The home dashboard board from the canvas is not built. Resources, sampling and elicitation are still not on the wire. No light/dark toggle. Nobody has tried it.
+
+
 ## Real MCP in the page — 2026-11-21
 
 Owner pointed to `blackmath88/lil-beavrs` (public; the name given was "lil-weavr", which does not exist) as the model: its lessons run real Python in the browser through Pyodide against an in-page mock, loaded lazily. The equivalent here is a real MCP client and server in the tab (D13).

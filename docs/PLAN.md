@@ -68,10 +68,11 @@ Protocol facts (revision, feature status, client support) still need a check aga
 
 ## Immediate next action
 
-1. Hand station 08 to one person on a phone. Within a minute, can they say where they are, move the map, notice the model still sees the old place, and find why? Then visit another station and come back.
-2. If that works, carry the pattern (specimen in the centre, readings beside it, evidence on demand) to the other stations, starting with 02 Memory and 04 Filesystem, whose boxes already are three readings.
-3. Align the stations with the owner's single-map thread in LEARNER-JOURNEY.md (route, moved bridge, print job). Today each station has its own small world.
-4. Pin upstream revisions; stations 01 to 03 were never checked against a source.
+1. Hand the lab to one person: station 08 on a phone, then the call console.
+2. Give the other stations a specimen you can touch, starting with 02 Memory and 04 Filesystem; build timelines for 09 and 11.
+3. Build the home dashboard from the design canvas and use its station names.
+4. Put more of the protocol on the wire where a station needs it: the map as a resource in 00, roots in 04, a changing tool list in a rug-pull station.
+5. Pin upstream revisions; stations 01 to 03 were never checked against a source.
 
 ## Explicit exclusions for this change
 

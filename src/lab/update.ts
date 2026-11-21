@@ -6,7 +6,12 @@ import {
   STAGE_PAUSE_MILLISECONDS,
   runInProcess,
 } from '../adapters/in-process.ts'
-import { runOverMcp } from '../adapters/in-tab-mcp.ts'
+import {
+  type Frame,
+  enterDomain,
+  runOverMcp,
+  sendRaw,
+} from '../adapters/in-tab-mcp.ts'
 import type { CapabilityName, RunRecord } from '../domain/capabilities.ts'
 import { Pace } from '../domain/services.ts'
 import { applySettings } from '../domain/settings.ts'
@@ -35,7 +40,7 @@ import {
   type Model,
   Replay,
   RunState,
-  type Station,
+  Station,
   type Weather,
   maxSpanIn,
   worldFor,
@@ -46,100 +51,40 @@ const REPLAY_STEP_MILLISECONDS = 450
 
 // COMMAND
 
+const labPace = Pace.slowedBy(STAGE_PAUSE_MILLISECONDS)
+
+const parseInput = (inputJson: string): unknown =>
+  Option.getOrElse(
+    Option.liftThrowable((text: string): unknown => JSON.parse(text))(
+      inputJson,
+    ),
+    () => ({}),
+  )
+
 export const RunCapability = Command.define('RunCapability', {
   args: {
     runId: Schema.Number,
     world: World,
+    station: Schema.String,
     capability: Schema.String,
-    from: PlaceId,
-    to: PlaceId,
-    url: Schema.String,
-    entity: Schema.String,
-    observation: Schema.String,
-    path: Schema.String,
-    target: Schema.String,
-    client: Schema.String,
-    place: Schema.String,
-    toolName: Schema.String,
+    inputJson: Schema.String,
   },
   messages: [Message.CompletedRunCapability],
   interrupt: true,
-  execute: ({
-    runId,
-    world,
-    capability,
-    from,
-    to,
-    url,
-    entity,
-    observation,
-    path,
-    target,
-    client,
-    place,
-    toolName,
-  }) =>
-    runOverMcp(
-      world,
-      capability,
-      capability === 'fetch_page'
-        ? { url }
-        : capability === 'remember'
-          ? { entity, observation }
-          : capability === 'recall'
-            ? { entity }
-            : capability === 'plan_steps'
-              ? { from, to, thoughts: callerThoughts }
-              : capability === 'read_file'
-                ? { path }
-                : capability === 'click'
-                  ? { target }
-                  : capability === 'show_map'
-                    ? { place }
-                    : capability === 'call_tool'
-                      ? { name: toolName }
-                      : capability === 'go_to'
-                        ? { client, place }
-                        : capability === 'where_am_i'
-                          ? { client }
-                          : { from, to },
-      Pace.slowedBy(STAGE_PAUSE_MILLISECONDS),
-    ).pipe(
+  execute: ({ runId, world, station, capability, inputJson }) =>
+    runOverMcp(world, station, capability, parseInput(inputJson), labPace).pipe(
       Effect.map(result =>
         Message.CompletedRunCapability({
           runId,
           record: result.record,
           world: result.world,
           frames: result.frames,
+          tools: result.tools,
         }),
       ),
       Effect.catch(() =>
         Effect.map(
-          runInProcess(
-            world,
-            capability,
-            capability === 'fetch_page'
-              ? { url }
-              : capability === 'remember'
-                ? { entity, observation }
-                : capability === 'recall'
-                  ? { entity }
-                  : capability === 'plan_steps'
-                    ? { from, to, thoughts: callerThoughts }
-                    : capability === 'read_file'
-                      ? { path }
-                      : capability === 'click'
-                        ? { target }
-                        : capability === 'show_map'
-                          ? { place }
-                          : capability === 'call_tool'
-                            ? { name: toolName }
-                            : capability === 'go_to'
-                              ? { client, place }
-                              : capability === 'where_am_i'
-                                ? { client }
-                                : { from, to },
-          ),
+          runInProcess(world, capability, parseInput(inputJson)),
           result =>
             Message.CompletedRunCapability({
               runId,
@@ -151,6 +96,50 @@ export const RunCapability = Command.define('RunCapability', {
     ),
 })
 
+export const EnterDomain = Command.define('EnterDomain', {
+  args: { world: World, station: Station },
+  messages: [Message.CompletedEnterDomain, Message.FailedEnterDomain],
+  execute: ({ world, station }) =>
+    enterDomain(world, station, labPace).pipe(
+      Effect.map(entered =>
+        Message.CompletedEnterDomain({
+          station,
+          tools: entered.tools,
+          frames: entered.frames,
+        }),
+      ),
+      Effect.catch(() => Effect.succeed(Message.FailedEnterDomain())),
+    ),
+})
+
+export const SendRaw = Command.define('SendRaw', {
+  args: { world: World, station: Schema.String, text: Schema.String },
+  messages: [Message.CompletedSendRaw, Message.FailedSendRaw],
+  execute: ({ world, station, text }) =>
+    sendRaw(world, station, text, labPace).pipe(
+      Effect.map(sent =>
+        Option.match(sent.record, {
+          onNone: () =>
+            Message.CompletedSendRaw({
+              note: sent.note,
+              frames: sent.frames,
+              tools: sent.tools,
+              world: sent.world,
+            }),
+          onSome: record =>
+            Message.CompletedSendRaw({
+              note: sent.note,
+              frames: sent.frames,
+              tools: sent.tools,
+              world: sent.world,
+              record,
+            }),
+        }),
+      ),
+      Effect.catch(() => Effect.succeed(Message.FailedSendRaw())),
+    ),
+})
+
 export const WaitBeforeNextEvent = Command.define('WaitBeforeNextEvent', {
   args: { runId: Schema.Number, cursor: Schema.Number },
   messages: [Message.CompletedWaitBeforeNextEvent],
@@ -159,6 +148,33 @@ export const WaitBeforeNextEvent = Command.define('WaitBeforeNextEvent', {
       Effect.as(Message.CompletedWaitBeforeNextEvent({ runId, cursor })),
     ),
 })
+
+export const inputFor = (capability: string, model: Model): unknown =>
+  capability === 'fetch_page'
+    ? { url: model.url }
+    : capability === 'remember'
+      ? { entity: model.entity, observation: model.observation }
+      : capability === 'recall'
+        ? { entity: model.entity }
+        : capability === 'plan_steps'
+          ? { from: model.from, to: model.to, thoughts: callerThoughts }
+          : capability === 'read_file'
+            ? { path: model.path }
+            : capability === 'click'
+              ? { target: model.target }
+              : capability === 'show_map'
+                ? { place: model.place }
+                : capability === 'call_tool'
+                  ? { name: model.toolName }
+                  : capability === 'go_to'
+                    ? { client: model.client, place: model.place }
+                    : capability === 'where_am_i'
+                      ? { client: model.client }
+                      : capability === 'find_route' ||
+                          capability === 'build_path' ||
+                          capability === 'connect_places'
+                        ? { from: model.from, to: model.to }
+                        : {}
 
 // INIT
 
@@ -189,6 +205,10 @@ export const initialModel: Model = {
   reading: 'person',
   savedRuns: [],
   frames: [],
+  tools: [],
+  connection: 'connecting',
+  consoleText: '',
+  consoleNote: '',
   transport: 'mcp-in-tab',
   tab: 'engine',
   backstage: 'collapsed',
@@ -198,6 +218,7 @@ export const initialModel: Model = {
 
 export const init: Runtime.ApplicationInit<Model, Message> = () => ({
   model: initialModel,
+  commands: [EnterDomain({ world: initialModel.world, station: 'valley' })],
 })
 
 // UPDATE
@@ -289,6 +310,43 @@ const defaultCapability = (station: Station): Option.Option<CapabilityName> =>
                         : station === 'local-remote'
                           ? Option.some('go_to')
                           : Option.none()
+
+const FRAME_LIMIT = 80
+
+const keepFrames = (
+  previous: ReadonlyArray<Frame>,
+  added: ReadonlyArray<Frame>,
+): ReadonlyArray<Frame> => Array.takeRight([...previous, ...added], FRAME_LIMIT)
+
+const presetText = (preset: string, model: Model): string => {
+  const tool = Option.getOrElse(model.maybeSelected, () => 'read_map')
+  const call = (params: unknown) =>
+    JSON.stringify(
+      { jsonrpc: '2.0', id: 1, method: 'tools/call', params },
+      null,
+      2,
+    )
+  if (preset === 'unknown-method') {
+    return JSON.stringify(
+      { jsonrpc: '2.0', id: 1, method: 'tools/destroy' },
+      null,
+      2,
+    )
+  }
+  if (preset === 'no-name') {
+    return call({})
+  }
+  if (preset === 'wrong-arguments') {
+    return call({ name: tool, arguments: { from: 'mill', to: 'the moon' } })
+  }
+  if (preset === 'not-a-request') {
+    return JSON.stringify({ hello: 'server' }, null, 2)
+  }
+  if (preset === 'not-json') {
+    return '{ "jsonrpc": "2.0", "id": 1, "method": '
+  }
+  return call({ name: tool, arguments: inputFor(tool, model) })
+}
 
 const interruptIfRunning = (model: Model) =>
   RunState.isAnyOf(['Running'])(model.run)
@@ -415,10 +473,12 @@ export const update = (current: Model, message: Message) => {
             }),
           ),
         replay: () => Replay.Complete(),
-        frames: () => [],
         reading: () => 'person',
       }),
-      commands: interruptIfRunning(model),
+      commands: [
+        ...interruptIfRunning(model),
+        EnterDomain({ world: model.world, station }),
+      ],
     }),
 
     SelectedPolicy: ({ policy }) => ({
@@ -602,23 +662,15 @@ export const update = (current: Model, message: Message) => {
                 RunCapability({
                   runId: model.nextRunId,
                   world: model.world,
-                  capability,
-                  from: model.from,
-                  to: model.to,
-                  url: model.url,
-                  entity: model.entity,
-                  observation: model.observation,
-                  path: model.path,
-                  target: model.target,
-                  client: model.client,
-                  place: model.place,
-                  toolName: model.toolName,
+                  station: model.station,
+                  capability: capability,
+                  inputJson: JSON.stringify(inputFor(capability, model)),
                 }),
               ],
             }),
           }),
 
-    CompletedRunCapability: ({ runId, record, world, frames }) =>
+    CompletedRunCapability: ({ runId, record, world, frames, tools }) =>
       RunState.match<UpdateReturn>(model.run, {
         Idle: () => ({ model }),
         Succeeded: () => ({ model }),
@@ -631,7 +683,8 @@ export const update = (current: Model, message: Message) => {
                 model: complete(
                   modifyFields(model, {
                     world: () => world,
-                    frames: () => frames ?? [],
+                    frames: previous => keepFrames(previous, frames ?? []),
+                    tools: previous => tools ?? previous,
                     transport: () =>
                       frames === undefined ? 'in-process' : 'mcp-in-tab',
                     conversation: lines => [...lines, ...spoken(record)],
@@ -676,17 +729,9 @@ export const update = (current: Model, message: Message) => {
               RunCapability({
                 runId: model.nextRunId,
                 world: model.world,
+                station: model.station,
                 capability: name,
-                from: model.from,
-                to: model.to,
-                url: model.url,
-                entity: model.entity,
-                observation: model.observation,
-                path: model.path,
-                target: model.target,
-                client: model.client,
-                place: model.place,
-                toolName: model.toolName,
+                inputJson: JSON.stringify(inputFor(name, model)),
               }),
             ],
           },
@@ -710,6 +755,65 @@ export const update = (current: Model, message: Message) => {
         }),
         ['trace'],
       ),
+    }),
+
+    CompletedEnterDomain: ({ station, tools, frames }) => ({
+      model: modifyFields(model, {
+        tools: previous => (station === model.station ? tools : previous),
+        connection: () => 'connected',
+        frames: previous => keepFrames(previous, frames),
+      }),
+    }),
+
+    FailedEnterDomain: () => ({
+      model: modifyFields(model, { connection: () => 'offline' }),
+    }),
+
+    UpdatedConsoleText: ({ value }) => ({
+      model: modifyFields(model, { consoleText: () => value }),
+    }),
+
+    ClickedConsolePreset: ({ preset }) => ({
+      model: modifyFields(model, {
+        consoleText: () => presetText(preset, model),
+        consoleNote: () => '',
+      }),
+    }),
+
+    ClickedSendRaw: () => ({
+      model: modifyFields(model, { consoleNote: () => 'Sending…' }),
+      commands: [
+        SendRaw({
+          world: model.world,
+          station: model.station,
+          text: model.consoleText,
+        }),
+      ],
+    }),
+
+    CompletedSendRaw: ({ note, frames, tools, world, record }) => ({
+      model: modifyFields(model, {
+        consoleNote: () => note,
+        frames: previous => keepFrames(previous, frames),
+        tools: previous =>
+          Array.isReadonlyArrayEmpty(tools) ? previous : tools,
+        world: () => world,
+        run: previous =>
+          record === undefined
+            ? previous
+            : record.outcome._tag === 'Succeeded'
+              ? RunState.Succeeded({ runId: model.nextRunId, record })
+              : RunState.Failed({ runId: model.nextRunId, record }),
+        nextRunId: runId => (record === undefined ? runId : runId + 1),
+        replay: () => Replay.Complete(),
+      }),
+    }),
+
+    FailedSendRaw: () => ({
+      model: modifyFields(model, {
+        consoleNote: () =>
+          'The in-tab connection is not available, so nothing could be sent.',
+      }),
     }),
 
     ClickedCancel: () =>

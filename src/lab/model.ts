@@ -1,7 +1,7 @@
 import { Schema } from 'effect'
 import { defineTaggedUnion } from 'foldkit/schema'
 
-import { Frame } from '../adapters/in-tab-mcp.ts'
+import { Frame, OfferedTool } from '../adapters/in-tab-mcp.ts'
 import { CapabilityName, RunRecord } from '../domain/capabilities.ts'
 import {
   CALM_MAX_SPAN,
@@ -56,6 +56,7 @@ export const BackstageTab = Schema.Literals([
   'recording',
   'network',
   'frames',
+  'console',
 ])
 export type BackstageTab = typeof BackstageTab.Type
 
@@ -108,6 +109,10 @@ export const Model = Schema.Struct({
   reading: Schema.Literals(['person', 'model', 'server']),
   savedRuns: Schema.Array(Schema.Struct({ station: Station, run: RunState })),
   frames: Schema.Array(Frame),
+  tools: Schema.Array(OfferedTool),
+  connection: Schema.Literals(['connecting', 'connected', 'offline']),
+  consoleText: Schema.String,
+  consoleNote: Schema.String,
   transport: Schema.Literals(['mcp-in-tab', 'in-process']),
   tab: BackstageTab,
   backstage: Schema.Literals(['open', 'collapsed']),
