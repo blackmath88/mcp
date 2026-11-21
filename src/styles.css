@@ -1974,9 +1974,8 @@ textarea.console-text {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px 16px;
-  padding: 8px 12px;
+  gap: 6px 12px;
+  padding: 6px 12px;
   border: 1px solid var(--bd);
   border-radius: 12px;
   background: var(--canvas);
@@ -2016,8 +2015,8 @@ textarea.console-text {
 }
 .tb-tool {
   position: relative;
-  width: 148px;
-  min-height: 132px;
+  width: 144px;
+  min-height: 116px;
   box-sizing: border-box;
   padding: 10px 8px 10px;
   display: flex;
@@ -2034,8 +2033,11 @@ textarea.console-text {
     box-shadow 120ms ease;
 }
 .tb-tool .px {
-  width: 52px;
-  height: 52px;
+  width: 46px;
+  height: 46px;
+}
+.tb-material .places {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
 }
 .tb-tool:hover:not(.ghost) {
   transform: translateY(-2px);
@@ -2207,7 +2209,7 @@ textarea.console-text {
 .tb-drawer {
   border: 1px solid var(--fg);
   border-radius: 14px;
-  padding: 12px 14px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -2217,6 +2219,14 @@ textarea.console-text {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+.tb-drawer-head .bigicon {
+  width: 44px;
+  height: 44px;
+}
+.tb-drawer-head .bigicon .px {
+  width: 36px;
+  height: 36px;
 }
 .tb-drawer-head h3 {
   font-size: 14px;
@@ -2261,6 +2271,52 @@ textarea.console-text {
   .tb-drawer-head {
     flex-wrap: wrap;
   }
+}
+
+.tb-workshop {
+  font-size: 10px;
+  line-height: 14px;
+  padding: 0 6px;
+  border-radius: 6px;
+  color: #6d28d9;
+  background: color-mix(in srgb, #8b5cf6 12%, transparent);
+}
+.primer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 12px;
+}
+.primer-cards {
+  flex: 1 1 760px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+.primer-card {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  background: var(--bg);
+  font-size: 12.5px;
+  line-height: 17px;
+}
+.primer-card .tb-n {
+  flex: none;
+  margin-top: 1px;
+}
+.primer-card p {
+  color: var(--fg3);
+  margin-top: 2px;
+}
+.primer-doors {
+  flex: 0 1 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
 }
 
 /* Belt */

@@ -140,6 +140,12 @@ Status: owner note "mcp recon does what we need for lens", 2026-11-21. First cut
 
 Lens reads only what a server says about its tools and emits claims with stable rule ids, the field each rests on, and a declared/inferred label. It pins a fingerprint of each definition on first sight and reports later change. It never states what a tool does when called. Recon tooling built for attackers is the model for the reading; the lab applies it defensively to its own simulated servers only.
 
+## D18 — A server is a toolbench, and the host may ask
+
+Status: owner go-ahead ("take 100 minutes … build"), 2026-11-21. Implemented.
+
+Each station reads the same way: what the server hands you (and what it does not), what those instruments work on, what comes back, and what stays changed. The bench is computed from the real run record and its replay cursor rather than played as an animation. The host's approval rule is real model state; nothing is sent while a call waits, and a denied call never reaches the server.
+
 ## Still undecided
 
 Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.

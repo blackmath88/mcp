@@ -799,8 +799,6 @@ export const update = (current: Model, message: Message): UpdateReturn => {
                         ? RunState.Succeeded({ runId, record })
                         : RunState.Failed({ runId, record }),
                     replay: () => Replay.Complete(),
-                    backstage: backstage =>
-                      record.outcome._tag === 'Failed' ? 'open' : backstage,
                   }),
                   pipe(
                     [
@@ -944,6 +942,20 @@ export const update = (current: Model, message: Message): UpdateReturn => {
         pending: () => Option.none(),
       }),
     }),
+
+    ClickedNerdEntry: () => {
+      const opened = update(
+        model,
+        Message.SelectedStation({ station: 'valley' }),
+      )
+      return {
+        ...opened,
+        model: modifyFields(opened.model, {
+          tab: () => 'console',
+          backstage: () => 'open',
+        }),
+      }
+    },
 
     ClickedWatch: () => {
       const rewound = update(model, Message.ClickedReplayFromStart())

@@ -634,6 +634,17 @@ const detailView = (model: Model, h: H): Html =>
     }),
   )
 
+// PRIMER: three sentences for someone new, one door each for both readers
+
+const primerCard = (n: string, title: string, body: string, h: H): Html =>
+  h.div(
+    [h.Class('primer-card')],
+    [
+      h.span([h.Class('tb-n'), h.AriaHidden(true)], [n]),
+      h.div([], [h.b([], [title]), h.p([], [body])]),
+    ],
+  )
+
 // SCREEN
 
 export const atlasScreenView = (model: Model, h: H): Html =>
@@ -679,6 +690,55 @@ export const atlasScreenView = (model: Model, h: H): Html =>
                     h,
                   )
                 : h.empty,
+            ],
+          ),
+        ],
+      ),
+      h.div(
+        [h.Class('primer')],
+        [
+          h.div(
+            [h.Class('primer-cards')],
+            [
+              primerCard(
+                '1',
+                'A server hands your AI tools',
+                'Each tool is a name, the inputs it takes and a description. That list is all the AI is told.',
+                h,
+              ),
+              primerCard(
+                '2',
+                'The host decides what runs',
+                'The app around the AI chooses which tools it sees and whether to ask you first. MCP leaves that to the host.',
+                h,
+              ),
+              primerCard(
+                '3',
+                'Behind each tool is something real',
+                'A file, a page, a ledger, another model. The list does not show it. Here you can open it and watch.',
+                h,
+              ),
+            ],
+          ),
+          h.div(
+            [h.Class('primer-doors')],
+            [
+              h.button(
+                [
+                  h.Type('button'),
+                  h.Class('btn'),
+                  h.OnClick(Message.ClickedOpenSpecimen({ name: 'remember' })),
+                ],
+                ['First time? Open the Memory bench'],
+              ),
+              h.button(
+                [
+                  h.Type('button'),
+                  h.Class('btn ghost'),
+                  h.OnClick(Message.ClickedNerdEntry()),
+                ],
+                ['Straight to the wire: raw JSON-RPC'],
+              ),
             ],
           ),
         ],

@@ -1,5 +1,34 @@
 # Handoff
 
+## Every station is a toolbench; the host can ask first — 2026-11-21
+
+Owner: "take 100 minutes … build out the whole repo, test and judge … a place where somebody learns about MCP the first time but also the nerds get into the nitty gritty". Built from board F of the architecture canvas (white background, as asked) and the external review in `docs/research/2026-11-21-visualisation-research.md`.
+
+### Changed
+
+- **Toolbench on every station** (`src/lab/toolbench.ts`). Four numbered parts, the same on all 14 stations:
+  1. *Handed to you*: the server's tools as instrument cards with sprite, signature, `readOnlyHint`, a "called n×" badge and a "contains a workshop" mark for tools whose one call runs a whole process. Dashed cards show what the server does **not** give you (authored per station, e.g. `undo_entry()`: there is no undo).
+  2. *What they work on*: the existing touchable bench, labelled as drawn from the lab's own source.
+  3. *Comes back*: the result, the approval prompt, and "How it happened", the run's engine events with "Watch it again" (the existing replay cursor drives it).
+  4. *Stays changed*: a stamp listing state changes up to the replay cursor; "It failed after this. Nothing was rolled back." when that applies.
+- **Host approval** (`src/lab/approval.ts`): never ask / ask unless read-only / always ask. A waiting call sends nothing; Deny leaves the world untouched and says so; Allow sends it. A Python program is approved once for all its writes, and the screen says that. The inspector's "Was anyone asked?" now answers from what actually happened.
+- **Under the hood** for each instrument: the raw `tools/list` entry as received (kept now as JSON in the session), the exact `tools/call` that "Use it" would send, Lens claims, a hidden-character check of the description, what is known about it, and the three hints that are not sent with their spec defaults.
+- **Two doors on the atlas**: three sentences for a first-timer and "First time? Open the Memory bench"; "Straight to the wire: raw JSON-RPC" opens the call console.
+- The belt is shown on the atlas only; on a bench the instrument row replaces it. The inspector no longer repeats the selected instrument's card. A failed run no longer forces Backstage open.
+
+### Evidence (observed in this session)
+
+- `typecheck`, `lint`, `test` (187 passed), `build` pass. New tests: a write waits under "ask unless read-only" and sends no command; Deny leaves the world equal to before; Allow sends `RunCapability` and records it; read-only runs at once; the rule table; scene tests for ghosts, the approval prompt, Deny, the program prompt and both doors.
+- Headless Chromium 1440 wide: the first instrument used on all 14 stations without a page error; Memory write asked, allowed, replayed step by step; Ledger `run_as_program` with "third write fails": asked once, failed, two entries stayed, the stamp and the tray said so. iPhone 13: no horizontal overflow on the Memory bench.
+- Screenshots: `docs/reports/toolbench/`.
+
+### Limits
+
+- Ghost instruments and "contains a workshop" are authored by the lab, not read from any server.
+- The work area is still each station's existing bench; the instruments are not yet drawn as lines into it the way board F does.
+- "How it happened" lists engine events in text; the bench does not animate them yet.
+- Approval is a model of a host, not any real product's behaviour.
+
 ## Segment 13 built; all thirteen ladder steps have a running tool — 2026-11-21
 
 Owner: "go on and make sure all segments are built". Read as the thirteen steps of the learning ladder in `docs/concept/MCP-LENS-ONTOLOGY.md`. Twelve had a specimen; step 13 existed only as a Backstage tab.

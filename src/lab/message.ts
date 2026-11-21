@@ -78,6 +78,7 @@ export const Message = defineMessageUnion({
   ClickedApprove: {},
   ClickedDeny: {},
   ClickedWatch: {},
+  ClickedNerdEntry: {},
   ClickedTamper: { on: Schema.Boolean },
   ClickedOpenInventory: {},
   PressedSlotKey: { slot: Schema.Number },

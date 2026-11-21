@@ -2,6 +2,13 @@
 
 An exploration lab for one question: when an AI gains access to a capability, what has it actually gained access to? See [CONCEPT.md](CONCEPT.md).
 
+## What you will find
+
+- **An atlas** of 30 tools on 14 simulated servers, each tool a pixel object in a fixed place. Three sentences for a first visit, and a shortcut to raw JSON-RPC for the curious.
+- **A toolbench per server**: what it hands you (and what it does not), what those tools work on, what comes back, what stays changed. Use a tool, watch the engine events replay, set the host to ask you first and deny a write.
+- **Under the hood** of every tool: the `tools/list` entry as received, the exact `tools/call` it would send, what Lens infers from the wording, and hidden-character checks.
+- **Thirteen questions** from reading to inspecting the inspector, each with tools to try. Python runs in the tab for station 09; every `ledger.write` is a real tool call.
+
 ## Run the first slice
 
 Requires Node 22.18 or newer. No cloud account, API key or model is needed.

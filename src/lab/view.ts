@@ -511,7 +511,6 @@ export const view = (model: Model, h: H): Document => ({
             workbenchView(model, h),
             inspectorView(model, h),
             backstageView(model, h),
-            beltView(model, h),
             statusbarView(model, h),
           ],
         ),
@@ -743,7 +742,10 @@ const inspectorView = (model: Model, h: H): Html =>
       ),
       Option.match(Option.flatMap(model.maybeSelected, findCapability), {
         onNone: () => h.empty,
-        onSome: capability => cardView(model, capability, h),
+        onSome: capability =>
+          capability.specimen === model.station
+            ? h.empty
+            : cardView(model, capability, h),
       }),
       Option.match(finishedRecord(model.run), {
         onNone: () => h.empty,
@@ -1166,9 +1168,11 @@ const staysView = (model: Model, h: H): Html => {
           h.p(
             [h.Class('tb-quiet')],
             [
-              record.outcome._tag === 'Failed'
-                ? 'Nothing. It failed before changing anything.'
-                : 'Nothing. This call left everything as it was.',
+              !Replay.isAnyOf(['Complete'])(model.replay)
+                ? 'Nothing yet, at this point of the replay.'
+                : record.outcome._tag === 'Failed'
+                  ? 'Nothing. It failed before changing anything.'
+                  : 'Nothing. This call left everything as it was.',
             ],
           ),
         onNonEmpty: shown =>
@@ -1180,7 +1184,7 @@ const staysView = (model: Model, h: H): Html => {
                   [],
                   [
                     h.b([], [`${componentNames[event.component]}: `]),
-                    event.detail,
+                    event.operation,
                   ],
                 ),
               ),

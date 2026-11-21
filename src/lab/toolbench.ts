@@ -12,6 +12,7 @@ import {
   profile,
 } from '../domain/lens.ts'
 import { approvalRules, claimsReadOnly } from './approval.ts'
+import { evidenceView } from './atlas.ts'
 import { beltOf, calledToolOf, findCapability } from './belt.ts'
 import { iconView } from './icons.ts'
 import { Message } from './message.ts'
@@ -48,6 +49,17 @@ const ghosts: Record<Station, ReadonlyArray<readonly [string, string]>> = {
   network: [['list_backends()', 'you cannot see which backends exist']],
   inspector: [['watch_tool_run(name)', 'it cannot see a tool run']],
 }
+
+// Authored: tools whose one call runs a whole process of its own.
+const workshops: ReadonlySet<string> = new Set([
+  'connect_places',
+  'plan_steps',
+  'run_as_program',
+  'deliver_plan',
+  'refine_plan',
+  'crash_and_resume',
+  'call_tool',
+])
 
 const isRunning = (model: Model): boolean =>
   RunState.isAnyOf(['Running'])(model.run)
@@ -142,17 +154,9 @@ const hostView = (model: Model, h: H): Html =>
   h.div(
     [h.Class('tb-host')],
     [
-      h.div(
+      h.span(
         [h.Class('tb-host-text')],
-        [
-          h.b([], ['Host']),
-          h.span(
-            [],
-            [
-              ' decides what may run. MCP leaves this to the host; this one asks you when its rule says so.',
-            ],
-          ),
-        ],
+        [h.b([], ['Host ']), 'asks you before a call:'],
       ),
       h.div(
         [h.Class('seg'), h.Role('group'), h.AriaLabel('Approval rule')],
@@ -167,6 +171,10 @@ const hostView = (model: Model, h: H): Html =>
             [rule.label],
           ),
         ),
+      ),
+      h.span(
+        [h.Class('tb-note')],
+        [approvalRules.find(rule => rule.id === model.approval)?.means ?? ''],
       ),
     ],
   )
@@ -201,6 +209,9 @@ const instrumentCard = (
         [readOnly ? 'readOnlyHint true' : 'readOnlyHint —'],
       ),
       calls > 0 ? h.span([h.Class('tb-calls')], [`called ${calls}×`]) : h.empty,
+      workshops.has(capability.name)
+        ? h.span([h.Class('tb-workshop')], ['contains a workshop'])
+        : h.empty,
     ],
   )
 }
@@ -431,6 +442,16 @@ const drawerView = (model: Model, h: H): Html =>
                               ],
                             ),
                           ),
+                        ),
+                        h.h4([], ['What is known about it']),
+                        evidenceView(model, capability, h),
+                        h.button(
+                          [
+                            h.Type('button'),
+                            h.Class('btn ghost small'),
+                            h.OnClick(Message.ClickedShowOnAtlas()),
+                          ],
+                          ['Show it on the atlas'],
                         ),
                         h.p(
                           [h.Class('side-note')],
