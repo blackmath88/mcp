@@ -2,6 +2,10 @@
 
 Proposal v0.1 · 21 November 2026. This is the lab’s vocabulary. Protocol primitives retain their specified meanings. Use the [current host direction](ADDENDUM-SPECIMENS-LENS-AND-EMBEDDING.md) and [specimen research](../research/REAL-MCP-SPECIMENS.md) alongside it.
 
+## Learner-facing chapters
+
+The [three-chapter learner journey](LEARNER-JOURNEY.md) groups the distinctions below into Inventory, Workshop and Follow the work. The numbered entries are stable authoring and Lens keys, exposed as optional reveals in context.
+
 ## Learning ladder
 
 Complexity accumulates in the learner’s questions. Each step keeps the earlier questions available and introduces one new distinction. This is a teaching order; real capabilities can exhibit any combination of traits. Build phases group work differently.
