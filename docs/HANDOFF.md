@@ -1,5 +1,9 @@
 # Handoff
 
+## Lab orientation and specimen navigation
+
+The Foldkit shell presents the whole journey in three phases with named examples in each. The current phase and station appear in the title bar. The sidebar lists nearby stations; the source picker reaches every station directly. Valley actions are available in a local disclosure. The reference is the [PDF Lab desktop capture](https://github.com/blackmath88/baselhack26-open-presence/blob/main/docs/reports/pdf-lab-werkbank/01-start-desktop.png), where the specimen stays identifiable across readings. Source inspection and an isolated navigation render/message check covered all thirteen stations. Full build, browser interaction and mobile layout still need verification.
+
 ## CLI and gateway stations — 2026-11-21
 
 Sources read (fetch tool, 2026-11-21, not pinned): mcporter `docs/cli-generator.md` and README; supergateway README and issues 35, 126, 160.

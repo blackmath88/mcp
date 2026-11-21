@@ -244,6 +244,58 @@ const stationOf = (id: string): Station =>
 const findSpecimen = (station: Station): Option.Option<Specimen> =>
   Array.findFirst(route.specimens, specimen => specimen.id === station)
 
+type JourneyPhase = 'inventory' | 'workshop' | 'network'
+
+const phaseNames: Record<JourneyPhase, string> = {
+  inventory: 'Explore the inventory',
+  workshop: 'Open the workshop',
+  network: 'Follow the work',
+}
+
+const phaseExamples: Record<JourneyPhase, string> = {
+  inventory: 'Maps · memory',
+  workshop: 'CLI · interactive apps',
+  network: 'Gateways · delegation',
+}
+
+const phaseOrder: ReadonlyArray<JourneyPhase> = ['inventory', 'workshop', 'network']
+
+const phaseOf: Record<Station, JourneyPhase> = {
+  valley: 'inventory', fetch: 'inventory', memory: 'inventory',
+  filesystem: 'inventory', perception: 'inventory',
+  thinking: 'workshop', cli: 'workshop', apps: 'workshop', 'code-mode': 'workshop',
+  'local-remote': 'network', delegation: 'network', iteration: 'network', network: 'network',
+}
+
+const stationInfo = (station: Station) => {
+  const specimen = route.specimens.find(item => item.id === station)
+  return {
+    title: specimen?.title ?? 'The valley',
+    source: specimen?.anchor.repo ?? 'MCP Lab',
+    mode: specimen?.status === 'reference' ? 'Read' : 'Try',
+  }
+}
+
+const phaseStations = (phase: JourneyPhase) => stations.filter(station => phaseOf[station] === phase)
+
+const phaseMapView = (model: Model, h: H): Html =>
+  h.nav([h.Class('phase-map'), h.AriaLabel('Learning path, simple to complex')],
+    phaseOrder.map((phase, index) => {
+      const members = phaseStations(phase)
+      const active = phaseOf[model.station] === phase
+      return h.button([
+        h.Type('button'), h.Class('phase-stop'),
+        h.AriaCurrent(active ? 'step' : 'false'),
+        h.Disabled(active),
+        h.OnClick(Message.SelectedStation({ station: members[0] ?? 'valley' })),
+      ], [
+        h.span([h.Class('phase-number')], [String(index + 1)]),
+        h.span([h.Class('phase-name')], [phaseNames[phase]]),
+        h.small([], [phaseExamples[phase]]),
+      ])
+    }),
+  )
+
 const storagePaths: ReadonlyArray<
   Readonly<{ id: StoragePath; label: string }>
 > = [
@@ -472,7 +524,10 @@ const titlebarView = (model: Model, h: H): Html =>
     [h.Class('titlebar')],
     [
       h.h1([], ['MCP Lab']),
-      h.p([h.Class('tagline')], ['What were you just handed?']),
+      h.p([h.Class('location'), h.AriaLabel('Current location')], [
+        phaseNames[phaseOf[model.station]], ' › ', h.b([], [stationInfo(model.station).title]),
+      ]),
+      phaseMapView(model, h),
       model.station === 'valley'
         ? bendView(
             'Weather',
@@ -661,22 +716,33 @@ const journeyView = (model: Model, h: H): Html =>
   h.section(
     [h.Class('side-section')],
     [
-      h.h2([h.Class('side-title')], ['Start here']),
-      h.button(
-        [
-          h.Type('button'),
-          h.Class('rung'),
-          h.AriaCurrent(model.station === 'valley' ? 'page' : 'false'),
-          h.OnClick(Message.SelectedStation({ station: 'valley' })),
-        ],
-        [
-          h.span([h.Class('n')], ['00']),
-          h.span([h.Class('t')], ['The valley']),
-          h.span([h.Class('k')], ['ours']),
-        ],
-      ),
+      h.label([h.For('source-jump'), h.Class('side-title')], ['Browse by specimen']),
+      h.select([
+        h.Id('source-jump'), h.Class('source-jump'), h.Value(model.station),
+        h.OnChange(value => Message.SelectedStation({ station: stationOf(value) })),
+      ], stations.slice().sort((a, b) => stationInfo(a).source.localeCompare(stationInfo(b).source)).map(station => {
+        const info = stationInfo(station)
+        return h.option([h.Value(station), h.Selected(station === model.station)],
+          [`${info.source} · ${info.title} (${info.mode})`])
+      })),
+      h.h2([h.Class('side-title')], [phaseNames[phaseOf[model.station]]]),
+      h.ol([h.Class('journey')], phaseStations(phaseOf[model.station]).map(station => {
+        const info = stationInfo(station)
+        return h.keyed('li')(station, [], [
+          h.button([
+            h.Type('button'), h.Class('rung'), h.Disabled(station === model.station),
+            h.AriaCurrent(station === model.station ? 'page' : 'false'),
+            h.OnClick(Message.SelectedStation({ station })),
+          ], [
+            h.span([h.Class('t')], [info.title]),
+            h.small([h.Class('k')], [info.mode]),
+          ]),
+        ])
+      })),
       model.station === 'valley'
-        ? h.ol(
+        ? h.details([h.Class('fold')], [
+            h.summary([], ['Valley walkthrough · ', chapters.find(item => item.id === model.chapter)?.name ?? '']),
+            h.ol(
             [h.Class('journey steps')],
             Array.map(chapters, (chapter, index) =>
               h.keyed('li')(
@@ -710,45 +776,9 @@ const journeyView = (model: Model, h: H): Html =>
                 ],
               ),
             ),
-          )
-        : h.empty,
-      h.h2([h.Class('side-title')], ['Route · easy to complex']),
-      h.ol(
-        [h.Class('journey')],
-        Array.map(route.specimens, specimen =>
-          h.keyed('li')(
-            specimen.id,
-            [],
-            [
-              h.button(
-                [
-                  h.Type('button'),
-                  h.Class('rung'),
-                  h.AriaCurrent(
-                    model.station === specimen.id ? 'page' : 'false',
-                  ),
-                  h.OnClick(
-                    Message.SelectedStation({
-                      station: stationOf(specimen.id),
-                    }),
-                  ),
-                ],
-                [
-                  h.span(
-                    [h.Class('n')],
-                    [String(specimen.number).padStart(2, '0')],
-                  ),
-                  h.span([h.Class('t')], [specimen.title]),
-                  h.span(
-                    [h.Class(`k ${specimen.status}`)],
-                    [specimen.status === 'simulated' ? 'try it' : 'read'],
-                  ),
-                ],
-              ),
-            ],
           ),
-        ),
-      ),
+          ])
+        : h.empty,
     ],
   )
 
