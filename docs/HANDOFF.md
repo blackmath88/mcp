@@ -1,43 +1,29 @@
 # Handoff
 
-## Concept documentation — 2026-11-21
+## Existing-tool integration exhibit — 2026-11-21
 
-Status: documentation-only concept dossier. No implementation, runtime verification, or external integration acceptance is claimed.
+Status: code and embedding instructions authored; not executed or end-to-end verified. No deployment, installation, hosted search, or MCP session was performed by authoring these files.
 
-### Learned
+### Changed
 
-The owner wants an exploration lab progressing from inventory discovery to program-like capabilities, CLI overlap, placement, workflows, inversion, and a mixed module network. The concept must argue its choices and expose critical limitations before adding verified real-world examples.
+Added examples/registry-discovery/serve.py, index.html, and README.md. The local exhibit integrates existing official-registry and LastMile search REST endpoints, exposes raw evidence, and labels both paths REST rather than MCP. It does not connect to discovered servers. The guide describes real MCP-client and official MCP Apps host-bridge integration as next work, not completed features.
 
-### Direction and proposals
+The Effect/Foldkit/Alchemy direction remains unchanged. The standalone example demonstrates adapter behavior for later migration, not a new production frontend stack.
 
-Owner direction and assistant proposals are separated in docs/DECISIONS.md and docs/concept/CONVERSATION-SYNTHESIS.md. Network identity and authorization are treated as infrastructure assumptions, not a protocol security guarantee.
+### Evidence and checks
 
-### Scope of this change
+Repository root re-inspected at 8215ea5d2f0e1abe600e0810ed1f927b183ad673. Primary documentation fetched for modelcontextprotocol/registry official API, lastmile-ai/mcp-registry-search README, and modelcontextprotocol/ext-apps. Hosted endpoint availability, syntax, browser behavior, and compatibility were not tested. No automated checks were run; tests to add are listed in the example README.
 
-Replaces the concept, decisions, plan, and handoff scaffolds and adds six concept documents: narrative, architecture, critical questions, experiments, and conversation synthesis alongside the canonical concept index. Specifically, five new files under docs/concept are added; total files changed: nine. The write payload is the authoritative list if this prose count differs.
-
-No verbatim transcript, unrelated personal data, private practice text, runtime code, manifest classification change, README rewrite, or service activation is included. The synthesis covers all distinct conceptual threads and consolidates repeated turns.
-
-### Repository evidence
-
-Inspected repository root, AGENTS.md, START-HERE.md, CONCEPT.md, docs listing, docs/DEVELOPMENT-PRACTICE.md, docs/DECISIONS.md, docs/PLAN.md, docs/HANDOFF.md, .practice/source.json, and branches. main resolved to b120b9e7c84366fc55010a77b296689057d5aab8 and was unchanged on the subsequent branch check.
-
-No Observatory snapshot content was inspected; direct repository inspection was used. No claim of complete repository audit is made. Unrelated files are preserved.
-
-### Practice receipt
-
-Source: blackmath88/development-practice at 8a416833d269475653861964984cb8cfb6aa37c1.
-
-Selected: PRACTICE.md baseline, docs/DECISIONS.md, profiles/prototype.md; no optional method. The baseline was read through main, and the subsequent source-root resolution identified the same recorded revision. Decision ledger and profile were read using the pinned revision.
-
-Applied: proportionate concept-first scope, explicit proposals versus observations, synthetic demonstration direction, preservation of unrelated work, and truthful verification limits. Guidance is advisory; private source text is not vendored.
-
-Exceptions: no implementation was requested in this phase; no runtime, UI, or deployment checks were applicable. This is not a compliance certification.
-
-### Checks and limitations
-
-Executed: read-only GitHub inspection and branch resolution. No shell commands, automated link checks, Markdown lint, runtime tests, or learner evaluation were run. No external example or protocol-feature claim was freshly verified. Earlier conversational technical specifics must be checked before use.
+Practice selection remains the advisory prototype baseline previously inspected at blackmath88/development-practice 8a416833d269475653861964984cb8cfb6aa37c1. It was not freshly resolved for this follow-up. Applied bounded synthetic/read-only scope and explicit evidence labels. Limitation disclosed rather than claiming current practice verification.
 
 ### Next
 
-Review the concept, choose the first audience and synthetic domain, then storyboard one inventory-to-execution path. Real-world example enrichment follows, with explicit evidence records. No further authority or execution permission is implied by this handoff.
+Run the example and deterministic tests locally, migrate into the Effect/Foldkit application, then add the same existing search service through a real MCP client. Integrate one official MCP App using app-bridge, not an arbitrary iframe. Preserve provider provenance and separate observed data from Lens classifications.
+
+## Previous concept handoff — retained summary
+
+The concept commit established inventory discovery, program-like items, CLI overlap, placement, workflows, inversion, and mixed module networks. Owner direction and proposals are separated in docs/DECISIONS.md and docs/concept/CONVERSATION-SYNTHESIS.md. Identity/authorization are architectural assumptions, not protocol guarantees.
+
+Prior repository baseline: b120b9e7c84366fc55010a77b296689057d5aab8. Direct inspection covered root, AGENTS.md, START-HERE.md, concept, decisions, plan, handoff, development-practice instructions, practice source configuration, and branches. No Observatory snapshot was inspected. The earlier change modified nine documentation files: four existing scaffolds and five new concept files. Earlier prose referring to ten files was incorrect.
+
+Prior practice receipt: blackmath88/development-practice at 8a416833d269475653861964984cb8cfb6aa37c1; baseline, decision ledger, prototype profile; no optional method. No private source text was vendored. Prior checks were read-only repository inspection; no runtime or learner evaluation was performed. The conversation is preserved as a synthesis, not a verbatim transcript. Protocol/provider claims still require version-specific verification.
