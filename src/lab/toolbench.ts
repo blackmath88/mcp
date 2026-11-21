@@ -491,12 +491,23 @@ export const toolbenchView = (model: Model, parts: BenchParts, h: H): Html =>
         [h.Class('tb-main')],
         [
           h.div(
-            [h.Class('tb-material')],
+            [
+              h.Class(
+                `tb-material ${Option.isSome(activeName(model)) ? 'touched' : ''} ${isRunning(model) ? 'working' : ''}`,
+              ),
+            ],
             [
               stepLabel(
                 '2',
                 'What they work on',
-                'drawn from the lab’s own source; a tool list alone would not show this',
+                Option.match(activeName(model), {
+                  onNone: () =>
+                    'drawn from the lab’s own source; a tool list alone would not show this',
+                  onSome: name =>
+                    isRunning(model)
+                      ? `${name} is working on this now`
+                      : `${name} worked on this · drawn from the lab’s own source`,
+                }),
                 h,
               ),
               ...parts.material,

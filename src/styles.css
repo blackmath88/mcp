@@ -2110,6 +2110,15 @@ textarea.console-text {
   border-radius: 16px;
   background: var(--bg);
 }
+.tb-material.touched {
+  border-color: color-mix(in srgb, var(--sky) 55%, var(--bd));
+}
+.tb-material.working {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sky) 18%, transparent);
+}
+.tb-material.touched .tb-label .tb-note {
+  color: var(--sky);
+}
 .tb-tray {
   display: flex;
   flex-direction: column;
