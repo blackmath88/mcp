@@ -14,8 +14,12 @@ import {
 } from '../adapters/in-tab-mcp.ts'
 import { DEFAULT_PROGRAM, runProgram } from '../adapters/python-runner.ts'
 import type { CapabilityName, RunRecord } from '../domain/capabilities.ts'
-import { EXAMPLE_LISTING } from '../domain/foreign.ts'
-import { pinNew } from '../domain/lens.ts'
+import {
+  CHANGED_EXAMPLE_LISTING,
+  EXAMPLE_LISTING,
+  parseListing,
+} from '../domain/foreign.ts'
+import { fingerprintOf, pinNew } from '../domain/lens.ts'
 import { Pace } from '../domain/services.ts'
 import { applySettings } from '../domain/settings.ts'
 import { callerThoughts } from '../domain/thinking.ts'
@@ -241,6 +245,7 @@ export const initialModel: Model = {
   screen: 'bench',
   atlasView: 'map',
   pastedTools: '',
+  pastedPins: [],
   pins: [],
   approval: 'never',
   pending: Option.none(),
@@ -965,6 +970,28 @@ export const update = (current: Model, message: Message): UpdateReturn => {
 
     ClickedLoadExample: () => ({
       model: modifyFields(model, { pastedTools: () => EXAMPLE_LISTING }),
+    }),
+
+    ClickedPinListing: () => {
+      const parsed = parseListing(model.pastedTools)
+      return {
+        model: modifyFields(model, {
+          pastedPins: () =>
+            parsed.ok
+              ? parsed.tools.map(tool => ({
+                  name: tool.name,
+                  fingerprint: fingerprintOf(tool),
+                  description: tool.description,
+                }))
+              : [],
+        }),
+      }
+    },
+
+    ClickedLoadChangedExample: () => ({
+      model: modifyFields(model, {
+        pastedTools: () => CHANGED_EXAMPLE_LISTING,
+      }),
     }),
 
     ClickedWatch: () => {

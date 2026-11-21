@@ -2437,6 +2437,15 @@ textarea.console-text {
   font: 400 11px var(--mono);
   color: var(--fg2);
 }
+.foreign-before {
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--rosesub);
+  color: var(--fg3);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--rose) 50%, transparent);
+  overflow-wrap: anywhere;
+}
 .foreign-unknown {
   padding: 8px 10px;
   border: 2px dashed var(--bd);

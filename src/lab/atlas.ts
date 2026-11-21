@@ -15,7 +15,7 @@ import {
   parseListing,
 } from '../domain/foreign.ts'
 import { ladder } from '../domain/ladder.ts'
-import { listedFromCatalogue, profile } from '../domain/lens.ts'
+import { fingerprintOf, listedFromCatalogue, profile } from '../domain/lens.ts'
 import {
   BELT_SLOTS,
   beltOf,
@@ -425,7 +425,37 @@ const hintText = (
 ): string =>
   value === undefined ? `${label} — (read as ${fallback})` : `${label} ${value}`
 
-const foreignCard = (tool: ForeignTool, h: H): Html =>
+const driftOfPasted = (
+  pins: ReadonlyArray<PastedPin>,
+  tool: ForeignTool,
+): 'unpinned' | 'new' | 'same' | 'changed' => {
+  if (pins.length === 0) {
+    return 'unpinned'
+  }
+  const pin = pins.find(entry => entry.name === tool.name)
+  return pin === undefined
+    ? 'new'
+    : pin.fingerprint === fingerprintOf(tool)
+      ? 'same'
+      : 'changed'
+}
+
+const foreignCard = (
+  tool: ForeignTool,
+  pins: ReadonlyArray<PastedPin>,
+  h: H,
+): Html => {
+  const drift = driftOfPasted(pins, tool)
+  const before = pins.find(entry => entry.name === tool.name)
+  return foreignCardBody(tool, drift, before, h)
+}
+
+const foreignCardBody = (
+  tool: ForeignTool,
+  drift: 'unpinned' | 'new' | 'same' | 'changed',
+  before: PastedPin | undefined,
+  h: H,
+): Html =>
   h.keyed('article')(
     tool.name,
     [h.Class('foreign')],
@@ -453,6 +483,30 @@ const foreignCard = (tool: ForeignTool, h: H): Html =>
           ),
         ],
       ),
+      drift === 'unpinned'
+        ? h.empty
+        : h.span(
+            [
+              h.Class(
+                `tag ${drift === 'changed' ? 'bad' : drift === 'new' ? 'warn' : 'quiet'}`,
+              ),
+            ],
+            [
+              drift === 'changed'
+                ? 'changed since pinned'
+                : drift === 'new'
+                  ? 'new since pinned'
+                  : 'same as pinned',
+            ],
+          ),
+      drift === 'changed' &&
+      before !== undefined &&
+      before.description !== tool.description
+        ? h.p(
+            [h.Class('foreign-before')],
+            [h.b([], ['Before: ']), before.description],
+          )
+        : h.empty,
       h.p(
         [h.Class('foreign-desc')],
         [tool.description === '' ? '(no description)' : tool.description],
@@ -566,6 +620,27 @@ const yoursView = (model: Model, h: H): Html => {
             [
               h.Type('button'),
               h.Class('btn ghost small'),
+              h.Disabled(!parseListing(model.pastedTools).ok),
+              h.OnClick(Message.ClickedPinListing()),
+            ],
+            [
+              model.pastedPins.length === 0
+                ? 'Pin this listing'
+                : 'Pin it again',
+            ],
+          ),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('btn ghost small'),
+              h.OnClick(Message.ClickedLoadChangedExample()),
+            ],
+            ['The same example, later'],
+          ),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('btn ghost small'),
               h.OnClick(Message.UpdatedPastedTools({ value: '' })),
             ],
             ['Clear'],
@@ -573,7 +648,7 @@ const yoursView = (model: Model, h: H): Html => {
         ],
       ),
       parsed.ok
-        ? yoursReport(parsed.tools, h)
+        ? yoursReport(parsed.tools, model.pastedPins, h)
         : parsed.error === ''
           ? h.p(
               [h.Class('empty')],
@@ -586,7 +661,18 @@ const yoursView = (model: Model, h: H): Html => {
   )
 }
 
-const yoursReport = (tools: ReadonlyArray<ForeignTool>, h: H): Html => {
+type PastedPin = Readonly<{
+  name: string
+  fingerprint: string
+  description: string
+}>
+
+const yoursReport = (
+  tools: ReadonlyArray<ForeignTool>,
+  pins: ReadonlyArray<PastedPin>,
+  h: H,
+): Html => {
+  const gone = pins.filter(pin => !tools.some(tool => tool.name === pin.name))
   const report = profile(tools)
   const warned = tools.filter(tool =>
     tool.claims.some(claim => claim.isWarning),
@@ -636,9 +722,18 @@ const yoursReport = (tools: ReadonlyArray<ForeignTool>, h: H): Html => {
               '. Their descriptions instruct whoever reads them, or hide characters.',
             ],
           ),
+      pins.length === 0
+        ? h.empty
+        : h.p(
+            [h.Class(gone.length > 0 ? 'result warn' : 'result')],
+            [
+              h.b([], ['Compared with the pinned listing: ']),
+              `${tools.filter(tool => driftOfPasted(pins, tool) === 'changed').length} changed, ${tools.filter(tool => driftOfPasted(pins, tool) === 'new').length} new, ${gone.length} gone${gone.length > 0 ? ` (${gone.map(pin => pin.name).join(', ')})` : ''}. A tool approved before can be a different tool now. Lens’s wording rules can miss a new instruction; this comparison does not.`,
+            ],
+          ),
       h.div(
         [h.Class('foreign-grid')],
-        Array.map(tools, tool => foreignCard(tool, h)),
+        Array.map(tools, tool => foreignCard(tool, pins, h)),
       ),
     ],
   )

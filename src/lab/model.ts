@@ -122,6 +122,13 @@ export const Model = Schema.Struct({
   screen: Schema.Literals(['home', 'bench']),
   atlasView: Schema.Literals(['map', 'list', 'ladder', 'yours']),
   pastedTools: Schema.String,
+  pastedPins: Schema.Array(
+    Schema.Struct({
+      name: Schema.String,
+      fingerprint: Schema.String,
+      description: Schema.String,
+    }),
+  ),
   approval: Schema.Literals(['never', 'writes', 'always']),
   pending: Schema.Option(
     Schema.Struct({

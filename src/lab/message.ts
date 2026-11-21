@@ -73,6 +73,8 @@ export const Message = defineMessageUnion({
   },
   UpdatedPastedTools: { value: Schema.String },
   ClickedLoadExample: {},
+  ClickedPinListing: {},
+  ClickedLoadChangedExample: {},
   SelectedLens: { lens: Schema.Literals(['family', 'server']) },
   ClickedOpenSpecimen: { name: CapabilityName },
   ClickedShowOnAtlas: {},

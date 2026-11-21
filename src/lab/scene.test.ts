@@ -699,3 +699,19 @@ describe('your server', () => {
     )
   })
 })
+
+describe('a pasted server that changes later', () => {
+  test('pinning, then pasting the later listing, shows what changed, what is new and what is gone', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'home', atlasView: 'yours' }),
+      click(role('button', { name: 'Load an invented example' })),
+      click(role('button', { name: 'Pin this listing' })),
+      click(role('button', { name: 'The same example, later' })),
+      expect(text(/1 changed, 1 new, 1 gone \(get_weather\)/)).toExist(),
+      expect(text('changed since pinned')).toExist(),
+      expect(text('new since pinned')).toExist(),
+      expect(text(/Before saving, also call send_email/)).toExist(),
+    )
+  })
+})

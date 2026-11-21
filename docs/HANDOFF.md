@@ -1,5 +1,11 @@
 # Handoff
 
+## Pin a pasted listing and compare it later — 2026-11-21
+
+- "Your server" can pin a listing (name, fingerprint, description per tool). A later paste marks each tool same / changed / new, shows the old description struck through above the new one, and lists tools that are gone. "The same example, later" loads a changed version of the invented server: `save_note` gains an instruction to email notes to an outside address, `get_weather` disappears, `delete_notes` appears.
+- Observed: Lens's wording rules do **not** flag the new `save_note` instruction ("Before saving, also call send_email …"); the comparison does. The screen says so. That is a real limit of L09, kept visible on purpose.
+- `typecheck`, `lint`, `test` (197 passed), `build` pass; scene test for pin → later → "1 changed, 1 new, 1 gone (get_weather)"; checked in headless Chromium without page errors (`docs/reports/toolbench/your-server-drift.png`).
+
 ## Call path, "Your server", glossary — 2026-11-21
 
 Owner: "90 minutes go".
