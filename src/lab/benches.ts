@@ -589,28 +589,18 @@ const fetchBench = (model: Model, h: H): ReadonlyArray<Html> => {
       'Fetch',
       Array.map(siteUrls, url => ({
         label: url.replace('https://valley.test', ''),
-        isChosen: model.url === url,
-        message: Message.SelectedUrl({ value: url }),
+        isChosen: Option.isSome(maybeRecord) && model.url === url,
+        message: Message.ClickedFetch({ url }),
       })),
-      h,
-    ),
-    row(
-      [
-        action(
-          model,
-          `Fetch ${model.url.replace('https://', '')}`,
-          run('fetch_page', { url: model.url }),
-          h,
-          'primary',
-        ),
-      ],
       h,
     ),
     Option.match(maybeRecord, {
       onNone: () =>
         h.p(
           [h.Class('empty')],
-          ['Fetch a page and the chain of hops appears here.'],
+          [
+            'Pick a page above. It is fetched at once and the chain of hops appears here.',
+          ],
         ),
       onSome: record =>
         h.ol(

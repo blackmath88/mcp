@@ -773,6 +773,13 @@ export const update = (current: Model, message: Message): UpdateReturn => {
 
     ClickedRunWith: ({ name, inputJson }) => startRun(model, name, inputJson),
 
+    ClickedFetch: ({ url }) =>
+      startRun(
+        modifyFields(model, { url: () => url }),
+        'fetch_page',
+        JSON.stringify({ url }),
+      ),
+
     ClickedSendRoot: ({ root }) => ({
       model: modifyFields(model, {
         rootChoice: () => root,

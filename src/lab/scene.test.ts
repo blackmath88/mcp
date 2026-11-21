@@ -131,7 +131,7 @@ describe('the route of specimens', () => {
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('Simulated here')).toExist(),
       click(role('button', { name: 'First URL only' })),
-      click(role('button', { name: /^Fetch valley\.test/ })),
+      click(role('button', { name: '/notice' })),
       Command.resolve(
         RunCapability,
         Message.CompletedRunCapability({

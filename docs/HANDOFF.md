@@ -1,5 +1,15 @@
 # Handoff
 
+## Follow-up fixes after the atlas — 2026-11-21
+
+- Fetch: a URL chip fetches at once (`ClickedFetch`); the separate Fetch button is gone.
+- Backstage open now takes one third of the column instead of about 43% (observed: workbench 509 px, drawer 253 px at 900 px height).
+- Belt slot numbers sit outside the sprite plate so they stay visible in dark mode; atlas labels get a background so a link line does not run through the text.
+- Sidebar counts read "2 tools" instead of a bare number.
+- Screenshots in `docs/reports/atlas/` re-taken with the 24×24 sprites.
+
+Observed: typecheck, lint, 157 tests, build pass. Headless Chromium re-drive of atlas, belt keys, typing guard, inventory, dark and phone: no page error, no horizontal overflow; Fetch `/notice` in one click produced two hop cards. Not looked at: the phone screenshot of the bench was taken scrolled to the page end, so the belt's position on phones is unverified. Still open: valley map circles are mouse-only; selecting on the atlas does not ask the server.
+
 ## Sprites at 24×24, vivid palette, drawn by a script — 2026-11-21
 
 Owner asked to go further and for "less brown, more vivid anime-style colours". All 28 sprites are now 24×24, built from shapes by `scripts/draw-sprites.mjs`, which writes `src/lab/sprites.ts` (generated; edit the script). The palette is 15 saturated paints with an indigo outline; shading is two overlay paths (white highlight upper-left, violet-tinted shadow lower-right). Atlas objects render at 48 px. Observed: typecheck, lint, 157 tests and build pass; atlas looked at in headless Chromium in light and dark (`docs/reports/atlas/sprites-24-light.png`, `sprites-24-dark.png`). Not looked at after this change: belt, inspector chips (20 px) and phone. Screenshots of the earlier 12×12 and 16×16 sprites in that folder are out of date.

@@ -548,6 +548,14 @@ const titlebarView = (model: Model, h: H): Html =>
 
 // SIDEBAR
 
+const toolCount = (station: Station): string => {
+  const count = Array.filter(
+    catalogue,
+    capability => capability.specimen === station,
+  ).length
+  return count === 1 ? '1 tool' : `${count} tools`
+}
+
 const stationButton = (model: Model, station: Station, h: H): Html =>
   h.button(
     [
@@ -572,12 +580,7 @@ const stationButton = (model: Model, station: Station, h: H): Html =>
         [],
       ),
       h.span([h.Class('t')], [stationTitle(station)]),
-      h.span(
-        [h.Class('n')],
-        [
-          `${Array.filter(catalogue, capability => capability.specimen === station).length} tool(s)`,
-        ],
-      ),
+      h.span([h.Class('n')], [toolCount(station)]),
     ],
   )
 

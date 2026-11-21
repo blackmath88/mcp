@@ -51,6 +51,7 @@ export const Message = defineMessageUnion({
   ClickedExecute: {},
   ClickedRun: { name: CapabilityName },
   ClickedRunWith: { name: CapabilityName, inputJson: Schema.String },
+  ClickedFetch: { url: Schema.String },
   ClickedSendRoot: { root: Schema.String },
   ClickedClientEvent: {
     client: Schema.String,
