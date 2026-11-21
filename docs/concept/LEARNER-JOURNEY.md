@@ -4,7 +4,7 @@ Proposed learner experience · 21 November 2026. Companion to the [Lens ontology
 
 ## One bridge note through three chapters
 
-Use the same map revision and the note “Bridge moved east.” In **Inventory**, selecting the note reveals the publisher who supplied it. In **Workshop**, preview the proposed edit and the editor whose permission would move the bridge. In **Follow the work**, open the note in another session beside the original grant and resulting map revision. Keep the note selected across chapters so the learner can see the exact point where someone treated a report as permission. Backstage links each decision to the [trust inversion evidence](SECURITY-BOUNDARIES.md#trust-inversion).
+Use the same map revision and the note “Bridge moved east.” In **Inventory**, selecting the note reveals the publisher who supplied it. In **Workshop**, preview the proposed edit and the editor whose permission would move the bridge. In **Follow the work**, start a fresh caller and fetch the current map from its publisher. The map persists at its source. As an optional comparison, attach a notebook, save the editor’s observation and show which other caller can read that notebook. Keep the note selected across chapters so the learner can see the exact point where someone treated a report as permission. Backstage links each decision to the [trust inversion evidence](SECURITY-BOUNDARIES.md#trust-inversion).
 
 ## Recurring aspects
 
@@ -32,7 +32,7 @@ Each row is an optional reveal triggered by a question. Upstream sources documen
 
 | Chapter / ontology key | Specimen or source | Learner variation and evidence |
 | --- | --- | --- |
-| Inventory · 1 Read | [Reference memory server](https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md) | Read one seeded workshop record. Show which observation and entity supplied the answer. |
+| Inventory · 1 Read | Published map file (local fixture) | Open the map twice with independent requests. The file supplies both answers. No caller history is needed. |
 | Inventory · 2 Query | [Context7 API guide](https://context7.com/docs/api-guide) | Hold the selected library fixed and change the query. Show selected excerpts, their source and what changed. |
 | Inventory · 5 Perceive | [Playwright MCP](https://github.com/microsoft/playwright-mcp) | Compare the page and accessibility snapshot for one local fixture. Point to one detail available in each representation. |
 | Workshop · 3 Act | [tldraw demonstration](https://tldraw.dev/blog/tldraw-mcp-app) | Change one shape. Display the changed object beside the previous state. |

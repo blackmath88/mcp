@@ -16,6 +16,14 @@ MCP gives provider-authored descriptions and results a route into that decision.
 | Stored history into fresh authority | Durable storage can carry a claim into another session after its original author and audience are lost. Sharing and isolation depend on the backend. The specific *Five Hops Through MCP* chain remains unattributed here. | A second fictional editor opens the same bridge note. Preserve its author and revision. Check the new editor’s own grant before applying it. |
 | Valid arguments into backend effects | ToFu reports 253 distinct verified bugs affecting 343 tools in 118 repositories, from an inventory of 3,405 tools across 273 servers. One implementation defect can affect several tools. | A bridge ID can be syntactically valid and belong to another map. Show the schema result, backend scope decision and resulting state separately. [ToFu study](https://arxiv.org/abs/2610.13651) |
 
+## Where memory enters
+
+The July 2026 wire revision removes the initialization handshake (SEP-2575) and session ID header (SEP-2567). A caller can discover tools and read a published map without installing a memory server. A map, database, long-running job or host transcript may persist independently. Record where continuity comes from before drawing any graph in the architecture view. [SDK version comparison](https://csharp.sdk.modelcontextprotocol.io/v2/concepts/stateless/stateless.html)
+
+For the optional notebook exhibit, compare the same observation in a private store and in a store explicitly shared with another editor. Label its writer, subject and permitted reader separately. Evaluate how each is bound to an identity. A source or confidence score can inform a later reader; the permission to perform a new action needs its own grant.
+
+Published comparison specimens include [artl-memory](https://www.piwheels.org/project/artl-memory/) for per-person records and evidence chains, [j5ed-knowledge-graph](https://github.com/ArkTechNWA/j5ed-knowledge-graph) for multi-agent isolation, and [Willder](https://glama.ai/mcp/connectors/ai.willder/willder) for scoped and revocable agent tokens. These are documented designs. Runtime enforcement remains untested here. Keep product defaults version-specific.
+
 ## The shovel exhibit
 
 Keep one tool labelled **Shovel** selected throughout. Give the learner three independently sourced pieces of evidence. The catalogue tells them what the maker promises. A trial in a sand tray tells them what this version did under those conditions. The gardener’s work order tells them where digging is permitted. Any one of the three can change while the other two stay fixed.
@@ -24,7 +32,7 @@ Keep one tool labelled **Shovel** selected throughout. Give the learner three in
 | --- | --- | --- |
 | Inventory | Reveal the maker’s label and the catalogue excerpt the host supplied to the model. | Discovery can influence selection before any call. Record receipt, model visibility and invocation as distinct events. The host controls placement and review. |
 | Workshop | Replay two labelled fixtures with the same catalogue. Compare yesterday’s sand-tray result with today’s result. | A successful trial establishes an observation for one version, time and setting. Keep release changes distinct from an endpoint changing behaviour between calls. |
-| Follow the work | Open the saved observation in another gardener’s session. Keep its author, trial conditions and date visible beside that gardener’s work order. | A reader may reuse evidence. Permission to act still comes from the applicable grant. If the stored observation has lost its author, mark origin unknown. |
+| Follow the work | Optionally save the observation to a shared notebook. Open it as a second gardener with a read grant. Keep its author, trial conditions and date visible beside that gardener’s work order. | A reader may reuse evidence. Permission to act still comes from the applicable grant. If the stored observation has lost its author, mark origin unknown. |
 
 Three real cases ground the exhibit:
 
