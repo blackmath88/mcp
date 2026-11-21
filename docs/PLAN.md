@@ -18,6 +18,8 @@ Build one shared engine with CLI and MCP access and a truthful trace. Use synthe
 
 Exit proposal: learner can explain interface versus implementation and trace one actual result.
 
+Status 2026-11-21: a first executable slice exists (see docs/HANDOFF.md). Phase 1 storyboard validation with a chosen audience was skipped at the owner's instruction to build; the learner exit check has not been run with a person.
+
 ## Phase 3 — Composition and placement
 
 Add a fixed workflow and a local/remote comparison. Identify state ownership, partial results, and dependencies. Do not introduce a general workflow platform unless needed.
@@ -36,7 +38,7 @@ Research candidates from the conversation. Record primary sources, official/comm
 
 ## Immediate next action
 
-Review the concept and choose audience plus synthetic domain. Then specify the smallest storyboard. No framework selection is required yet.
+Try the slice with one person from the intended audience and record whether they can explain interface versus implementation. Then choose between a live browser-to-MCP path and the placement chapter as the next slice.
 
 ## Explicit exclusions for this change
 

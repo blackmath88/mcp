@@ -1,3 +1,38 @@
+# MCP Lab
+
+An exploration lab for one question: when an AI gains access to a capability, what has it actually gained access to? See [CONCEPT.md](CONCEPT.md).
+
+## Run the first slice
+
+Requires Node 22.18 or newer. No cloud account, API key or model is needed.
+
+```bash
+npm install
+npm run dev          # the lab at http://localhost:5173
+npm test             # domain, state, UI, CLI and MCP integration tests
+npm run typecheck && npm run lint && npm run build
+```
+
+The same domain engine has three entrances:
+
+```bash
+npm run lab -- list
+npm run lab -- connect_places --from forge --to dock            # CLI, succeeds
+npm run lab -- connect_places --from forge --to dock --storm    # CLI, controlled failure, exit 1
+npm run lab -- build_path --from mill --to archive --state .lab/world.json   # keep the world between runs
+npm run mcp:server   # MCP server over stdio, for any MCP client
+npm run record       # rerun the real CLI and MCP exchange shown in the lab
+```
+
+What is real and what is not:
+
+- The browser runs the engine in process. Its Backstage events are emitted by that execution. It makes no MCP connection.
+- The CLI and the MCP stdio server run the same engine. The MCP path is tested with the official SDK client over stdio.
+- The "Recorded CLI + MCP" tab shows `src/recordings/entrances.json`, captured by `npm run record`. It is a recording, labelled as such.
+- There is no model, no approval step and no remote service anywhere in this slice.
+
+Layout: `src/domain` (engine, no DOM or transport), `src/adapters` (in-process, CLI, MCP), `src/lab` (Foldkit model, update, view), `lab/concept.html` (the earlier prototype, kept as reference). `npm run infra:deploy` is gated and was not run; nothing is deployed.
+
 # Project foundation
 
 Every project starts with a shared picture of the work and a small, explicit knowledge base.

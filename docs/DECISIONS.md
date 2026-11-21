@@ -56,8 +56,32 @@ Status: proposed process supporting concept-first direction.
 
 Verify exact provider capabilities and protocol/client versions before adopting examples. Earlier conversational assertions are research leads, not acceptance evidence.
 
+## D07 — Effect, Foldkit and Alchemy for the first build
+
+Status: agreed direction from owner instruction, 2026-11-21. Implemented for the first slice.
+
+Use the pinned versions and conventions of `blackmath88/effect-foldkit-alchemy-template` (inspected at 7b398a7). Alchemy stays an optional, gated declaration; nothing is deployed.
+
+## P04 — Valley map as the synthetic domain
+
+Status: chosen by the assistant under the owner's brief ("a fictional map/workshop domain is a suitable default"). Open to replacement.
+
+Five places, paths with a span limit. One map is readable (`read_map`), queryable (`find_route`), operable (`build_path`) and carries a program (`connect_places`). The controlled failure is a lowered span limit.
+
+## P05 — One run record across all entrances
+
+Status: implemented proposal.
+
+In-process, CLI and MCP adapters all return the same run record, including the engine's own events. Tests assert they are equal. The browser shows MCP frames only from a labelled recording.
+
+## P06 — MCP SDK stays out of the browser bundle
+
+Status: implemented proposal.
+
+`@modelcontextprotocol/sdk` 1.32.2 is a dev dependency used only by the Node stdio server, the recorder and tests. It does not depend on Effect, so there is no second Effect runtime.
+
 ## Still undecided
 
-Audience; domain; stack; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.
+Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.
 
 Future changes should record date, status, rationale, evidence, and what they supersede.
