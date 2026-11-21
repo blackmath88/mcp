@@ -1,4 +1,4 @@
-import { Effect, Match, Result, Schema } from 'effect'
+import { Effect, Result, Schema } from 'effect'
 
 import {
   CliGenerated,
@@ -33,6 +33,27 @@ import {
   goTo,
   whereAmI,
 } from './gateway.ts'
+import {
+  BatchDone,
+  ExpertReplied,
+  InventoryListed,
+  LoopFinished,
+  LoopResumed,
+  MapShown,
+  ToolCalled,
+  ViewReported,
+  askExpert,
+  callTool,
+  crashAndResume,
+  deliverPlan,
+  getCurrentView,
+  listInventory,
+  refinePlan,
+  reviewPlan,
+  runAsCalls,
+  runAsProgram,
+  showMap,
+} from './later.ts'
 import {
   Recalled,
   Remembered,
@@ -77,6 +98,17 @@ export const CapabilityName = Schema.Literals([
   'call_generated',
   'go_to',
   'where_am_i',
+  'show_map',
+  'get_current_view',
+  'run_as_calls',
+  'run_as_program',
+  'ask_expert',
+  'review_plan',
+  'deliver_plan',
+  'refine_plan',
+  'crash_and_resume',
+  'list_inventory',
+  'call_tool',
 ])
 export type CapabilityName = typeof CapabilityName.Type
 
@@ -91,6 +123,11 @@ export type Specimen =
   | 'perception'
   | 'cli'
   | 'local-remote'
+  | 'apps'
+  | 'code-mode'
+  | 'delegation'
+  | 'iteration'
+  | 'network'
 
 export type Capability = Readonly<{
   name: CapabilityName
@@ -109,6 +146,8 @@ export type Capability = Readonly<{
     | 'target'
     | 'client-place'
     | 'client'
+    | 'place'
+    | 'tool-name'
   observe: string
   request: string
   produces: string
@@ -354,6 +393,165 @@ export const catalogue: ReadonlyArray<Capability> = [
     finishes: 'Immediately.',
     dependsOn: ['gateway', 'child-process'],
   },
+  {
+    name: 'show_map',
+    specimen: 'apps',
+    title: 'Show map',
+    affordance: 'program',
+    description:
+      'Open an interactive map centred on a place. The person can move it afterwards.',
+    input: 'place',
+    observe: 'A map you can move.',
+    request: 'A place to centre on.',
+    produces: 'An application, plus a result saying where it opened.',
+    changes: 'What is on screen.',
+    finishes: 'When the app opens. The app keeps running.',
+    dependsOn: ['map-app', 'app-view'],
+  },
+  {
+    name: 'get_current_view',
+    specimen: 'apps',
+    title: 'Current view',
+    affordance: 'queryable',
+    description: 'Ask the open map app where it is looking right now.',
+    input: 'none',
+    observe: 'The live camera position of the app.',
+    request: 'Nothing.',
+    produces: 'The place currently in view.',
+    changes: 'What the model has been told.',
+    finishes: 'Immediately.',
+    dependsOn: ['map-app', 'app-view'],
+  },
+  {
+    name: 'run_as_calls',
+    specimen: 'code-mode',
+    title: 'Three calls',
+    affordance: 'operable',
+    description: 'Write three ledger entries as three separate tool calls.',
+    input: 'none',
+    observe: 'A result after every call.',
+    request: 'Nothing; the three loads are fixed.',
+    produces: 'Three results.',
+    changes: 'Up to three ledger entries.',
+    finishes: 'After three round trips, or at the first failure.',
+    dependsOn: ['ledger'],
+  },
+  {
+    name: 'run_as_program',
+    specimen: 'code-mode',
+    title: 'One program',
+    affordance: 'program',
+    description:
+      'Write three ledger entries by executing one small program in a sandbox.',
+    input: 'none',
+    observe: 'One result for the whole program.',
+    request: 'A program. Here it is fixed.',
+    produces: 'One result.',
+    changes: 'Up to three ledger entries.',
+    finishes: 'After one round trip.',
+    dependsOn: ['sandbox', 'ledger'],
+  },
+  {
+    name: 'ask_expert',
+    specimen: 'delegation',
+    title: 'Ask',
+    affordance: 'queryable',
+    description: 'Ask the expert whether the Forge and the Dock are connected.',
+    input: 'none',
+    observe: 'An answer.',
+    request: 'A question.',
+    produces: 'Advice. You decide what to do with it.',
+    changes: 'Nothing.',
+    finishes: 'Immediately.',
+    dependsOn: ['expert-tool', 'expert-model'],
+  },
+  {
+    name: 'review_plan',
+    specimen: 'delegation',
+    title: 'Review',
+    affordance: 'queryable',
+    description: 'Ask the expert to review the plan "go through the Archive".',
+    input: 'none',
+    observe: 'A verdict with a reason.',
+    request: 'An artifact and criteria.',
+    produces: 'An assessment. Nothing is changed.',
+    changes: 'Nothing.',
+    finishes: 'Immediately.',
+    dependsOn: ['expert-tool', 'expert-model'],
+  },
+  {
+    name: 'deliver_plan',
+    specimen: 'delegation',
+    title: 'Deliver',
+    affordance: 'program',
+    description:
+      'Have the expert produce and store a route plan from the Forge to the Dock.',
+    input: 'none',
+    observe: 'The stored artifact.',
+    request: 'A bounded job.',
+    produces: 'An artifact and its evidence.',
+    changes: 'A new artifact. The expert owned the result.',
+    finishes: 'When the artifact is stored.',
+    dependsOn: ['expert-tool', 'expert-model', 'artifact-store'],
+  },
+  {
+    name: 'refine_plan',
+    specimen: 'iteration',
+    title: 'Refine',
+    affordance: 'program',
+    description:
+      'Write a draft, have it rated, and refine it until it is good enough or the limit is reached.',
+    input: 'none',
+    observe: 'The returned draft and every rating.',
+    request: 'Nothing; the task is fixed.',
+    produces: 'One draft, chosen by rating.',
+    changes: 'Nothing outside the loop.',
+    finishes: 'At the minimum rating, or after three refinements.',
+    dependsOn: ['workflow-engine', 'generator', 'evaluator'],
+  },
+  {
+    name: 'crash_and_resume',
+    specimen: 'iteration',
+    title: 'Crash and resume',
+    affordance: 'program',
+    description: 'Run the same loop, crash after two drafts, and continue.',
+    input: 'none',
+    observe: 'What had to be done again.',
+    request: 'Nothing.',
+    produces: 'A report of what was redone.',
+    changes: 'Nothing outside the loop.',
+    finishes: 'After the restart.',
+    dependsOn: ['workflow-engine', 'generator'],
+  },
+  {
+    name: 'list_inventory',
+    specimen: 'network',
+    title: 'Inventory',
+    affordance: 'readable',
+    description:
+      'List the tools offered through the one entrance in front of two backends.',
+    input: 'none',
+    observe: 'Tool names and which backend each belongs to.',
+    request: 'Nothing.',
+    produces: 'A merged list.',
+    changes: 'Nothing.',
+    finishes: 'Immediately.',
+    dependsOn: ['federation'],
+  },
+  {
+    name: 'call_tool',
+    specimen: 'network',
+    title: 'Call',
+    affordance: 'operable',
+    description: 'Call one tool from the merged inventory.',
+    input: 'tool-name',
+    observe: 'Whichever backend answers.',
+    request: 'A tool name from the inventory.',
+    produces: 'That backend’s answer.',
+    changes: 'Nothing.',
+    finishes: 'Immediately, or not at all.',
+    dependsOn: ['federation', 'forge-backend', 'dock-backend'],
+  },
 ]
 
 export const Endpoints = Schema.Struct({ from: PlaceId, to: PlaceId })
@@ -441,26 +639,44 @@ const clientPlaceJsonSchema = {
   additionalProperties: false,
 } as const
 
+const placeJsonSchema = {
+  type: 'object',
+  properties: { place: { type: 'string', enum: gatewayPlaces } },
+  required: ['place'],
+  additionalProperties: false,
+} as const
+
+const toolNameJsonSchema = {
+  type: 'object',
+  properties: { name: { type: 'string' } },
+  required: ['name'],
+  additionalProperties: false,
+} as const
+
 export const inputJsonSchema = (capability: Capability) =>
-  capability.input === 'client'
-    ? clientJsonSchema
-    : capability.input === 'client-place'
-      ? clientPlaceJsonSchema
-      : capability.input === 'path'
-        ? pathJsonSchema
-        : capability.input === 'target'
-          ? targetJsonSchema
-          : capability.input === 'fact'
-            ? factJsonSchema
-            : capability.input === 'entity'
-              ? entityJsonSchema
-              : capability.input === 'thoughts'
-                ? thoughtsJsonSchema
-                : capability.input === 'endpoints'
-                  ? endpointsJsonSchema
-                  : capability.input === 'url'
-                    ? urlJsonSchema
-                    : emptyInputJsonSchema
+  capability.input === 'place'
+    ? placeJsonSchema
+    : capability.input === 'tool-name'
+      ? toolNameJsonSchema
+      : capability.input === 'client'
+        ? clientJsonSchema
+        : capability.input === 'client-place'
+          ? clientPlaceJsonSchema
+          : capability.input === 'path'
+            ? pathJsonSchema
+            : capability.input === 'target'
+              ? targetJsonSchema
+              : capability.input === 'fact'
+                ? factJsonSchema
+                : capability.input === 'entity'
+                  ? entityJsonSchema
+                  : capability.input === 'thoughts'
+                    ? thoughtsJsonSchema
+                    : capability.input === 'endpoints'
+                      ? endpointsJsonSchema
+                      : capability.input === 'url'
+                        ? urlJsonSchema
+                        : emptyInputJsonSchema
 
 // EXECUTION
 
@@ -480,6 +696,14 @@ export const CapabilityOutput = Schema.Union([
   CratesShipped,
   WentTo,
   WhereAmI,
+  MapShown,
+  ViewReported,
+  BatchDone,
+  ExpertReplied,
+  LoopFinished,
+  LoopResumed,
+  InventoryListed,
+  ToolCalled,
 ])
 export type CapabilityOutput = typeof CapabilityOutput.Type
 
@@ -536,7 +760,7 @@ const decodeThoughts = (input: unknown) =>
     Effect.mapError(invalid('thoughts must be a list of strings')),
   )
 
-const decodeField = (field: 'path' | 'target') => (input: unknown) =>
+const decodeField = (field: 'path' | 'target' | 'name') => (input: unknown) =>
   Schema.decodeUnknownEffect(Schema.Record(Schema.String, Schema.Unknown))(
     input,
   ).pipe(
@@ -596,7 +820,12 @@ const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
       capability === 'go_to' || capability === 'where_am_i'
         ? yield* decodeClient(input)
         : 'A'
-    const place = capability === 'go_to' ? yield* decodePlace(input) : 'forge'
+    const place =
+      capability === 'go_to' || capability === 'show_map'
+        ? yield* decodePlace(input)
+        : 'forge'
+    const toolName =
+      capability === 'call_tool' ? yield* decodeField('name')(input) : ''
     return {
       capability,
       endpoints,
@@ -608,6 +837,7 @@ const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
       target,
       client,
       place,
+      toolName,
     }
   }).pipe(
     Effect.tapError(error =>
@@ -637,33 +867,49 @@ export const execute = Effect.fnUntraced(function* (
     target,
     client,
     place,
+    toolName,
   } = yield* resolve(name, input)
   const { from, to } = endpoints
-  return yield* Match.value(capability).pipe(
-    Match.when('read_map', () => readMap('catalogue')),
-    Match.when('find_route', () =>
+  const handlers = {
+    read_map: () => readMap('catalogue'),
+    find_route: () =>
       Effect.map(findRoute('catalogue', from, to), route =>
         RouteFound.make({ route }),
       ),
-    ),
-    Match.when('build_path', () => buildPath('catalogue', from, to)),
-    Match.when('connect_places', () => connectPlaces('catalogue', from, to)),
-    Match.when('fetch_page', () => fetchPage('catalogue', url)),
-    Match.when('remember', () =>
-      remember('catalogue', fact.entity, fact.observation),
-    ),
-    Match.when('recall', () => recall('catalogue', entity)),
-    Match.when('read_file', () => readFile('catalogue', path)),
-    Match.when('take_snapshot', () => takeSnapshot('catalogue')),
-    Match.when('click', () => click('catalogue', target)),
-    Match.when('generate_cli', () => generateCli('catalogue')),
-    Match.when('call_live', () => callLive('catalogue')),
-    Match.when('call_generated', () => callGenerated('catalogue')),
-    Match.when('go_to', () => goTo('catalogue', client, place)),
-    Match.when('where_am_i', () => whereAmI('catalogue', client)),
-    Match.when('plan_steps', () => planSteps('catalogue', from, to, thoughts)),
-    Match.exhaustive,
-  )
+    build_path: () => buildPath('catalogue', from, to),
+    connect_places: () => connectPlaces('catalogue', from, to),
+    fetch_page: () => fetchPage('catalogue', url),
+    remember: () => remember('catalogue', fact.entity, fact.observation),
+    recall: () => recall('catalogue', entity),
+    plan_steps: () => planSteps('catalogue', from, to, thoughts),
+    read_file: () => readFile('catalogue', path),
+    take_snapshot: () => takeSnapshot('catalogue'),
+    click: () => click('catalogue', target),
+    generate_cli: () => generateCli('catalogue'),
+    call_live: () => callLive('catalogue'),
+    call_generated: () => callGenerated('catalogue'),
+    go_to: () => goTo('catalogue', client, place),
+    where_am_i: () => whereAmI('catalogue', client),
+    show_map: () => showMap('catalogue', place),
+    get_current_view: () => getCurrentView('catalogue'),
+    run_as_calls: () => runAsCalls('catalogue'),
+    run_as_program: () => runAsProgram('catalogue'),
+    ask_expert: () => askExpert('catalogue'),
+    review_plan: () => reviewPlan('catalogue'),
+    deliver_plan: () => deliverPlan('catalogue'),
+    refine_plan: () => refinePlan('catalogue'),
+    crash_and_resume: () => crashAndResume('catalogue'),
+    list_inventory: () => listInventory('catalogue'),
+    call_tool: () => callTool('catalogue', toolName),
+  } satisfies Record<
+    CapabilityName,
+    () => Effect.Effect<
+      CapabilityOutput,
+      DomainError,
+      Trace | WorldStore | Pace
+    >
+  >
+  return yield* handlers[capability]()
 })
 
 // RUN RECORD

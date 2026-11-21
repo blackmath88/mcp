@@ -92,18 +92,14 @@ describe('the learning path', () => {
 })
 
 describe('the route of specimens', () => {
-  test('a reference station shows its question and says it is not built', () => {
+  test('the last station is simulated and offers something to run', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: /One item contains a language/ })),
-      expect(
-        text(
-          'Is the unit of responsibility a tool call, an individual effect, or the whole program?',
-        ),
-      ).toExist(),
-      expect(text('Reference only · not built')).toExist(),
-      expect(role('button', { name: /Execute/ })).toBeAbsent(),
+      click(role('button', { name: /The network and the repair bench/ })),
+      expect(text('Simulated here')).toExist(),
+      expect(role('button', { name: 'Execute list_inventory' })).toExist(),
+      expect(text('One entrance')).toExist(),
     )
   })
 
@@ -240,6 +236,34 @@ describe('cli and gateway stations', () => {
       expect(text('shared by every client')).toExist(),
       click(role('button', { name: 'A process per connection' })),
       expect(text('No server process yet')).toExist(),
+    )
+  })
+})
+
+describe('stations 08 to 11', () => {
+  test('the app station shows three views of one state and can be bent', () => {
+    scene(
+      { update, view },
+      given(initialModel),
+      click(role('button', { name: /The item becomes an application/ })),
+      expect(text('What the model was last told')).toExist(),
+      expect(role('button', { name: 'App cannot be asked' })).toExist(),
+      expect(role('button', { name: 'Execute show_map' })).toExist(),
+    )
+  })
+
+  test('code mode, delegation and iteration each open with their bend', () => {
+    scene(
+      { update, view },
+      given(initialModel),
+      click(role('button', { name: /One item contains a language/ })),
+      expect(role('button', { name: 'Third write fails' })).toExist(),
+      click(role('button', { name: /Another intelligence/ })),
+      expect(role('button', { name: 'Map left out' })).toExist(),
+      expect(text('What was handed over')).toExist(),
+      click(role('button', { name: /Iteration and durable execution/ })),
+      expect(role('button', { name: 'Criteria contradict' })).toExist(),
+      expect(text('Return the best-rated draft, not the last one.')).toExist(),
     )
   })
 })

@@ -2,7 +2,7 @@
 
 > When did advice become delegated responsibility?
 
-Status: reference only; not built. Claims below are unverified research leads.
+Status: simulated in the lab on synthetic data, with scripted stand-ins where a model would be; upstream not executed. Claims below are unverified research leads.
 
 ## Anchor
 
@@ -27,10 +27,10 @@ Keep the expert fixed and change only the contract: answer a question, review an
 | Field | Value |
 | --- | --- |
 | Pinned upstream revision | not pinned |
-| Documented behaviour checked against source | no |
-| Controlled mutation | not defined |
-| Actual evidence | none |
-| What this does not prove | not applicable yet |
+| Documented behaviour checked against source | partly: sammcj/mcp-llm README read on 2026-11-21: tools generate_code, generate_code_to_file, generate_documentation, ask_question. Last commit date not visible. mcp-agent not read for this station. |
+| Controlled mutation | map sent with the handoff, or left out; three contracts: ask, review, deliver |
+| Actual evidence | lab simulation only: `npm run lab -- deliver_plan --set context=none` |
+| What this does not prove | anything about the upstream project, or about how a real model would behave |
 
 ## Sources
 

@@ -2,7 +2,7 @@
 
 > Which participant knows the current state?
 
-Status: reference only; not built. Claims below are unverified research leads.
+Status: simulated in the lab on synthetic data, with scripted stand-ins where a model would be; upstream not executed. Claims below are unverified research leads.
 
 ## Anchor
 
@@ -27,10 +27,10 @@ Let a person move the map, then compare the original tool result, the displayed 
 | Field | Value |
 | --- | --- |
 | Pinned upstream revision | not pinned |
-| Documented behaviour checked against source | no |
-| Controlled mutation | not defined |
-| Actual evidence | none |
-| What this does not prove | not applicable yet |
+| Documented behaviour checked against source | partly: README of the map-server example read on 2026-11-21 (source files not read). It lists server tools geocode and show-map and app tools navigate-to, get-current-view and get-screenshot; it does not describe how a view changed by the person reaches the model, and shows no resource URI. |
+| Controlled mutation | app can be asked for its view, or cannot; the person drags the map |
+| Actual evidence | lab simulation only: `npm run lab -- get_current_view --set app=off` |
+| What this does not prove | anything about the upstream project, or about how a real model would behave |
 
 ## Sources
 

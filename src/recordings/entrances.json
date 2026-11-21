@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-11-21T16:00:12.317Z",
+  "recordedAt": "2026-11-21T16:10:10.270Z",
   "node": "v22.23.5",
   "mcpSdk": "1.32.2",
   "calm": {
@@ -14,12 +14,7 @@
           "output": {
             "_tag": "PlacesConnected",
             "route": {
-              "places": [
-                "forge",
-                "mill",
-                "kiln",
-                "dock"
-              ],
+              "places": ["forge", "mill", "kiln", "dock"],
               "span": 6.4
             },
             "builtPaths": [
@@ -284,29 +279,14 @@
                   "properties": {
                     "from": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     },
                     "to": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     }
                   },
-                  "required": [
-                    "from",
-                    "to"
-                  ],
+                  "required": ["from", "to"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -322,29 +302,14 @@
                   "properties": {
                     "from": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     },
                     "to": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     }
                   },
-                  "required": [
-                    "from",
-                    "to"
-                  ],
+                  "required": ["from", "to"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -360,29 +325,14 @@
                   "properties": {
                     "from": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     },
                     "to": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     }
                   },
-                  "required": [
-                    "from",
-                    "to"
-                  ],
+                  "required": ["from", "to"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -406,9 +356,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "url"
-                  ],
+                  "required": ["url"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -424,10 +372,7 @@
                   "properties": {
                     "entity": {
                       "type": "string",
-                      "enum": [
-                        "Workshop A",
-                        "Workshop B"
-                      ]
+                      "enum": ["Workshop A", "Workshop B"]
                     },
                     "observation": {
                       "type": "string",
@@ -438,10 +383,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "entity",
-                    "observation"
-                  ],
+                  "required": ["entity", "observation"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -457,15 +399,10 @@
                   "properties": {
                     "entity": {
                       "type": "string",
-                      "enum": [
-                        "Workshop A",
-                        "Workshop B"
-                      ]
+                      "enum": ["Workshop A", "Workshop B"]
                     }
                   },
-                  "required": [
-                    "entity"
-                  ],
+                  "required": ["entity"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -481,23 +418,11 @@
                   "properties": {
                     "from": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     },
                     "to": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     },
                     "thoughts": {
                       "type": "array",
@@ -506,10 +431,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "from",
-                    "to"
-                  ],
+                  "required": ["from", "to"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -532,9 +454,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "path"
-                  ],
+                  "required": ["path"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -563,17 +483,10 @@
                   "properties": {
                     "target": {
                       "type": "string",
-                      "enum": [
-                        "gate",
-                        "lever",
-                        "valve",
-                        "bell"
-                      ]
+                      "enum": ["gate", "lever", "valve", "bell"]
                     }
                   },
-                  "required": [
-                    "target"
-                  ],
+                  "required": ["target"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -628,25 +541,14 @@
                   "properties": {
                     "client": {
                       "type": "string",
-                      "enum": [
-                        "A",
-                        "B"
-                      ]
+                      "enum": ["A", "B"]
                     },
                     "place": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "kiln", "dock"]
                     }
                   },
-                  "required": [
-                    "client",
-                    "place"
-                  ],
+                  "required": ["client", "place"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -662,19 +564,168 @@
                   "properties": {
                     "client": {
                       "type": "string",
-                      "enum": [
-                        "A",
-                        "B"
-                      ]
+                      "enum": ["A", "B"]
                     }
                   },
-                  "required": [
-                    "client"
-                  ],
+                  "required": ["client"],
                   "additionalProperties": false
                 },
                 "annotations": {
                   "readOnlyHint": true
+                }
+              },
+              {
+                "name": "show_map",
+                "title": "Show map",
+                "description": "Open an interactive map centred on a place. The person can move it afterwards.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "place": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "kiln", "dock"]
+                    }
+                  },
+                  "required": ["place"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "get_current_view",
+                "title": "Current view",
+                "description": "Ask the open map app where it is looking right now.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "run_as_calls",
+                "title": "Three calls",
+                "description": "Write three ledger entries as three separate tool calls.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "run_as_program",
+                "title": "One program",
+                "description": "Write three ledger entries by executing one small program in a sandbox.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "ask_expert",
+                "title": "Ask",
+                "description": "Ask the expert whether the Forge and the Dock are connected.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "review_plan",
+                "title": "Review",
+                "description": "Ask the expert to review the plan \"go through the Archive\".",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "deliver_plan",
+                "title": "Deliver",
+                "description": "Have the expert produce and store a route plan from the Forge to the Dock.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "refine_plan",
+                "title": "Refine",
+                "description": "Write a draft, have it rated, and refine it until it is good enough or the limit is reached.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "crash_and_resume",
+                "title": "Crash and resume",
+                "description": "Run the same loop, crash after two drafts, and continue.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "list_inventory",
+                "title": "Inventory",
+                "description": "List the tools offered through the one entrance in front of two backends.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "call_tool",
+                "title": "Call",
+                "description": "Call one tool from the merged inventory.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["name"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
                 }
               }
             ]
@@ -716,12 +767,7 @@
                 "output": {
                   "_tag": "PlacesConnected",
                   "route": {
-                    "places": [
-                      "forge",
-                      "mill",
-                      "kiln",
-                      "dock"
-                    ],
+                    "places": ["forge", "mill", "kiln", "dock"],
                     "span": 6.4
                   },
                   "builtPaths": [
@@ -1121,29 +1167,14 @@
                   "properties": {
                     "from": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     },
                     "to": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     }
                   },
-                  "required": [
-                    "from",
-                    "to"
-                  ],
+                  "required": ["from", "to"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -1159,29 +1190,14 @@
                   "properties": {
                     "from": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     },
                     "to": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     }
                   },
-                  "required": [
-                    "from",
-                    "to"
-                  ],
+                  "required": ["from", "to"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -1197,29 +1213,14 @@
                   "properties": {
                     "from": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     },
                     "to": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     }
                   },
-                  "required": [
-                    "from",
-                    "to"
-                  ],
+                  "required": ["from", "to"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -1243,9 +1244,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "url"
-                  ],
+                  "required": ["url"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -1261,10 +1260,7 @@
                   "properties": {
                     "entity": {
                       "type": "string",
-                      "enum": [
-                        "Workshop A",
-                        "Workshop B"
-                      ]
+                      "enum": ["Workshop A", "Workshop B"]
                     },
                     "observation": {
                       "type": "string",
@@ -1275,10 +1271,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "entity",
-                    "observation"
-                  ],
+                  "required": ["entity", "observation"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -1294,15 +1287,10 @@
                   "properties": {
                     "entity": {
                       "type": "string",
-                      "enum": [
-                        "Workshop A",
-                        "Workshop B"
-                      ]
+                      "enum": ["Workshop A", "Workshop B"]
                     }
                   },
-                  "required": [
-                    "entity"
-                  ],
+                  "required": ["entity"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -1318,23 +1306,11 @@
                   "properties": {
                     "from": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     },
                     "to": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "archive",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
                     },
                     "thoughts": {
                       "type": "array",
@@ -1343,10 +1319,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "from",
-                    "to"
-                  ],
+                  "required": ["from", "to"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -1369,9 +1342,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "path"
-                  ],
+                  "required": ["path"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -1400,17 +1371,10 @@
                   "properties": {
                     "target": {
                       "type": "string",
-                      "enum": [
-                        "gate",
-                        "lever",
-                        "valve",
-                        "bell"
-                      ]
+                      "enum": ["gate", "lever", "valve", "bell"]
                     }
                   },
-                  "required": [
-                    "target"
-                  ],
+                  "required": ["target"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -1465,25 +1429,14 @@
                   "properties": {
                     "client": {
                       "type": "string",
-                      "enum": [
-                        "A",
-                        "B"
-                      ]
+                      "enum": ["A", "B"]
                     },
                     "place": {
                       "type": "string",
-                      "enum": [
-                        "forge",
-                        "mill",
-                        "kiln",
-                        "dock"
-                      ]
+                      "enum": ["forge", "mill", "kiln", "dock"]
                     }
                   },
-                  "required": [
-                    "client",
-                    "place"
-                  ],
+                  "required": ["client", "place"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -1499,19 +1452,168 @@
                   "properties": {
                     "client": {
                       "type": "string",
-                      "enum": [
-                        "A",
-                        "B"
-                      ]
+                      "enum": ["A", "B"]
                     }
                   },
-                  "required": [
-                    "client"
-                  ],
+                  "required": ["client"],
                   "additionalProperties": false
                 },
                 "annotations": {
                   "readOnlyHint": true
+                }
+              },
+              {
+                "name": "show_map",
+                "title": "Show map",
+                "description": "Open an interactive map centred on a place. The person can move it afterwards.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "place": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "kiln", "dock"]
+                    }
+                  },
+                  "required": ["place"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "get_current_view",
+                "title": "Current view",
+                "description": "Ask the open map app where it is looking right now.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "run_as_calls",
+                "title": "Three calls",
+                "description": "Write three ledger entries as three separate tool calls.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "run_as_program",
+                "title": "One program",
+                "description": "Write three ledger entries by executing one small program in a sandbox.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "ask_expert",
+                "title": "Ask",
+                "description": "Ask the expert whether the Forge and the Dock are connected.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "review_plan",
+                "title": "Review",
+                "description": "Ask the expert to review the plan \"go through the Archive\".",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "deliver_plan",
+                "title": "Deliver",
+                "description": "Have the expert produce and store a route plan from the Forge to the Dock.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "refine_plan",
+                "title": "Refine",
+                "description": "Write a draft, have it rated, and refine it until it is good enough or the limit is reached.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "crash_and_resume",
+                "title": "Crash and resume",
+                "description": "Run the same loop, crash after two drafts, and continue.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "list_inventory",
+                "title": "Inventory",
+                "description": "List the tools offered through the one entrance in front of two backends.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "call_tool",
+                "title": "Call",
+                "description": "Call one tool from the merged inventory.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["name"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
                 }
               }
             ]

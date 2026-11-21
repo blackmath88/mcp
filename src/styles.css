@@ -873,3 +873,7 @@ tbody th {
   align-self: center;
   margin-right: 6px;
 }
+
+.text-list {
+  list-style: none;
+}

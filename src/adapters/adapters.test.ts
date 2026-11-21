@@ -273,6 +273,26 @@ describe('gateway specimen through MCP', () => {
   })
 })
 
+describe('later stations through MCP', () => {
+  test('a server setting changes what the same tool call returns', async () => {
+    const ask = (client: Client) =>
+      client.callTool({ name: 'ask_expert', arguments: {} })
+    const withMap = await withClient([], ask)
+    const withoutMap = await withClient(['--set=context=none'], ask)
+    expect(withMap.structuredContent).toMatchObject({
+      outcome: { output: { grounded: true } },
+    })
+    expect(withoutMap.structuredContent).toMatchObject({
+      outcome: { output: { grounded: false } },
+    })
+  })
+
+  test('every catalogue entry is listed as a tool', async () => {
+    const tools = await withClient([], client => client.listTools())
+    expect(tools.tools).toHaveLength(catalogue.length)
+  })
+})
+
 describe('recording shown in the lab', () => {
   test('carries its provenance and a real handshake', () => {
     expect(recording.mcpSdk).toMatch(/^\d+\.\d+\.\d+$/)

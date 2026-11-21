@@ -361,3 +361,45 @@ describe('filesystem roots', () => {
     )
   })
 })
+
+describe('later-station settings', () => {
+  test('a bend survives a reset of the valley', () => {
+    story(
+      update,
+      given(initialModel),
+      message(Message.SelectedStation({ station: 'delegation' })),
+      message(Message.SelectedSetting({ setting: 'context=none' })),
+      message(Message.ClickedReset()),
+      model(reset => {
+        expect(reset.world.handoff.context).toBe('none')
+        expect(reset.world.artifacts).toEqual([])
+      }),
+    )
+  })
+
+  test('dragging the map changes the screen but not what the model was told', () => {
+    story(
+      update,
+      given({
+        ...initialModel,
+        place: 'dock',
+        world: {
+          ...initialModel.world,
+          app: {
+            tools: 'on',
+            shown: 'forge',
+            view: 'forge',
+            modelKnows: 'forge',
+          },
+        },
+      }),
+      message(Message.ClickedPanMap()),
+      model(panned => {
+        expect(panned.world.app).toMatchObject({
+          view: 'dock',
+          modelKnows: 'forge',
+        })
+      }),
+    )
+  })
+})

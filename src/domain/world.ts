@@ -27,7 +27,7 @@ export type Path = typeof Path.Type
 
 export const Artifact = Schema.Struct({
   id: Schema.String,
-  kind: Schema.Literals(['path', 'connection-report']),
+  kind: Schema.Literals(['path', 'connection-report', 'delivery']),
   revision: Schema.Number,
   summary: Schema.String,
 })
@@ -107,6 +107,37 @@ export const Gateway = Schema.Struct({
 })
 export type Gateway = typeof Gateway.Type
 
+export const AppState = Schema.Struct({
+  tools: Schema.Literals(['on', 'off']),
+  shown: Schema.String,
+  view: Schema.String,
+  modelKnows: Schema.String,
+})
+export type AppState = typeof AppState.Type
+
+export const Ledger = Schema.Struct({
+  fault: Schema.Literals(['none', 'after-second']),
+  entries: Schema.Array(Schema.String),
+})
+export type Ledger = typeof Ledger.Type
+
+export const Handoff = Schema.Struct({
+  context: Schema.Literals(['full', 'none']),
+})
+export type Handoff = typeof Handoff.Type
+
+export const Loop = Schema.Struct({
+  criteria: Schema.Literals(['satisfiable', 'contradictory']),
+  engine: Schema.Literals(['in-memory', 'durable']),
+})
+export type Loop = typeof Loop.Type
+
+export const Net = Schema.Struct({
+  naming: Schema.Literals(['first-wins', 'prefixed']),
+  dock: Schema.Literals(['up', 'down']),
+})
+export type Net = typeof Net.Type
+
 export const LAUNCH_DIRECTORIES: ReadonlyArray<string> = ['/valley/forge']
 export const NO_SNAPSHOT = -1
 
@@ -120,6 +151,11 @@ export const World = Schema.Struct({
   page: Page,
   cli: Cli,
   gateway: Gateway,
+  app: AppState,
+  ledger: Ledger,
+  handoff: Handoff,
+  loop: Loop,
+  net: Net,
   places: Schema.Array(Place),
   paths: Schema.Array(Path),
   artifacts: Schema.Array(Artifact),
@@ -200,6 +236,11 @@ export const seedWorld = (
   },
   cli: { serverSchema: 1, artifactSchema: NO_ARTIFACT },
   gateway: sharedGateway,
+  app: { tools: 'on', shown: '', view: '', modelKnows: '' },
+  ledger: { fault: 'none', entries: [] },
+  handoff: { context: 'full' },
+  loop: { criteria: 'satisfiable', engine: 'in-memory' },
+  net: { naming: 'first-wins', dock: 'up' },
   places: seedPlaces,
   paths: [seedPath('forge', 'mill'), seedPath('kiln', 'dock')],
   artifacts: [],
@@ -436,4 +477,56 @@ export const passSessionTimeout = (world: World): World => ({
     ...world.gateway,
     children: world.gateway.children.filter(child => !child.orphaned),
   },
+})
+
+export const panMap = (world: World, place: string): World => ({
+  ...world,
+  app: { ...world.app, view: place },
+})
+
+export const withApp = (world: World, tools: AppState['tools']): World => ({
+  ...world,
+  app: { ...world.app, tools },
+})
+
+export const withLedgerFault = (
+  world: World,
+  fault: Ledger['fault'],
+): World => ({
+  ...world,
+  ledger: { fault, entries: [] },
+})
+
+export const withHandoff = (
+  world: World,
+  context: Handoff['context'],
+): World => ({
+  ...world,
+  handoff: { context },
+})
+
+export const withLoop = (world: World, loop: Partial<Loop>): World => ({
+  ...world,
+  loop: { ...world.loop, ...loop },
+})
+
+export const withNet = (world: World, net: Partial<Net>): World => ({
+  ...world,
+  net: { ...world.net, ...net },
+})
+
+export const carrySettings = (fresh: World, previous: World): World => ({
+  ...fresh,
+  fetchPolicy: previous.fetchPolicy,
+  thinkingMode: previous.thinkingMode,
+  memory: { ...fresh.memory, storagePath: previous.memory.storagePath },
+  files: { ...fresh.files, build: previous.files.build },
+  page: { ...fresh.page, mode: previous.page.mode },
+  cli: { ...fresh.cli, serverSchema: previous.cli.serverSchema },
+  gateway: useGatewayBuild(fresh, previous.gateway.build).gateway,
+  app: { ...fresh.app, tools: previous.app.tools },
+  ledger: { ...fresh.ledger, fault: previous.ledger.fault },
+  handoff: previous.handoff,
+  loop: previous.loop,
+  net: { ...fresh.net, naming: previous.net.naming },
 })

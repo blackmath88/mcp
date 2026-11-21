@@ -200,7 +200,7 @@ const validatePath = (calledBy: ComponentId, from: PlaceId, to: PlaceId) =>
 
 // STORES
 
-const produceArtifact = Effect.fnUntraced(function* (
+export const produceArtifact = Effect.fnUntraced(function* (
   calledBy: ComponentId,
   kind: Artifact['kind'],
   summary: string,

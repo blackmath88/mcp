@@ -11,6 +11,7 @@ import {
 
 import { catalogue, inputJsonSchema, runOn } from '../domain/capabilities.ts'
 import { Pace } from '../domain/services.ts'
+import { applySettings } from '../domain/settings.ts'
 import {
   CALM_MAX_SPAN,
   STORM_MAX_SPAN,
@@ -46,9 +47,14 @@ const seeded = seedWorld(
 )
 
 const held = {
-  world: process.argv.includes('--gateway=per-connection')
-    ? useGatewayBuild(seeded, 'per-connection')
-    : seeded,
+  world: applySettings(
+    process.argv.includes('--gateway=per-connection')
+      ? useGatewayBuild(seeded, 'per-connection')
+      : seeded,
+    process.argv.flatMap(argument =>
+      argument.startsWith('--set=') ? [argument.slice('--set='.length)] : [],
+    ),
+  ),
 }
 
 const runHeld = async (name: string, input: unknown) => {

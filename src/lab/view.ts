@@ -13,6 +13,7 @@ import { fieldsOf, helpText } from '../domain/cli-snapshot.ts'
 import { siteUrls } from '../domain/fetch.ts'
 import { filePaths, rootChoices } from '../domain/files.ts'
 import { clients, gatewayPlaces } from '../domain/gateway.ts'
+import { inventoryOf } from '../domain/later.ts'
 import { entities, observations, pathLabel } from '../domain/memory.ts'
 import { controls } from '../domain/perception.ts'
 import type { ComponentId, EngineEvent } from '../domain/services.ts'
@@ -136,6 +137,17 @@ const componentNames: Record<ComponentId, string> = {
   'crate-server': 'Crate server',
   gateway: 'Gateway',
   'child-process': 'Server process',
+  'map-app': 'Map app server',
+  'app-view': 'App view',
+  ledger: 'Ledger',
+  sandbox: 'Sandbox',
+  'expert-tool': 'Expert tool',
+  evaluator: 'Evaluator (stand-in)',
+  generator: 'Generator (stand-in)',
+  'workflow-engine': 'Workflow engine',
+  federation: 'Federating gateway',
+  'forge-backend': 'Forge backend',
+  'dock-backend': 'Dock backend',
 }
 
 const componentRoles: Record<ComponentId, string> = {
@@ -171,9 +183,71 @@ const componentRoles: Record<ComponentId, string> = {
   gateway:
     'Bridges network clients to stdio server processes and decides who shares one.',
   'child-process': 'A stateful server process. It holds one current place.',
+  'map-app': 'Opens the map app and relays questions to it.',
+  'app-view': 'The interactive map on screen. The person can move it.',
+  ledger: 'Appends entries. It cannot undo one.',
+  sandbox: 'Runs a caller-written program in isolation.',
+  'expert-tool': 'Hands a job to another model under one of three contracts.',
+  evaluator: 'Rates a draft. Scripted; no inference runs.',
+  generator: 'Writes a draft. Scripted; no inference runs.',
+  'workflow-engine': 'Runs the refine loop and decides when to stop.',
+  federation:
+    'One entrance in front of two backends. It merges their tool lists.',
+  'forge-backend': 'Offers inspect and ship.',
+  'dock-backend': 'Offers inspect and weigh.',
 }
 
+const laterComponents: Readonly<
+  Record<LaterStation, ReadonlyArray<ComponentId>>
+> = {
+  apps: ['adapter', 'catalogue', 'map-app', 'app-view'],
+  'code-mode': ['adapter', 'catalogue', 'sandbox', 'ledger'],
+  delegation: [
+    'adapter',
+    'catalogue',
+    'expert-tool',
+    'expert-model',
+    'artifact-store',
+  ],
+  iteration: [
+    'adapter',
+    'catalogue',
+    'workflow-engine',
+    'generator',
+    'evaluator',
+  ],
+  network: [
+    'adapter',
+    'catalogue',
+    'federation',
+    'forge-backend',
+    'dock-backend',
+  ],
+}
+
+type LaterStation =
+  | 'apps'
+  | 'code-mode'
+  | 'delegation'
+  | 'iteration'
+  | 'network'
+
+const asLater = (station: Station): Option.Option<LaterStation> =>
+  station === 'apps' ||
+  station === 'code-mode' ||
+  station === 'delegation' ||
+  station === 'iteration' ||
+  station === 'network'
+    ? Option.some(station)
+    : Option.none()
+
 const componentsOf = (station: Station): ReadonlyArray<ComponentId> =>
+  Option.match(asLater(station), {
+    onSome: later => laterComponents[later],
+    onNone: () => earlierComponentsOf(station),
+  })
+
+const earlierComponentsOf = (station: Station): ReadonlyArray<ComponentId> =>
   station === 'fetch'
     ? ['adapter', 'catalogue', 'fetcher', 'robots-policy', 'synthetic-web']
     : station === 'memory'
@@ -332,6 +406,34 @@ const outcomeText = (record: RunRecord): string => {
   if (output._tag === 'RouteFound') {
     return `Route: ${output.route.places.join(' → ')} (span ${output.route.span}).`
   }
+  if (output._tag === 'MapShown') {
+    return `The map app opened, centred on ${output.place}.`
+  }
+  if (output._tag === 'ViewReported') {
+    return output.differsFromToolResult
+      ? `The app says it is looking at ${output.place}. That is not where the tool result said.`
+      : `The app says it is looking at ${output.place}.`
+  }
+  if (output._tag === 'BatchDone') {
+    return `${output.written} entries written as ${output.mode}. The caller received ${output.resultsReported} result(s).`
+  }
+  if (output._tag === 'ExpertReplied') {
+    return `“${output.reply}”`
+  }
+  if (output._tag === 'LoopFinished') {
+    return `Returned draft ${output.returnedDraft} of ${output.draftsWritten}: ${output.stoppedBecause.replace(/\.$/, '')}.`
+  }
+  if (output._tag === 'LoopResumed') {
+    return output.generationsRedone === 0
+      ? 'After the crash it continued at draft 3. Nothing was written twice.'
+      : `After the crash it started over. ${output.generationsRedone} drafts were written a second time.`
+  }
+  if (output._tag === 'InventoryListed') {
+    return `${output.tools.length} tools are offered. ${output.hidden === 0 ? 'None is hidden.' : `${output.hidden} is hidden by a name collision.`}`
+  }
+  if (output._tag === 'ToolCalled') {
+    return `${output.name} was answered by the ${output.answeredBy}: “${output.answer}”`
+  }
   if (output._tag === 'CliGenerated') {
     return `Generated a CLI from schema v${output.schemaVersion}. That schema is now baked in.`
   }
@@ -473,153 +575,136 @@ const titlebarView = (model: Model, h: H): Html =>
     [
       h.h1([], ['MCP Lab']),
       h.p([h.Class('tagline')], ['What were you just handed?']),
-      model.station === 'valley'
-        ? bendView(
-            'Weather',
-            [
-              weatherButton(model, 'calm', 'Calm', h),
-              weatherButton(model, 'storm', 'Storm', h),
-            ],
-            h,
-          )
-        : model.station === 'fetch'
+      Option.isSome(asLater(model.station))
+        ? laterBend(model, h)
+        : model.station === 'valley'
           ? bendView(
-              'Robots policy',
-              Array.map(policies, policy =>
-                h.button(
-                  [
-                    h.Type('button'),
-                    h.AriaPressed(
-                      model.fetchPolicy === policy.id ? 'true' : 'false',
-                    ),
-                    h.OnClick(Message.SelectedPolicy({ policy: policy.id })),
-                  ],
-                  [policy.label],
-                ),
-              ),
+              'Weather',
+              [
+                weatherButton(model, 'calm', 'Calm', h),
+                weatherButton(model, 'storm', 'Storm', h),
+              ],
               h,
             )
-          : model.station === 'memory'
+          : model.station === 'fetch'
             ? bendView(
-                'Storage path',
-                Array.map(storagePaths, path =>
+                'Robots policy',
+                Array.map(policies, policy =>
                   h.button(
                     [
                       h.Type('button'),
                       h.AriaPressed(
-                        model.world.memory.storagePath === path.id
-                          ? 'true'
-                          : 'false',
+                        model.fetchPolicy === policy.id ? 'true' : 'false',
                       ),
-                      h.OnClick(
-                        Message.SelectedStoragePath({ storagePath: path.id }),
-                      ),
+                      h.OnClick(Message.SelectedPolicy({ policy: policy.id })),
                     ],
-                    [path.label],
+                    [policy.label],
                   ),
                 ),
                 h,
               )
-            : model.station === 'filesystem'
+            : model.station === 'memory'
               ? bendView(
-                  'Server build',
-                  Array.map(fsBuilds, build =>
+                  'Storage path',
+                  Array.map(storagePaths, path =>
                     h.button(
                       [
                         h.Type('button'),
                         h.AriaPressed(
-                          model.world.files.build === build.id
+                          model.world.memory.storagePath === path.id
                             ? 'true'
                             : 'false',
                         ),
-                        h.OnClick(Message.SelectedFsBuild({ build: build.id })),
+                        h.OnClick(
+                          Message.SelectedStoragePath({ storagePath: path.id }),
+                        ),
                       ],
-                      [build.label],
+                      [path.label],
                     ),
                   ),
                   h,
                 )
-              : model.station === 'cli'
+              : model.station === 'filesystem'
                 ? bendView(
-                    'Server schema',
-                    Array.map(serverSchemas, schema =>
+                    'Server build',
+                    Array.map(fsBuilds, build =>
                       h.button(
                         [
                           h.Type('button'),
                           h.AriaPressed(
-                            model.world.cli.serverSchema === schema.id
+                            model.world.files.build === build.id
                               ? 'true'
                               : 'false',
                           ),
                           h.OnClick(
-                            Message.SelectedServerSchema({
-                              version: schema.id,
-                            }),
+                            Message.SelectedFsBuild({ build: build.id }),
                           ),
                         ],
-                        [schema.label],
+                        [build.label],
                       ),
                     ),
                     h,
                   )
-                : model.station === 'local-remote'
+                : model.station === 'cli'
                   ? bendView(
-                      'Gateway build',
-                      Array.map(gatewayBuilds, build =>
+                      'Server schema',
+                      Array.map(serverSchemas, schema =>
                         h.button(
                           [
                             h.Type('button'),
                             h.AriaPressed(
-                              model.world.gateway.build === build.id
+                              model.world.cli.serverSchema === schema.id
                                 ? 'true'
                                 : 'false',
                             ),
                             h.OnClick(
-                              Message.SelectedGatewayBuild({ build: build.id }),
+                              Message.SelectedServerSchema({
+                                version: schema.id,
+                              }),
                             ),
                           ],
-                          [build.label],
+                          [schema.label],
                         ),
                       ),
                       h,
                     )
-                  : model.station === 'perception'
+                  : model.station === 'local-remote'
                     ? bendView(
-                        'Perception',
-                        Array.map(perceptions, mode =>
+                        'Gateway build',
+                        Array.map(gatewayBuilds, build =>
                           h.button(
                             [
                               h.Type('button'),
                               h.AriaPressed(
-                                model.world.page.mode === mode.id
+                                model.world.gateway.build === build.id
                                   ? 'true'
                                   : 'false',
                               ),
                               h.OnClick(
-                                Message.SelectedPerception({ mode: mode.id }),
+                                Message.SelectedGatewayBuild({
+                                  build: build.id,
+                                }),
                               ),
                             ],
-                            [mode.label],
+                            [build.label],
                           ),
                         ),
                         h,
                       )
-                    : model.station === 'thinking'
+                    : model.station === 'perception'
                       ? bendView(
-                          'What is inside',
-                          Array.map(thinkingModes, mode =>
+                          'Perception',
+                          Array.map(perceptions, mode =>
                             h.button(
                               [
                                 h.Type('button'),
                                 h.AriaPressed(
-                                  model.world.thinkingMode === mode.id
+                                  model.world.page.mode === mode.id
                                     ? 'true'
                                     : 'false',
                                 ),
                                 h.OnClick(
-                                  Message.SelectedThinkingMode({
-                                    mode: mode.id,
-                                  }),
+                                  Message.SelectedPerception({ mode: mode.id }),
                                 ),
                               ],
                               [mode.label],
@@ -627,7 +712,30 @@ const titlebarView = (model: Model, h: H): Html =>
                           ),
                           h,
                         )
-                      : h.empty,
+                      : model.station === 'thinking'
+                        ? bendView(
+                            'What is inside',
+                            Array.map(thinkingModes, mode =>
+                              h.button(
+                                [
+                                  h.Type('button'),
+                                  h.AriaPressed(
+                                    model.world.thinkingMode === mode.id
+                                      ? 'true'
+                                      : 'false',
+                                  ),
+                                  h.OnClick(
+                                    Message.SelectedThinkingMode({
+                                      mode: mode.id,
+                                    }),
+                                  ),
+                                ],
+                                [mode.label],
+                              ),
+                            ),
+                            h,
+                          )
+                        : h.empty,
     ],
   )
 
@@ -886,23 +994,25 @@ const statusbarView = (model: Model, h: H): Html =>
       h.span(
         [],
         [
-          model.station === 'valley'
-            ? `${model.weather} valley · map revision ${model.world.revision}`
-            : model.station === 'fetch'
-              ? `robots policy: ${model.fetchPolicy}`
-              : model.station === 'memory'
-                ? `storage: ${pathLabel[model.world.memory.storagePath]} · server start #${model.serverStarts}`
-                : model.station === 'thinking'
-                  ? `build: ${model.world.thinkingMode}`
-                  : model.station === 'filesystem'
-                    ? `allowed now: ${model.world.files.allowed.join(', ') || 'nothing'}`
-                    : model.station === 'cli'
-                      ? `server schema v${model.world.cli.serverSchema} · CLI embeds ${model.world.cli.artifactSchema === NO_ARTIFACT ? 'nothing yet' : `v${model.world.cli.artifactSchema}`}`
-                      : model.station === 'local-remote'
-                        ? `${model.world.gateway.children.length} server process(es) behind the gateway`
-                        : model.station === 'perception'
-                          ? `page revision ${model.world.page.revision} · ${model.world.page.mode}`
-                          : 'reference only · unverified',
+          Option.isSome(asLater(model.station))
+            ? 'every model here is a scripted stand-in'
+            : model.station === 'valley'
+              ? `${model.weather} valley · map revision ${model.world.revision}`
+              : model.station === 'fetch'
+                ? `robots policy: ${model.fetchPolicy}`
+                : model.station === 'memory'
+                  ? `storage: ${pathLabel[model.world.memory.storagePath]} · server start #${model.serverStarts}`
+                  : model.station === 'thinking'
+                    ? `build: ${model.world.thinkingMode}`
+                    : model.station === 'filesystem'
+                      ? `allowed now: ${model.world.files.allowed.join(', ') || 'nothing'}`
+                      : model.station === 'cli'
+                        ? `server schema v${model.world.cli.serverSchema} · CLI embeds ${model.world.cli.artifactSchema === NO_ARTIFACT ? 'nothing yet' : `v${model.world.cli.artifactSchema}`}`
+                        : model.station === 'local-remote'
+                          ? `${model.world.gateway.children.length} server process(es) behind the gateway`
+                          : model.station === 'perception'
+                            ? `page revision ${model.world.page.revision} · ${model.world.page.mode}`
+                            : 'reference only · unverified',
         ],
       ),
     ],
@@ -1607,6 +1717,406 @@ const processesView = (model: Model, h: H): Html =>
     }),
   )
 
+// STATIONS 08 TO 12
+
+const settingButtons = (
+  current: string,
+  key: string,
+  options: ReadonlyArray<Readonly<{ value: string; label: string }>>,
+  h: H,
+): ReadonlyArray<Html> =>
+  Array.map(options, option =>
+    h.button(
+      [
+        h.Type('button'),
+        h.AriaPressed(current === option.value ? 'true' : 'false'),
+        h.OnClick(
+          Message.SelectedSetting({ setting: `${key}=${option.value}` }),
+        ),
+      ],
+      [option.label],
+    ),
+  )
+
+const laterBend = (model: Model, h: H): Html => {
+  const world = model.world
+  if (model.station === 'apps') {
+    return bendView(
+      'App tools',
+      settingButtons(
+        world.app.tools,
+        'app',
+        [
+          { value: 'on', label: 'App can be asked' },
+          { value: 'off', label: 'App cannot be asked' },
+        ],
+        h,
+      ),
+      h,
+    )
+  }
+  if (model.station === 'code-mode') {
+    return bendView(
+      'Fault',
+      settingButtons(
+        world.ledger.fault,
+        'fault',
+        [
+          { value: 'none', label: 'All writes succeed' },
+          { value: 'after-second', label: 'Third write fails' },
+        ],
+        h,
+      ),
+      h,
+    )
+  }
+  if (model.station === 'delegation') {
+    return bendView(
+      'Handoff',
+      settingButtons(
+        world.handoff.context,
+        'context',
+        [
+          { value: 'full', label: 'Map sent along' },
+          { value: 'none', label: 'Map left out' },
+        ],
+        h,
+      ),
+      h,
+    )
+  }
+  if (model.station === 'iteration') {
+    return bendView(
+      'Criteria',
+      settingButtons(
+        world.loop.criteria,
+        'criteria',
+        [
+          { value: 'satisfiable', label: 'Criteria can be met' },
+          { value: 'contradictory', label: 'Criteria contradict' },
+        ],
+        h,
+      ),
+      h,
+    )
+  }
+  return bendView(
+    'Naming',
+    settingButtons(
+      world.net.naming,
+      'naming',
+      [
+        { value: 'first-wins', label: 'First name wins' },
+        { value: 'prefixed', label: 'Names carry the backend' },
+      ],
+      h,
+    ),
+    h,
+  )
+}
+
+const box = (
+  title: string,
+  where: string,
+  lines: ReadonlyArray<string>,
+  isActive: boolean,
+  h: H,
+): Html =>
+  h.div(
+    [h.Class(`placebox ${isActive ? 'active' : ''}`)],
+    [
+      h.h3([], [title]),
+      h.p([h.Class('where')], [where]),
+      Array.match(lines, {
+        onEmpty: () => h.p([h.Class('none')], ['nothing yet']),
+        onNonEmpty: shown =>
+          h.ul(
+            [h.Class('lines text-list')],
+            Array.map(shown, (line, index) =>
+              h.keyed('li')(`${index}`, [], [line]),
+            ),
+          ),
+      }),
+    ],
+  )
+
+const selectedLabel = (model: Model): string =>
+  Option.match(model.maybeSelected, {
+    onNone: () => 'Execute',
+    onSome: name => `Execute ${name}`,
+  })
+
+const lastOutput = (model: Model) =>
+  Option.flatMap(finishedRecord(model.run), record =>
+    record.outcome._tag === 'Succeeded'
+      ? Option.some(record.outcome.output)
+      : Option.none(),
+  )
+
+const laterBench = (model: Model, h: H): ReadonlyArray<Html> => {
+  const world = model.world
+  const maybeOutput = lastOutput(model)
+  if (model.station === 'apps') {
+    const app = world.app
+    return [
+      h.div(
+        [h.Class('ctl')],
+        [
+          optionSelect(
+            'app-place',
+            'Place',
+            model.place,
+            gatewayPlaces,
+            value => Message.SelectedGatewayPlace({ value }),
+            h,
+          ),
+          executeButton(model, selectedLabel(model), h),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('btn ghost'),
+              h.Disabled(app.view === ''),
+              h.OnClick(Message.ClickedPanMap()),
+            ],
+            ['You drag the map to this place'],
+          ),
+        ],
+      ),
+      resultView(model, h),
+      h.div(
+        [h.Class('places')],
+        [
+          box(
+            'The tool result',
+            'returned once, when the app opened',
+            app.shown === '' ? [] : [`centred on ${app.shown}`],
+            false,
+            h,
+          ),
+          box(
+            'On your screen now',
+            'the app’s live view',
+            app.view === '' ? [] : [`looking at ${app.view}`],
+            true,
+            h,
+          ),
+          box(
+            'What the model was last told',
+            app.modelKnows === app.view
+              ? 'matches the screen'
+              : 'out of date · you moved the map and nothing reported it',
+            app.modelKnows === '' ? [] : [`looking at ${app.modelKnows}`],
+            false,
+            h,
+          ),
+        ],
+      ),
+    ]
+  }
+  if (model.station === 'code-mode') {
+    return [
+      h.div(
+        [h.Class('ctl')],
+        [
+          h.p(
+            [h.Class('goal')],
+            ['You want three entries in the ledger: clay, timber, iron.'],
+          ),
+          executeButton(model, selectedLabel(model), h),
+        ],
+      ),
+      resultView(model, h),
+      h.div(
+        [h.Class('places')],
+        [
+          box(
+            'The ledger',
+            'append only · no undo',
+            world.ledger.entries,
+            true,
+            h,
+          ),
+          box(
+            'The program inside the sandbox',
+            'written by the caller, not by the server',
+            ['for (const load of loads) await ledger.write(load)'],
+            false,
+            h,
+          ),
+        ],
+      ),
+    ]
+  }
+  if (model.station === 'delegation') {
+    const reply = Option.flatMap(maybeOutput, output =>
+      output._tag === 'ExpertReplied' ? Option.some(output) : Option.none(),
+    )
+    return [
+      h.div([h.Class('ctl')], [executeButton(model, selectedLabel(model), h)]),
+      resultView(model, h),
+      h.div(
+        [h.Class('places')],
+        [
+          box(
+            'What was handed over',
+            'the expert sees only this',
+            world.handoff.context === 'full'
+              ? ['the goal', 'the map of the valley']
+              : ['the goal'],
+            false,
+            h,
+          ),
+          box(
+            'What came back',
+            Option.match(reply, {
+              onNone: () => 'nothing yet',
+              onSome: output =>
+                `contract: ${output.contract} · ${output.grounded ? 'based on the map' : 'the expert never saw the map'}`,
+            }),
+            Option.match(reply, {
+              onNone: () => [],
+              onSome: output => [
+                output.reply,
+                `Next step is owned by: ${output.nextStepOwner}.`,
+              ],
+            }),
+            true,
+            h,
+          ),
+          box(
+            'Stored artifacts',
+            'only "deliver" writes here',
+            Array.map(world.artifacts, artifact => artifact.summary),
+            false,
+            h,
+          ),
+        ],
+      ),
+    ]
+  }
+  if (model.station === 'iteration') {
+    return [
+      h.div(
+        [h.Class('ctl')],
+        [
+          optionSelect(
+            'engine',
+            'Engine',
+            world.loop.engine,
+            ['in-memory', 'durable'],
+            value => Message.SelectedSetting({ setting: `engine=${value}` }),
+            h,
+          ),
+          executeButton(model, selectedLabel(model), h),
+        ],
+      ),
+      resultView(model, h),
+      h.div(
+        [h.Class('places')],
+        [
+          box(
+            'The rule of the loop',
+            'as read in the reference code',
+            [
+              'Stop when a draft is rated GOOD or better.',
+              'Refine at most 3 times.',
+              'Return the best-rated draft, not the last one.',
+            ],
+            false,
+            h,
+          ),
+          box(
+            'What happened',
+            'ratings come from a scripted evaluator',
+            Option.match(maybeOutput, {
+              onNone: () => [],
+              onSome: output =>
+                output._tag === 'LoopFinished'
+                  ? [
+                      ...Array.map(
+                        output.ratings,
+                        (rating, index) => `Draft ${index + 1}: ${rating}`,
+                      ),
+                      ...(output.draftsWritten > output.ratings.length
+                        ? [`Draft ${output.draftsWritten}: never rated`]
+                        : []),
+                      `Returned: draft ${output.returnedDraft}`,
+                    ]
+                  : output._tag === 'LoopResumed'
+                    ? [
+                        `Engine: ${output.engine}`,
+                        `Drafts written before the crash: ${output.generationsBeforeCrash}`,
+                        `Drafts written again afterwards: ${output.generationsRedone}`,
+                      ]
+                    : [],
+            }),
+            true,
+            h,
+          ),
+        ],
+      ),
+    ]
+  }
+  const inventory = inventoryOf(world)
+  return [
+    h.div(
+      [h.Class('ctl')],
+      [
+        Option.contains(model.maybeSelected, 'call_tool')
+          ? optionSelect(
+              'tool-name',
+              'Tool',
+              model.toolName,
+              Array.map(inventory, entry => entry.name),
+              value => Message.SelectedToolName({ value }),
+              h,
+            )
+          : h.empty,
+        executeButton(model, selectedLabel(model), h),
+        h.button(
+          [
+            h.Type('button'),
+            h.Class('btn ghost'),
+            h.OnClick(
+              Message.SelectedSetting({
+                setting: world.net.dock === 'up' ? 'dock=down' : 'dock=up',
+              }),
+            ),
+          ],
+          [
+            world.net.dock === 'up'
+              ? 'Dock backend goes down'
+              : 'Dock backend comes back',
+          ],
+        ),
+      ],
+    ),
+    resultView(model, h),
+    h.div(
+      [h.Class('places')],
+      [
+        box(
+          'One entrance',
+          `${inventory.length} of 4 backend tools are visible`,
+          Array.map(inventory, entry => `${entry.name} → ${entry.backend}`),
+          true,
+          h,
+        ),
+        box('Forge backend', 'up', ['inspect', 'ship'], false, h),
+        box(
+          'Dock backend',
+          world.net.dock === 'up'
+            ? 'up'
+            : 'down · its tools are still listed at the entrance',
+          ['inspect', 'weigh'],
+          false,
+          h,
+        ),
+      ],
+    ),
+  ]
+}
+
 // THINKING
 
 const thinkingBenchView = (model: Model, h: H): Html =>
@@ -1698,6 +2208,7 @@ const workbenchView = (model: Model, h: H): Html =>
             [h.Class('panehead')],
             [
               h.span([h.Class('eyebrow')], ['Onstage · what you see']),
+              Option.isSome(asLater(model.station)) ||
               model.station === 'fetch' ||
               model.station === 'memory' ||
               model.station === 'filesystem' ||
@@ -1713,56 +2224,58 @@ const workbenchView = (model: Model, h: H): Html =>
             onNone: () => h.empty,
             onSome: specimen => specimenView(specimen, h),
           }),
-          ...(model.station === 'fetch'
-            ? [
-                fetchBenchView(model, h),
-                resultView(model, h),
-                fetchedPageView(model, h),
-              ]
-            : model.station === 'memory'
+          ...(Option.isSome(asLater(model.station))
+            ? laterBench(model, h)
+            : model.station === 'fetch'
               ? [
-                  memoryBenchView(model, h),
+                  fetchBenchView(model, h),
                   resultView(model, h),
-                  memoryPlacesView(model, h),
+                  fetchedPageView(model, h),
                 ]
-              : model.station === 'filesystem'
+              : model.station === 'memory'
                 ? [
-                    filesBenchView(model, h),
+                    memoryBenchView(model, h),
                     resultView(model, h),
-                    boundaryView(model, h),
+                    memoryPlacesView(model, h),
                   ]
-                : model.station === 'cli'
+                : model.station === 'filesystem'
                   ? [
-                      cliBenchView(model, h),
+                      filesBenchView(model, h),
                       resultView(model, h),
-                      cliPlacesView(model, h),
+                      boundaryView(model, h),
                     ]
-                  : model.station === 'local-remote'
+                  : model.station === 'cli'
                     ? [
-                        gatewayBenchView(model, h),
+                        cliBenchView(model, h),
                         resultView(model, h),
-                        processesView(model, h),
+                        cliPlacesView(model, h),
                       ]
-                    : model.station === 'perception'
+                    : model.station === 'local-remote'
                       ? [
-                          perceptionBenchView(model, h),
+                          gatewayBenchView(model, h),
                           resultView(model, h),
-                          pageView(model, h),
+                          processesView(model, h),
                         ]
-                      : model.station === 'thinking'
+                      : model.station === 'perception'
                         ? [
-                            thinkingBenchView(model, h),
+                            perceptionBenchView(model, h),
                             resultView(model, h),
-                            planView(model, h),
+                            pageView(model, h),
                           ]
-                        : [
-                            h.p(
-                              [h.Class('empty')],
-                              [
-                                'Nothing to run yet. This station is a research lead waiting for its simulation.',
-                              ],
-                            ),
-                          ]),
+                        : model.station === 'thinking'
+                          ? [
+                              thinkingBenchView(model, h),
+                              resultView(model, h),
+                              planView(model, h),
+                            ]
+                          : [
+                              h.p(
+                                [h.Class('empty')],
+                                [
+                                  'Nothing to run yet. This station is a research lead waiting for its simulation.',
+                                ],
+                              ),
+                            ]),
         ],
       )
 

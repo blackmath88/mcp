@@ -86,7 +86,30 @@ export class SchemaMismatch extends Schema.TaggedError<SchemaMismatch>()(
   { detail: Schema.String },
 ) {}
 
+export class NotOffered extends Schema.TaggedError<NotOffered>()('NotOffered', {
+  tool: Schema.String,
+}) {}
+
+export class PartialFailure extends Schema.TaggedError<PartialFailure>()(
+  'PartialFailure',
+  { detail: Schema.String },
+) {}
+
+export class BackendDown extends Schema.TaggedError<BackendDown>()(
+  'BackendDown',
+  { backend: Schema.String, tool: Schema.String },
+) {}
+
+export class UnknownTool extends Schema.TaggedError<UnknownTool>()(
+  'UnknownTool',
+  { tool: Schema.String },
+) {}
+
 export type DomainError =
+  | NotOffered
+  | PartialFailure
+  | BackendDown
+  | UnknownTool
   | NoArtifact
   | SchemaMismatch
   | AccessDenied
@@ -124,6 +147,11 @@ export const describeError = (error: DomainError): string =>
       NoArtifact: () => 'No CLI has been generated yet.',
       SchemaMismatch: ({ detail }) =>
         `The server rejected the call: ${detail}.`,
+      NotOffered: ({ tool }) => `The app in this build does not offer ${tool}.`,
+      PartialFailure: ({ detail }) => detail,
+      BackendDown: ({ backend, tool }) =>
+        `${tool} is still listed, but its backend ${backend} is down.`,
+      UnknownTool: ({ tool }) => `The inventory has no tool named ${tool}.`,
       InvalidInput: ({ message }) => `Invalid input: ${message}`,
       UnknownCapability: ({ name }) => `There is no capability named ${name}.`,
       SamePlace: ({ place }) => `${place} cannot be connected to itself.`,

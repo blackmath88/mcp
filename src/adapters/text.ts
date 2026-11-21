@@ -46,6 +46,30 @@ export const outcomeLine = (record: RunRecord): string =>
         if (output._tag === 'WhereAmI') {
           return `OK client ${output.client} is at ${output.place === '' ? 'nowhere yet' : output.place}, says child #${output.childId}`
         }
+        if (output._tag === 'MapShown') {
+          return `OK map app opened at ${output.place}`
+        }
+        if (output._tag === 'ViewReported') {
+          return `OK the app is looking at ${output.place}${output.differsFromToolResult ? ' (not where the tool result said)' : ''}`
+        }
+        if (output._tag === 'BatchDone') {
+          return `OK ${output.written} entries written as ${output.mode}; ${output.resultsReported} result(s) reported`
+        }
+        if (output._tag === 'ExpertReplied') {
+          return `OK [${output.contract}] ${output.reply} (next step: ${output.nextStepOwner}; ${output.grounded ? 'had the map' : 'never saw the map'})`
+        }
+        if (output._tag === 'LoopFinished') {
+          return `OK ratings ${output.ratings.join(', ')}; returned draft ${output.returnedDraft} of ${output.draftsWritten}: ${output.stoppedBecause}`
+        }
+        if (output._tag === 'LoopResumed') {
+          return `OK ${output.engine}: ${output.generationsRedone} of ${output.generationsBeforeCrash} generations redone after the crash`
+        }
+        if (output._tag === 'InventoryListed') {
+          return `OK ${output.tools.join('; ')} (${output.hidden} hidden)`
+        }
+        if (output._tag === 'ToolCalled') {
+          return `OK ${output.name} answered by ${output.answeredBy}: ${output.answer}`
+        }
         if (output._tag === 'PathBuilt') {
           return `OK ${output.artifact.id}: ${output.artifact.summary}`
         }

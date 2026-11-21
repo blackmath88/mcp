@@ -2,7 +2,7 @@
 
 > Is one entrance also one domain, one authority, or one workflow?
 
-Status: reference only; not built. Claims below are unverified research leads.
+Status: simulated in the lab on synthetic data, with scripted stand-ins where a model would be; upstream not executed. Claims below are unverified research leads.
 
 ## Anchor
 
@@ -28,10 +28,10 @@ Assemble one inventory from two backends, collide names, remove a dependency, ch
 | Field | Value |
 | --- | --- |
 | Pinned upstream revision | not pinned |
-| Documented behaviour checked against source | no |
-| Controlled mutation | not defined |
-| Actual evidence | none |
-| What this does not prove | not applicable yet |
+| Documented behaviour checked against source | partly: IBM/mcp-context-forge README read on 2026-11-21, truncated at about half. It describes a gateway, registry and proxy with federation and virtual servers. How tool-name collisions between backends are handled is not stated in what was read. Fuzzer repositories not read. |
+| Controlled mutation | naming: first name wins or names carry the backend; dock backend up or down |
+| Actual evidence | lab simulation only: `npm run lab -- call_tool --name weigh --set dock=down` |
+| What this does not prove | anything about the upstream project, or about how a real model would behave |
 
 ## Sources
 

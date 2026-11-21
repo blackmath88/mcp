@@ -29,6 +29,17 @@ export const ComponentId = Schema.Literals([
   'crate-server',
   'gateway',
   'child-process',
+  'map-app',
+  'app-view',
+  'ledger',
+  'sandbox',
+  'expert-tool',
+  'evaluator',
+  'generator',
+  'workflow-engine',
+  'federation',
+  'forge-backend',
+  'dock-backend',
 ])
 export type ComponentId = typeof ComponentId.Type
 

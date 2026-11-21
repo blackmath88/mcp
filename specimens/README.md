@@ -15,8 +15,8 @@ Source: owner-supplied research, 2026-11-21, summarised in [docs/research/2026-1
 | 05 | [Browser perception](05-perception/README.md) | Can the assistant not perform the action, or can it not perceive the target through this interface? | simulated |
 | 06 | [CLI, reversed](06-cli/README.md) | Which parts discover a change dynamically, and which are generated artifacts that go stale? | simulated |
 | 07 | [Local and remote](07-local-remote/README.md) | Who owns this server process, and whose state is it holding? | simulated |
-| 08 | [The item becomes an application](08-apps/README.md) | Which participant knows the current state? | reference |
-| 09 | [One item contains a language](09-code-mode/README.md) | Is the unit of responsibility a tool call, an individual effect, or the whole program? | reference |
-| 10 | [Another intelligence](10-delegation/README.md) | When did advice become delegated responsibility? | reference |
-| 11 | [Iteration and durable execution](11-iteration/README.md) | Who says "good enough", what stops the loop, and which component supplies durability? | reference |
-| 12 | [The network and the repair bench](12-network/README.md) | Is one entrance also one domain, one authority, or one workflow? | reference |
+| 08 | [The item becomes an application](08-apps/README.md) | Which participant knows the current state? | simulated |
+| 09 | [One item contains a language](09-code-mode/README.md) | Is the unit of responsibility a tool call, an individual effect, or the whole program? | simulated |
+| 10 | [Another intelligence](10-delegation/README.md) | When did advice become delegated responsibility? | simulated |
+| 11 | [Iteration and durable execution](11-iteration/README.md) | Who says "good enough", what stops the loop, and which component supplies durability? | simulated |
+| 12 | [The network and the repair bench](12-network/README.md) | Is one entrance also one domain, one authority, or one workflow? | simulated |

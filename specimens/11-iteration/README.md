@@ -2,7 +2,7 @@
 
 > Who says "good enough", what stops the loop, and which component supplies durability?
 
-Status: reference only; not built. Claims below are unverified research leads.
+Status: simulated in the lab on synthetic data, with scripted stand-ins where a model would be; upstream not executed. Claims below are unverified research leads.
 
 ## Anchor
 
@@ -27,10 +27,10 @@ Set criteria that cannot all be satisfied. Interrupt execution and inspect what 
 | Field | Value |
 | --- | --- |
 | Pinned upstream revision | not pinned |
-| Documented behaviour checked against source | no |
-| Controlled mutation | not defined |
-| Actual evidence | none |
-| What this does not prove | not applicable yet |
+| Documented behaviour checked against source | partly: mcp-agent evaluator_optimizer.py and the Temporal example README read on 2026-11-21. The loop: minimum rating GOOD, at most 3 refinements, returns the best-rated response; the last refinement is never rated. The README credits Temporal with durability. |
+| Controlled mutation | criteria satisfiable or contradictory; engine in-memory or durable |
+| Actual evidence | lab simulation only: `npm run lab -- refine_plan --set criteria=contradictory` |
+| What this does not prove | anything about the upstream project, or about how a real model would behave |
 
 ## Sources
 

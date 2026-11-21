@@ -50,8 +50,11 @@ Agreed 2026-11-21: the lab follows the twelve specimens in specimens/route.json.
 | 05 Browser perception | simulated: snapshot versus coordinates, stale references |
 | 06 CLI, reversed | simulated: generated artifact versus live call across a schema change |
 | 07 Local and remote | simulated: shared process versus one per connection; reconnect, vanish, timeout |
-| 08 The item becomes an application | next |
-| 09 to 12 | reference cards only |
+| 08 The item becomes an application | simulated: tool result, screen and model's knowledge drift apart |
+| 09 One item contains a language | simulated: three calls versus one program, with a failing write |
+| 10 Another intelligence | simulated with a scripted stand-in: ask, review, deliver; map sent or left out |
+| 11 Iteration and durable execution | simulated with scripted stand-ins: the reference loop rule; crash with and without durability |
+| 12 The network and the repair bench | simulated: name collision, prefixed names, a backend going down. No fuzzing. |
 
 Per station, before calling it done: pin the upstream revision, check the documented behaviour against the source, and fill the evidence record in its README. None of that has been done for any station.
 
@@ -59,7 +62,13 @@ Protocol facts (revision, feature status, client support) still need a check aga
 
 ## Immediate next action
 
-Stations 08 to 12 are a step up: an interactive application, a code-execution item, another model, iteration with durability, and the network. Before building them, decide with the owner how far simulation should go, because 10 and 11 centre on a model and the lab has none. Station 08 can reuse the valley map as the application. Seven stations still lack pinned upstream revisions.
+All twelve stations are playable as simulations. The breadth is there; the depth and the evidence are not. In order:
+
+1. Try the route with one person from the intended audience and note where it loses them.
+2. Reduce what is on screen further and make the panes resizable.
+3. Pin upstream revisions and fill the evidence records, starting with stations 01 to 03, which were never checked against a source.
+4. Decide with the owner whether stations 10 and 11 should get a real model, and whether any station should go live.
+5. Station 12 has no repair bench yet: no malformed messages, no fuzzing.
 
 ## Explicit exclusions for this change
 

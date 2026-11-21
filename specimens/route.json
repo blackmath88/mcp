@@ -181,7 +181,7 @@
     {
       "id": "apps",
       "title": "The item becomes an application",
-      "status": "reference",
+      "status": "simulated",
       "question": "Which participant knows the current state?",
       "anchor": {
         "repo": "modelcontextprotocol/ext-apps",
@@ -200,12 +200,13 @@
         "https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/map-server",
         "https://github.com/modelcontextprotocol/ext-apps/releases"
       ],
-      "number": 8
+      "number": 8,
+      "checked": "README of the map-server example read on 2026-11-21 (source files not read). It lists server tools geocode and show-map and app tools navigate-to, get-current-view and get-screenshot; it does not describe how a view changed by the person reaches the model, and shows no resource URI."
     },
     {
       "id": "code-mode",
       "title": "One item contains a language",
-      "status": "reference",
+      "status": "simulated",
       "question": "Is the unit of responsibility a tool call, an individual effect, or the whole program?",
       "anchor": {
         "repo": "cloudflare/mcp",
@@ -224,12 +225,13 @@
         "https://github.com/cloudflare/mcp",
         "https://github.com/maietta/mcp-code-mode-demo"
       ],
-      "number": 9
+      "number": 9,
+      "checked": "cloudflare/mcp README read on 2026-11-21. It describes search and execute tools where the model writes JavaScript run in isolated Workers, and a large token saving. It says nothing about partial failure or transactions."
     },
     {
       "id": "delegation",
       "title": "Another intelligence",
-      "status": "reference",
+      "status": "simulated",
       "question": "When did advice become delegated responsibility?",
       "anchor": {
         "repo": "sammcj/mcp-llm",
@@ -248,12 +250,13 @@
         "https://github.com/sammcj/mcp-llm",
         "https://github.com/lastmile-ai/mcp-agent"
       ],
-      "number": 10
+      "number": 10,
+      "checked": "sammcj/mcp-llm README read on 2026-11-21: tools generate_code, generate_code_to_file, generate_documentation, ask_question. Last commit date not visible. mcp-agent not read for this station."
     },
     {
       "id": "iteration",
       "title": "Iteration and durable execution",
-      "status": "reference",
+      "status": "simulated",
       "question": "Who says \"good enough\", what stops the loop, and which component supplies durability?",
       "anchor": {
         "repo": "lastmile-ai/mcp-agent",
@@ -272,12 +275,13 @@
         "https://github.com/lastmile-ai/mcp-agent",
         "https://github.com/lastmile-ai/mcp-agent/blob/main/examples/temporal/README.md"
       ],
-      "number": 11
+      "number": 11,
+      "checked": "mcp-agent evaluator_optimizer.py and the Temporal example README read on 2026-11-21. The loop: minimum rating GOOD, at most 3 refinements, returns the best-rated response; the last refinement is never rated. The README credits Temporal with durability."
     },
     {
       "id": "network",
       "title": "The network and the repair bench",
-      "status": "reference",
+      "status": "simulated",
       "question": "Is one entrance also one domain, one authority, or one workflow?",
       "anchor": {
         "repo": "IBM/mcp-context-forge",
@@ -301,7 +305,8 @@
         "https://github.com/tavric-labs/mcp-server-fuzzer",
         "https://github.com/quanticsoul4772/mcplint"
       ],
-      "number": 12
+      "number": 12,
+      "checked": "IBM/mcp-context-forge README read on 2026-11-21, truncated at about half. It describes a gateway, registry and proxy with federation and virtual servers. How tool-name collisions between backends are handled is not stated in what was read. Fuzzer repositories not read."
     }
   ]
 }

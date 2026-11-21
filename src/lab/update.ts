@@ -4,11 +4,14 @@ import { modifyFields } from 'foldkit/struct'
 
 import { runInProcess } from '../adapters/in-process.ts'
 import type { CapabilityName, RunRecord } from '../domain/capabilities.ts'
+import { applySettings } from '../domain/settings.ts'
 import { callerThoughts } from '../domain/thinking.ts'
 import {
   PlaceId,
   World,
   applyRootsUpdate,
+  carrySettings,
+  panMap,
   passSessionTimeout,
   reconnectClient,
   reinstallPackage,
@@ -49,6 +52,7 @@ export const RunCapability = Command.define('RunCapability', {
     target: Schema.String,
     client: Schema.String,
     place: Schema.String,
+    toolName: Schema.String,
   },
   messages: [Message.CompletedRunCapability],
   interrupt: true,
@@ -65,6 +69,7 @@ export const RunCapability = Command.define('RunCapability', {
     target,
     client,
     place,
+    toolName,
   }) =>
     runInProcess(
       world,
@@ -81,11 +86,15 @@ export const RunCapability = Command.define('RunCapability', {
                 ? { path }
                 : capability === 'click'
                   ? { target }
-                  : capability === 'go_to'
-                    ? { client, place }
-                    : capability === 'where_am_i'
-                      ? { client }
-                      : { from, to },
+                  : capability === 'show_map'
+                    ? { place }
+                    : capability === 'call_tool'
+                      ? { name: toolName }
+                      : capability === 'go_to'
+                        ? { client, place }
+                        : capability === 'where_am_i'
+                          ? { client }
+                          : { from, to },
     ).pipe(
       Effect.map(result =>
         Message.CompletedRunCapability({
@@ -122,6 +131,7 @@ export const initialModel: Model = {
   rootChoice: '/valley/mill',
   client: 'A',
   place: 'forge',
+  toolName: 'inspect',
   conversation: [],
   serverStarts: 1,
   world: worldFor('calm'),
@@ -216,21 +226,7 @@ const interruptIfRunning = (model: Model) =>
 const freshWorld = (model: Model, weather: Weather): Model =>
   modifyFields(model, {
     weather: () => weather,
-    world: () =>
-      useGatewayBuild(
-        useServerSchema(
-          worldFor(
-            weather,
-            model.fetchPolicy,
-            model.world.memory.storagePath,
-            model.world.thinkingMode,
-            model.world.files.build,
-            model.world.page.mode,
-          ),
-          model.world.cli.serverSchema,
-        ),
-        model.world.gateway.build,
-      ),
+    world: () => carrySettings(worldFor(weather), model.world),
     conversation: () => [],
     serverStarts: () => 1,
     run: () => RunState.Idle(),
@@ -335,11 +331,21 @@ export const update = (current: Model, message: Message) => {
                   ? Option.some('read_file')
                   : station === 'perception'
                     ? Option.some('take_snapshot')
-                    : station === 'cli'
-                      ? Option.some('generate_cli')
-                      : station === 'local-remote'
-                        ? Option.some('go_to')
-                        : Option.none(),
+                    : station === 'apps'
+                      ? Option.some('show_map')
+                      : station === 'code-mode'
+                        ? Option.some('run_as_calls')
+                        : station === 'delegation'
+                          ? Option.some('ask_expert')
+                          : station === 'iteration'
+                            ? Option.some('refine_plan')
+                            : station === 'network'
+                              ? Option.some('list_inventory')
+                              : station === 'cli'
+                                ? Option.some('generate_cli')
+                                : station === 'local-remote'
+                                  ? Option.some('go_to')
+                                  : Option.none(),
         tab: () => 'engine',
       }),
       commands: interruptIfRunning(model),
@@ -439,6 +445,24 @@ export const update = (current: Model, message: Message) => {
       model: modifyFields(model, { place: () => value }),
     }),
 
+    SelectedSetting: ({ setting }) => ({
+      model: modifyFields(model, {
+        world: world => applySettings(world, [setting]),
+        run: () => RunState.Idle(),
+      }),
+      commands: interruptIfRunning(model),
+    }),
+
+    SelectedToolName: ({ value }) => ({
+      model: modifyFields(model, { toolName: () => value }),
+    }),
+
+    ClickedPanMap: () => ({
+      model: modifyFields(model, {
+        world: world => panMap(world, model.place),
+      }),
+    }),
+
     ClickedReconnectClient: () => ({
       model: modifyFields(model, {
         world: world => reconnectClient(world, model.client),
@@ -517,6 +541,7 @@ export const update = (current: Model, message: Message) => {
                   target: model.target,
                   client: model.client,
                   place: model.place,
+                  toolName: model.toolName,
                 }),
               ],
             }),
