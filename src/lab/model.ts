@@ -47,6 +47,7 @@ export const Station = Schema.Literals([
   'delegation',
   'iteration',
   'network',
+  'inspector',
 ])
 export type Station = typeof Station.Type
 
@@ -119,7 +120,7 @@ export const Model = Schema.Struct({
   pythonError: Schema.String,
   python: Schema.Literals(['idle', 'running', 'done', 'unavailable']),
   screen: Schema.Literals(['home', 'bench']),
-  atlasView: Schema.Literals(['map', 'list']),
+  atlasView: Schema.Literals(['map', 'list', 'ladder']),
   pins: Schema.Array(
     Schema.Struct({ name: Schema.String, fingerprint: Schema.String }),
   ),

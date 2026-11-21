@@ -61,6 +61,29 @@ Agreed 2026-11-21: the lab follows the twelve specimens in specimens/route.json.
 | 10 Another intelligence | simulated with a scripted stand-in: ask, review, deliver; map sent or left out |
 | 11 Iteration and durable execution | simulated with scripted stand-ins: the reference loop rule; crash with and without durability |
 | 12 The network and the repair bench | simulated: name collision, prefixed names, a backend going down. No fuzzing. |
+| 13 Inspect the inspector | simulated: Lens as two tools; a listing that changed since it was pinned; one bounded self-inspection |
+
+### Ladder coverage (all thirteen segments)
+
+Source of truth: `src/domain/ladder.ts`, shown in the app under Atlas → Thirteen questions. A test runs every listed capability.
+
+| Step | Distinction | Where to meet it |
+| --- | --- | --- |
+| 1 Read | reference versus content | valley, filesystem, fetch |
+| 2 Query | stored versus computed | valley, memory |
+| 3 Act | answer versus effect | valley, browser perception, ledger |
+| 4 Remember | change now versus state later | memory, thinking |
+| 5 Discover and perceive | world versus caller's view | browser perception, filesystem |
+| 6 Trace interfaces and placement | entrance versus engine | generated CLI, local and remote |
+| 7 Interact | one response versus a shared surface | interactive map |
+| 8 Compose | named action versus program | valley, one item a language |
+| 9 Consult and delegate | judgement versus control | another intelligence |
+| 10 Iterate | single pass versus repetition | a loop that refines |
+| 11 Resume | client lifetime versus work lifetime | a loop that refines (crash and resume) |
+| 12 Connect workshops | one inventory versus many owners | the network |
+| 13 Inspect the inspector | claims versus grounds | inspect the inspector |
+
+Thin spots: step 11 is one tool that crashes a workflow and restarts it; it does not show a client disconnecting and a job being fetched by handle. Step 2 has no "same content, two queries" comparison on one screen.
 
 Per station, before calling it done: pin the upstream revision, check the documented behaviour against the source, and fill the evidence record in its README. None of that has been done for any station.
 

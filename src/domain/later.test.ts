@@ -2,7 +2,8 @@
 import { Effect } from 'effect'
 import { describe, expect, test } from 'vitest'
 
-import { runOn } from './capabilities.ts'
+import { catalogue, runOn } from './capabilities.ts'
+import { ladder } from './ladder.ts'
 import { Pace } from './services.ts'
 import { applySettings } from './settings.ts'
 import { CALM_MAX_SPAN, type World, panMap, seedWorld } from './world.ts'
@@ -10,6 +11,23 @@ import { CALM_MAX_SPAN, type World, panMap, seedWorld } from './world.ts'
 const run = (world: World, name: string, input: unknown = {}) =>
   Effect.runSync(runOn(world, name, input).pipe(Effect.provide(Pace.unpaced)))
 const fresh = seedWorld(CALM_MAX_SPAN)
+const sampleInput: Record<string, unknown> = {
+  find_route: { from: 'forge', to: 'mill' },
+  build_path: { from: 'mill', to: 'kiln' },
+  connect_places: { from: 'forge', to: 'dock' },
+  fetch_page: { url: 'https://valley.test/welcome' },
+  remember: { entity: 'Workshop A', observation: 'belongs to Team Blue' },
+  recall: { entity: 'Workshop A' },
+  plan_steps: { from: 'forge', to: 'dock', thoughts: [] },
+  read_file: { path: '/valley/forge/orders.txt' },
+  click: { target: 'gate' },
+  go_to: { client: 'A', place: 'mill' },
+  where_am_i: { client: 'A' },
+  show_map: { place: 'forge' },
+  call_tool: { name: 'ship' },
+  write_entry: { load: 'clay' },
+  profile_server: { name: 'memory' },
+}
 const bent = (...settings: ReadonlyArray<string>) =>
   applySettings(fresh, settings)
 
@@ -181,5 +199,61 @@ describe('09 a single write, as a program in the page would call it', () => {
     const third = run(two.world, 'write_entry', { load: 'c' })
     expect(third.record.outcome).toMatchObject({ _tag: 'Failed' })
     expect(third.world.ledger.entries).toEqual(['a', 'b'])
+  })
+})
+
+describe('13 inspect the inspector', () => {
+  test('a pinned subject matches its pins; a changed one is reported', () => {
+    expect(
+      run(fresh, 'profile_server', { name: 'memory' }).record.outcome,
+    ).toMatchObject({
+      output: { server: 'memory', changed: 0, isSelf: false },
+    })
+    const changed = run(bent('subject=changed'), 'profile_server', {
+      name: 'memory',
+    }).record.outcome
+    expect(changed).toMatchObject({ output: { changed: 1 } })
+    expect(JSON.stringify(changed)).toContain('L09')
+  })
+
+  test('pointed at itself it takes one snapshot of its two tools and names its blind spot', () => {
+    const self = run(bent('subject=changed'), 'profile_self').record.outcome
+    expect(self).toMatchObject({
+      output: { isSelf: true, changed: 0, server: 'inspector' },
+    })
+    expect(JSON.stringify(self)).toContain('profile_self')
+    expect(JSON.stringify(self)).toContain('own declaration')
+  })
+
+  test('an unknown server is refused, not profiled as empty', () => {
+    expect(
+      run(fresh, 'profile_server', { name: 'nowhere' }).record.outcome,
+    ).toMatchObject({ error: 'UnknownServer' })
+  })
+})
+
+describe('every segment of the ladder is built', () => {
+  test('thirteen rungs, each with at least one capability that exists', () => {
+    expect(ladder.map(rung => rung.step)).toEqual(
+      Array.from({ length: 13 }, (_, index) => index + 1),
+    )
+    for (const rung of ladder) {
+      expect(rung.capabilities.length).toBeGreaterThan(0)
+      for (const name of rung.capabilities) {
+        expect(catalogue.some(capability => capability.name === name)).toBe(
+          true,
+        )
+        expect(
+          run(fresh, name, sampleInput[name] ?? {}).record.capability,
+        ).toBe(name)
+      }
+    }
+  })
+
+  test('every capability sits on at least one rung', () => {
+    const placed = new Set(ladder.flatMap(rung => rung.capabilities))
+    expect(
+      catalogue.filter(capability => !placed.has(capability.name)),
+    ).toEqual([])
   })
 })

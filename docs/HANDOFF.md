@@ -1,5 +1,30 @@
 # Handoff
 
+## Segment 13 built; all thirteen ladder steps have a running tool — 2026-11-21
+
+Owner: "go on and make sure all segments are built". Read as the thirteen steps of the learning ladder in `docs/concept/MCP-LENS-ONTOLOGY.md`. Twelve had a specimen; step 13 existed only as a Backstage tab.
+
+### Changed
+
+- New specimen **Inspect the inspector** (station `inspector`, 14th server): tools `profile_server` and `profile_self`, reachable from the browser, the CLI (`npm run lab -- profile_server --name memory --set subject=changed`) and the stdio server. Bend: the inspected listing is as pinned, or changed since. Self-inspection is one snapshot; there is no tool that profiles a profile, and it names its own blind spot.
+- `src/domain/ladder.ts`: the thirteen distinctions with the capabilities that cover each. Shown under **Atlas → Thirteen questions**, labelled as an index and not an order.
+- Catalogue is now 30 capabilities on 14 servers; two new sprites.
+- Lens rule L05 tightened: it fired on "stored" in a read-only tool.
+- `specimens/route.json` entry 13 and `specimens/13-inspector/README.md` with an evidence record. `docs/PLAN.md` has a coverage table and names two thin spots.
+
+### Evidence (observed in this session)
+
+- `typecheck`, `lint`, `test` (179 passed), `build` pass. One test runs every capability listed on every rung; another checks no capability is left off the ladder.
+- CLI: `profile_self` and `profile_server --name memory --set subject=changed` printed their engine events (2 tools; 1 definition differs from the one pinned).
+- Headless Chromium: thirteen rows in the questions view; inspector bench with the changed listing showed `remember … changed since pinned` and `recall … matches its pin`; self-inspection showed the supported claim and "It read its own declaration, which is the claim in question". No page error.
+
+### Limits
+
+- Inside the inspector bench the inspected server is the lab's catalogue read in the engine; no second connection is made. The Backstage Lens tab is the place where a real `tools/list` answer is read.
+- The inspector's anchor, `modelcontextprotocol/inspector`, was not read. Nothing is attributed to it.
+- Step 11 (Resume) and step 2 (Query) are thin; see `docs/PLAN.md`.
+- Screenshots: `docs/reports/atlas/thirteen-questions.png`, `inspector-changed.png`, `inspector-self.png`, `atlas-30-tools.png`. The phone layout and dark mode were not re-checked after this change.
+
 ## Lens, first working cut — 2026-11-21
 
 Owner note: "mcp recon does what we need for lens", with a text on how bounty hunters read MCP servers. The text is stored in `docs/research/2026-11-21-mcp-recon-and-bounty.md`, marked unverified, with a table of what the lab took from it.

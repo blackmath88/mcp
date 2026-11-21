@@ -14,6 +14,7 @@ export const stationNames: Record<Station, string> = {
   delegation: 'Another intelligence',
   iteration: 'A loop that refines',
   network: 'The network',
+  inspector: 'Inspect the inspector',
 }
 
 // The simulated server behind each specimen. A server exposes tools; it is
@@ -32,4 +33,5 @@ export const serverNames: Record<Station, string> = {
   delegation: 'Expert server',
   iteration: 'Workflow server',
   network: 'Gateway',
+  inspector: 'Inspector server',
 }

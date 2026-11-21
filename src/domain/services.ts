@@ -40,6 +40,8 @@ export const ComponentId = Schema.Literals([
   'federation',
   'forge-backend',
   'dock-backend',
+  'lens',
+  'inspected-server',
 ])
 export type ComponentId = typeof ComponentId.Type
 

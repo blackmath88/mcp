@@ -121,7 +121,7 @@ const rules: ReadonlyArray<Rule> = [
     basis: 'inferred',
     isWarning: false,
     statement: 'The text suggests it keeps something beyond this call.',
-    match: wording(/\b(store|stores|remember|append|persist|save)\w*/i),
+    match: wording(/\b(store|stores|remember|append|appends|persist|save)\b/i),
   },
   {
     id: 'L06',

@@ -105,7 +105,13 @@ export class UnknownTool extends Schema.TaggedError<UnknownTool>()(
   { tool: Schema.String },
 ) {}
 
+export class UnknownServer extends Schema.TaggedError<UnknownServer>()(
+  'UnknownServer',
+  { server: Schema.String },
+) {}
+
 export type DomainError =
+  | UnknownServer
   | NotOffered
   | PartialFailure
   | BackendDown
@@ -152,6 +158,8 @@ export const describeError = (error: DomainError): string =>
       BackendDown: ({ backend, tool }) =>
         `${tool} is still listed, but its backend ${backend} is down.`,
       UnknownTool: ({ tool }) => `The inventory has no tool named ${tool}.`,
+      UnknownServer: ({ server }) =>
+        `The lab has no server named ${server} to profile.`,
       InvalidInput: ({ message }) => `Invalid input: ${message}`,
       UnknownCapability: ({ name }) => `There is no capability named ${name}.`,
       SamePlace: ({ place }) => `${place} cannot be connected to itself.`,

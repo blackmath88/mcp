@@ -41,6 +41,8 @@ import {
   LoopFinished,
   LoopResumed,
   MapShown,
+  SELF,
+  ServerProfiled,
   ToolCalled,
   ViewReported,
   askExpert,
@@ -49,6 +51,7 @@ import {
   deliverPlan,
   getCurrentView,
   listInventory,
+  profileServer,
   refinePlan,
   reviewPlan,
   runAsCalls,
@@ -110,6 +113,8 @@ export const CapabilityName = Schema.Literals([
   'refine_plan',
   'crash_and_resume',
   'list_inventory',
+  'profile_server',
+  'profile_self',
   'call_tool',
   'write_entry',
 ])
@@ -188,6 +193,7 @@ export type Specimen =
   | 'delegation'
   | 'iteration'
   | 'network'
+  | 'inspector'
 
 export type Capability = Readonly<{
   name: CapabilityName
@@ -642,6 +648,39 @@ export const catalogue: ReadonlyArray<Capability> = [
     dependsOn: ['federation', 'forge-backend', 'dock-backend'],
   },
   {
+    name: 'profile_server',
+    family: 'perceive',
+    specimen: 'inspector',
+    title: 'Profile a server',
+    affordance: 'queryable',
+    description:
+      'Read another server’s tool listing and report what each tool appears to be allowed to do, with the field each claim rests on.',
+    input: 'tool-name',
+    observe: 'Claims about another server, each with its rule and evidence.',
+    request: 'The name of a server in this lab.',
+    produces:
+      'A profile, and which definitions changed since they were pinned.',
+    changes: 'Nothing.',
+    finishes: 'Immediately.',
+    dependsOn: ['lens', 'inspected-server'],
+  },
+  {
+    name: 'profile_self',
+    family: 'perceive',
+    specimen: 'inspector',
+    title: 'Profile itself',
+    affordance: 'queryable',
+    description:
+      'Read this inspector’s own tool listing once and report on it. One snapshot; it does not profile its own profile.',
+    input: 'none',
+    observe: 'What the inspector can and cannot say about itself.',
+    request: 'Nothing.',
+    produces: 'A profile of two tools, and one thing it cannot establish.',
+    changes: 'Nothing.',
+    finishes: 'After one snapshot.',
+    dependsOn: ['lens'],
+  },
+  {
     name: 'write_entry',
     family: 'change',
     specimen: 'code-mode',
@@ -816,6 +855,7 @@ export const CapabilityOutput = Schema.Union([
   LoopFinished,
   LoopResumed,
   InventoryListed,
+  ServerProfiled,
   ToolCalled,
   EntryWritten,
 ])
@@ -940,7 +980,9 @@ const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
         ? yield* decodePlace(input)
         : 'forge'
     const toolName =
-      capability === 'call_tool' ? yield* decodeField('name')(input) : ''
+      capability === 'call_tool' || capability === 'profile_server'
+        ? yield* decodeField('name')(input)
+        : ''
     const load =
       capability === 'write_entry' ? yield* decodeField('load')(input) : ''
     return {
@@ -1019,6 +1061,8 @@ export const execute = Effect.fnUntraced(function* (
     refine_plan: () => refinePlan('catalogue'),
     crash_and_resume: () => crashAndResume('catalogue'),
     list_inventory: () => listInventory('catalogue'),
+    profile_server: () => profileServer('catalogue', toolName),
+    profile_self: () => profileServer('catalogue', SELF),
     call_tool: () => callTool('catalogue', toolName),
     write_entry: () => writeLoad('catalogue', load),
   } satisfies Record<

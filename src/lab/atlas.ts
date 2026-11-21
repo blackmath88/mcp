@@ -8,6 +8,7 @@ import {
   catalogue,
   families,
 } from '../domain/capabilities.ts'
+import { ladder } from '../domain/ladder.ts'
 import { listedFromCatalogue, profile } from '../domain/lens.ts'
 import {
   BELT_SLOTS,
@@ -373,7 +374,7 @@ const inventoryLensView = (h: H): Html => {
       h.p(
         [h.Class('mode')],
         [
-          h.b([], ['Lens, across all thirteen servers']),
+          h.b([], ['Lens, across every server']),
           ' · if one caller held every tool below. Read from the lab’s catalogue; no server was asked.',
         ],
       ),
@@ -395,6 +396,50 @@ const inventoryLensView = (h: H): Html => {
     ],
   )
 }
+
+// THE THIRTEEN QUESTIONS (optional: an index, not an order)
+
+const ladderView = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('stack')],
+    [
+      h.p(
+        [h.Class('mode')],
+        [
+          h.b([], ['Thirteen distinctions']),
+          ' · each is one question the lab lets you ask, with the tools that answer it. An index for the curious, not an order to follow. A tool can sit under several.',
+        ],
+      ),
+      h.ol(
+        [h.Class('ladder')],
+        Array.map(ladder, rung =>
+          h.keyed('li')(
+            `${rung.step}`,
+            [h.Class('rungrow')],
+            [
+              h.span([h.Class('rung-n')], [`${rung.step}`]),
+              h.div(
+                [],
+                [
+                  h.b([], [rung.name]),
+                  h.p([h.Class('rung-d')], [rung.distinction]),
+                ],
+              ),
+              h.div(
+                [h.Class('chiprow')],
+                Array.flatMap(rung.capabilities, name =>
+                  Option.match(findCapability(name), {
+                    onNone: () => [],
+                    onSome: capability => [toolChip(model, capability, h)],
+                  }),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  )
 
 // DETAIL
 
@@ -617,6 +662,7 @@ export const atlasScreenView = (model: Model, h: H): Html =>
                 [
                   ['map', 'Map'],
                   ['list', 'Full inventory'],
+                  ['ladder', 'Thirteen questions'],
                 ],
                 view => Message.SelectedAtlasView({ view }),
                 h,
@@ -642,10 +688,12 @@ export const atlasScreenView = (model: Model, h: H): Html =>
         [
           model.atlasView === 'map'
             ? mapView(model, h)
-            : h.div(
-                [h.Class('stack')],
-                [inventoryLensView(h), listView(model, h)],
-              ),
+            : model.atlasView === 'ladder'
+              ? ladderView(model, h)
+              : h.div(
+                  [h.Class('stack')],
+                  [inventoryLensView(h), listView(model, h)],
+                ),
           detailView(model, h),
         ],
       ),

@@ -128,6 +128,8 @@ const componentNames: Record<ComponentId, string> = {
   federation: 'Federating gateway',
   'forge-backend': 'Forge backend',
   'dock-backend': 'Dock backend',
+  lens: 'Lens',
+  'inspected-server': 'Inspected server',
 }
 
 const componentRoles: Record<ComponentId, string> = {
@@ -175,6 +177,8 @@ const componentRoles: Record<ComponentId, string> = {
     'One entrance in front of two backends. It merges their tool lists.',
   'forge-backend': 'Offers inspect and ship.',
   'dock-backend': 'Offers inspect and weigh.',
+  lens: 'Reads a listing and reports claims with their evidence.',
+  'inspected-server': 'The server whose listing is being read.',
 }
 
 const laterComponents: Readonly<
@@ -203,6 +207,7 @@ const laterComponents: Readonly<
     'forge-backend',
     'dock-backend',
   ],
+  inspector: ['adapter', 'catalogue', 'lens', 'inspected-server'],
 }
 
 type LaterStation =
@@ -211,13 +216,15 @@ type LaterStation =
   | 'delegation'
   | 'iteration'
   | 'network'
+  | 'inspector'
 
 const asLater = (station: Station): Option.Option<LaterStation> =>
   station === 'apps' ||
   station === 'code-mode' ||
   station === 'delegation' ||
   station === 'iteration' ||
-  station === 'network'
+  station === 'network' ||
+  station === 'inspector'
     ? Option.some(station)
     : Option.none()
 
@@ -287,6 +294,7 @@ const stations: ReadonlyArray<Station> = [
   'delegation',
   'iteration',
   'network',
+  'inspector',
 ]
 
 const stationTitle = (station: Station): string => stationNames[station]
@@ -339,6 +347,9 @@ const outcomeText = (record: RunRecord): string => {
     return output.generationsRedone === 0
       ? 'After the crash it continued at draft 3. Nothing was written twice.'
       : `After the crash it started over. ${output.generationsRedone} drafts were written a second time.`
+  }
+  if (output._tag === 'ServerProfiled') {
+    return `${output.tools.length} tool(s) profiled on ${output.server}. ${output.changed === 0 ? 'Every definition matches its pin.' : `${output.changed} definition changed since it was pinned.`}`
   }
   if (output._tag === 'InventoryListed') {
     return `${output.tools.length} tools are offered. ${output.hidden === 0 ? 'None is hidden.' : `${output.hidden} is hidden by a name collision.`}`

@@ -1,7 +1,11 @@
 import { Array, Option, pipe } from 'effect'
 import { type Html, type HtmlBuilder } from 'foldkit/html'
 
-import type { CapabilityName, RunRecord } from '../domain/capabilities.ts'
+import {
+  type CapabilityName,
+  type RunRecord,
+  catalogue,
+} from '../domain/capabilities.ts'
 import { fieldsOf, helpText } from '../domain/cli-snapshot.ts'
 import { siteUrls } from '../domain/fetch.ts'
 import { filePaths, rootChoices } from '../domain/files.ts'
@@ -21,6 +25,7 @@ import {
 } from '../domain/world.ts'
 import { Message } from './message.ts'
 import { type Model, RunState, type Station, maxSpanIn } from './model.ts'
+import { serverNames } from './names.ts'
 import { finishedRecord } from './update.ts'
 
 type H = HtmlBuilder<Message>
@@ -334,6 +339,15 @@ const bendOf = (model: Model): Bend => {
       ]),
     }
   }
+  if (model.station === 'inspector') {
+    return {
+      label: 'Subject',
+      choices: setting(world.inspection.subject, 'subject', [
+        ['pinned', 'Listing as pinned'],
+        ['changed', 'Listing changed since'],
+      ]),
+    }
+  }
   return {
     label: 'Naming',
     choices: setting(world.net.naming, 'naming', [
@@ -357,6 +371,7 @@ const bendLabels: Record<Station, string> = {
   delegation: 'Map left out',
   iteration: 'Criteria contradict',
   network: 'Name collision',
+  inspector: 'Listing changed since pinned',
 }
 
 export const bendLabel = (station: Station): string => bendLabels[station]
@@ -1777,6 +1792,122 @@ const networkBench = (model: Model, h: H): ReadonlyArray<Html> => {
   ]
 }
 
+// 13 · INSPECT THE INSPECTOR
+
+const inspectorBench = (model: Model, h: H): ReadonlyArray<Html> => {
+  const maybeProfile = Option.flatMap(lastOutput(model), output =>
+    output._tag === 'ServerProfiled' ? Option.some(output) : Option.none(),
+  )
+  return [
+    chips(
+      'Point it at',
+      pipe(
+        catalogue,
+        Array.map(capability => capability.specimen),
+        Array.dedupe,
+        Array.filter(specimen => specimen !== 'inspector'),
+        Array.map(specimen => ({
+          label: serverNames[specimen],
+          isChosen: Option.exists(
+            maybeProfile,
+            profiled => profiled.server === specimen,
+          ),
+          message: run('profile_server', { name: specimen }),
+        })),
+      ),
+      h,
+    ),
+    row(
+      [
+        action(
+          model,
+          'Point it at itself, once',
+          run('profile_self', {}),
+          h,
+          'primary',
+        ),
+      ],
+      h,
+    ),
+    Option.match(maybeProfile, {
+      onNone: () =>
+        h.p(
+          [h.Class('empty')],
+          ['Pick a server. The inspector reads its listing and nothing else.'],
+        ),
+      onSome: profiled =>
+        h.div(
+          [h.Class('stack')],
+          [
+            h.div(
+              [h.Class('filelist')],
+              Array.map(profiled.tools, tool =>
+                h.keyed('div')(
+                  tool.name,
+                  [h.Class('file')],
+                  [
+                    h.span([h.Class('file-path')], [tool.name]),
+                    h.span([h.Class('mono')], [tool.rules.join(' ')]),
+                    h.span([h.Class('mono')], [tool.fingerprint]),
+                    h.span(
+                      [
+                        h.Class(
+                          `tag ${tool.drift === 'changed' ? 'bad' : 'quiet'}`,
+                        ),
+                      ],
+                      [
+                        tool.drift === 'changed'
+                          ? 'changed since pinned'
+                          : 'matches its pin',
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            strip(
+              [
+                cell(
+                  'One claim it can support',
+                  'and what it rests on',
+                  [h.p([], [profiled.supported])],
+                  true,
+                  h,
+                  { text: 'declared by the server', tone: 'ok' },
+                ),
+                cell(
+                  'One thing it cannot establish',
+                  profiled.isSelf
+                    ? 'about itself'
+                    : 'about any server, from a listing',
+                  [h.p([], [profiled.cannotEstablish])],
+                  false,
+                  h,
+                  { text: 'unknown', tone: 'warn' },
+                ),
+              ],
+              h,
+            ),
+            profiled.isSelf
+              ? h.p(
+                  [h.Class('where')],
+                  [
+                    'One snapshot. There is no tool here that profiles a profile.',
+                  ],
+                )
+              : h.empty,
+          ],
+        ),
+    }),
+    h.p(
+      [h.Class('where')],
+      [
+        'Rule ids are explained in the Lens tab in Backstage. Inside this bench the inspected server is the lab’s own catalogue; no connection is made.',
+      ],
+    ),
+  ]
+}
+
 // DISPATCH
 
 export const benchView = (model: Model, h: H): ReadonlyArray<Html> => {
@@ -1815,6 +1946,9 @@ export const benchView = (model: Model, h: H): ReadonlyArray<Html> => {
   }
   if (model.station === 'iteration') {
     return iterationBench(model, h)
+  }
+  if (model.station === 'inspector') {
+    return inspectorBench(model, h)
   }
   return networkBench(model, h)
 }

@@ -3,12 +3,14 @@ import { Schema } from 'effect'
 import {
   AppState,
   Handoff,
+  Inspection,
   Ledger,
   Loop,
   Net,
   type World,
   withApp,
   withHandoff,
+  withInspection,
   withLedgerFault,
   withLoop,
   withNet,
@@ -53,6 +55,12 @@ const applySetting = (world: World, setting: string): World => {
     return withNet(world, {
       dock: Schema.decodeUnknownSync(Net.fields.dock)(value),
     })
+  }
+  if (key === 'subject') {
+    return withInspection(
+      world,
+      Schema.decodeUnknownSync(Inspection.fields.subject)(value),
+    )
   }
   throw new Error(`Unknown setting: ${key}`)
 }

@@ -132,6 +132,13 @@ export const Loop = Schema.Struct({
 })
 export type Loop = typeof Loop.Type
 
+// Station 13. What the inspector is pointed at: a listing that is the same as
+// when it was pinned, or one that changed since.
+export const Inspection = Schema.Struct({
+  subject: Schema.Literals(['pinned', 'changed']),
+})
+export type Inspection = typeof Inspection.Type
+
 export const Net = Schema.Struct({
   naming: Schema.Literals(['first-wins', 'prefixed']),
   dock: Schema.Literals(['up', 'down']),
@@ -156,6 +163,7 @@ export const World = Schema.Struct({
   handoff: Handoff,
   loop: Loop,
   net: Net,
+  inspection: Inspection,
   places: Schema.Array(Place),
   paths: Schema.Array(Path),
   artifacts: Schema.Array(Artifact),
@@ -241,6 +249,7 @@ export const seedWorld = (
   handoff: { context: 'full' },
   loop: { criteria: 'satisfiable', engine: 'in-memory' },
   net: { naming: 'first-wins', dock: 'up' },
+  inspection: { subject: 'pinned' },
   places: seedPlaces,
   paths: [seedPath('forge', 'mill'), seedPath('kiln', 'dock')],
   artifacts: [],
@@ -515,6 +524,11 @@ export const withNet = (world: World, net: Partial<Net>): World => ({
   net: { ...world.net, ...net },
 })
 
+export const withInspection = (
+  world: World,
+  subject: Inspection['subject'],
+): World => ({ ...world, inspection: { subject } })
+
 export const carrySettings = (fresh: World, previous: World): World => ({
   ...fresh,
   fetchPolicy: previous.fetchPolicy,
@@ -529,6 +543,7 @@ export const carrySettings = (fresh: World, previous: World): World => ({
   handoff: previous.handoff,
   loop: previous.loop,
   net: { ...fresh.net, naming: previous.net.naming },
+  inspection: previous.inspection,
 })
 
 export type StationSlice =

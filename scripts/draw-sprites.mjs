@@ -477,6 +477,39 @@ const sprites = {
     g.rect(16, 2, 6, 2, 'D')
     g.outline()
   },
+  profile_server: g => {
+    g.rect(2, 3, 13, 16, 'P')
+    g.rect(4, 5, 6, 1, 'D')
+    g.rect(4, 8, 8, 1, 'M')
+    g.rect(4, 11, 5, 1, 'M')
+    g.rect(4, 14, 7, 1, 'M')
+    g.line(17, 17, 20, 20, 'V', 2)
+    g.circle(13.5, 13.5, 5.2, 'V')
+    g.circle(13.5, 13.5, 3.6, 'G')
+    g.dots(
+      [
+        [12, 12],
+        [11, 13],
+      ],
+      'P',
+    )
+    g.outline()
+  },
+  profile_self: g => {
+    g.line(15, 15, 20, 20, 'H', 2)
+    g.circle(10, 10, 7.6, 'H')
+    g.circle(10, 10, 5.8, 'G')
+    g.circle(10, 10, 3.2, 'H')
+    g.circle(10, 10, 1.8, 'G')
+    g.dots(
+      [
+        [7, 7],
+        [6, 8],
+      ],
+      'P',
+    )
+    g.outline()
+  },
   show_map: g => {
     g.rect(2, 3, 20, 18, 'D')
     g.rect(2, 3, 20, 3, 'H')

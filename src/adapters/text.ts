@@ -64,6 +64,17 @@ export const outcomeLine = (record: RunRecord): string =>
         if (output._tag === 'LoopResumed') {
           return `OK ${output.engine}: ${output.generationsRedone} of ${output.generationsBeforeCrash} generations redone after the crash`
         }
+        if (output._tag === 'ServerProfiled') {
+          return [
+            `${output.server}: ${output.tools.length} tool(s), ${output.changed} changed since pinned`,
+            ...output.tools.map(
+              tool =>
+                `  ${tool.name} ${tool.fingerprint} ${tool.drift} [${tool.rules.join(' ')}]`,
+            ),
+            `  supported: ${output.supported}`,
+            `  cannot establish: ${output.cannotEstablish}`,
+          ].join('\n')
+        }
         if (output._tag === 'InventoryListed') {
           return `OK ${output.tools.join('; ')} (${output.hidden} hidden)`
         }

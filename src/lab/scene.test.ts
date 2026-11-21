@@ -589,8 +589,49 @@ describe('Lens', () => {
     scene(
       { update, view },
       given({ ...initialModel, screen: 'home', atlasView: 'list' }),
-      expect(text('Lens, across all thirteen servers')).toExist(),
+      expect(text('Lens, across every server')).toExist(),
       expect(text(/C01/)).toExist(),
+    )
+  })
+})
+
+describe('segment 13 and the thirteen questions', () => {
+  test('the inspector bench profiles a server and can be pointed at itself', () => {
+    const profiled = Effect.runSync(
+      runOn(worldFor('calm'), 'profile_self', {}).pipe(
+        Effect.provide(Pace.unpaced),
+      ),
+    )
+    scene(
+      { update, view },
+      given({ ...initialModel, station: 'inspector' }),
+      expect(role('button', { name: 'Memory server' })).toExist(),
+      expect(role('button', { name: 'Listing changed since' })).toExist(),
+      click(role('button', { name: 'Point it at itself, once' })),
+      Command.resolve(
+        RunCapability,
+        Message.CompletedRunCapability({
+          runId: 1,
+          record: profiled.record,
+          world: profiled.world,
+        }),
+      ),
+      expect(text('One thing it cannot establish')).toExist(),
+      expect(text(/It read its own declaration/)).toExist(),
+      expect(
+        text('One snapshot. There is no tool here that profiles a profile.'),
+      ).toExist(),
+    )
+  })
+
+  test('the thirteen questions list every segment with a tool to try', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'home', atlasView: 'ladder' }),
+      expect(text('Inspect the inspector')).toExist(),
+      expect(text('Claims versus the grounds for believing them')).toExist(),
+      expect(text('Resume')).toExist(),
+      expect(role('button', { name: 'Profile itself' })).toExist(),
     )
   })
 })

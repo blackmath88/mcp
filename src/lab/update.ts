@@ -185,17 +185,19 @@ export const inputFor = (capability: string, model: Model): unknown =>
               ? { target: model.target }
               : capability === 'show_map'
                 ? { place: model.place }
-                : capability === 'call_tool'
-                  ? { name: model.toolName }
-                  : capability === 'go_to'
-                    ? { client: model.client, place: model.place }
-                    : capability === 'where_am_i'
-                      ? { client: model.client }
-                      : capability === 'find_route' ||
-                          capability === 'build_path' ||
-                          capability === 'connect_places'
-                        ? { from: model.from, to: model.to }
-                        : {}
+                : capability === 'profile_server'
+                  ? { name: 'memory' }
+                  : capability === 'call_tool'
+                    ? { name: model.toolName }
+                    : capability === 'go_to'
+                      ? { client: model.client, place: model.place }
+                      : capability === 'where_am_i'
+                        ? { client: model.client }
+                        : capability === 'find_route' ||
+                            capability === 'build_path' ||
+                            capability === 'connect_places'
+                          ? { from: model.from, to: model.to }
+                          : {}
 
 // INIT
 
@@ -339,13 +341,15 @@ const defaultCapability = (station: Station): Option.Option<CapabilityName> =>
                   ? Option.some('ask_expert')
                   : station === 'iteration'
                     ? Option.some('refine_plan')
-                    : station === 'network'
-                      ? Option.some('list_inventory')
-                      : station === 'cli'
-                        ? Option.some('generate_cli')
-                        : station === 'local-remote'
-                          ? Option.some('go_to')
-                          : Option.none()
+                    : station === 'inspector'
+                      ? Option.some('profile_server')
+                      : station === 'network'
+                        ? Option.some('list_inventory')
+                        : station === 'cli'
+                          ? Option.some('generate_cli')
+                          : station === 'local-remote'
+                            ? Option.some('go_to')
+                            : Option.none()
 
 const FRAME_LIMIT = 80
 

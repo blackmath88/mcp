@@ -307,6 +307,29 @@
       ],
       "number": 12,
       "checked": "IBM/mcp-context-forge README read on 2026-11-21, truncated at about half. It describes a gateway, registry and proxy with federation and virtual servers. How tool-name collisions between backends are handled is not stated in what was read. Fuzzer repositories not read."
+    },
+    {
+      "id": "inspector",
+      "title": "Inspect the inspector",
+      "status": "simulated",
+      "question": "What can be claimed about a server from what it says about itself, and on what grounds?",
+      "anchor": {
+        "repo": "modelcontextprotocol/inspector",
+        "path": "",
+        "note": "Reference tool for looking at what a server lists. The classification on this bench is this lab's own Lens proposal, not the Inspector's."
+      },
+      "diversions": [
+        {
+          "repo": "docs/research/2026-11-21-mcp-recon-and-bounty.md",
+          "note": "Owner-supplied note on recon tooling that enumerates and classifies a server's tool surface. Unverified."
+        }
+      ],
+      "bent": "A profile built from a listing repeats the server's own words. Point the inspector at itself and the claim it most needs, that it is read-only, rests on its own declaration.",
+      "experiment": "Profile a server, let its listing change after it was pinned, then have the inspector profile itself once.",
+      "sources": [
+        "https://github.com/modelcontextprotocol/inspector"
+      ],
+      "number": 13
     }
   ]
 }
