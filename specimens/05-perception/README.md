@@ -2,7 +2,7 @@
 
 > Can the assistant not perform the action, or can it not perceive the target through this interface?
 
-Status: reference only; not built. Claims below are unverified research leads.
+Status: simulated in the lab on synthetic data; upstream not executed. Claims below are unverified research leads.
 
 ## Anchor
 
@@ -27,10 +27,10 @@ A synthetic page with a labelled button, an unlabelled visual twin, a canvas and
 | Field | Value |
 | --- | --- |
 | Pinned upstream revision | not pinned |
-| Documented behaviour checked against source | no |
-| Controlled mutation | not defined |
-| Actual evidence | none |
-| What this does not prove | not applicable yet |
+| Documented behaviour checked against source | partly, README read 2026-11-21 (truncated); not pinned |
+| Controlled mutation | perception mode (snapshot only, coordinates on); page re-renders after every click |
+| Actual evidence | lab simulation only: `npm run lab -- click --target lever --perception vision` |
+| What this does not prove | anything about how the upstream server behaves when run |
 
 ## Sources
 

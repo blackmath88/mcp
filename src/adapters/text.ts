@@ -25,6 +25,15 @@ export const outcomeLine = (record: RunRecord): string =>
         if (output._tag === 'PlanMade') {
           return `OK plan by ${output.madeBy}: ${output.steps.join(' ')}`
         }
+        if (output._tag === 'FileRead') {
+          return `OK ${output.path}: ${output.content}`
+        }
+        if (output._tag === 'SnapshotTaken') {
+          return `OK snapshot of page revision ${output.pageRevision}: ${output.entries.map(entry => `${entry.ref} ${entry.role} "${entry.name}"`).join(', ')} (${output.notExposed} controls not exposed)`
+        }
+        if (output._tag === 'Clicked') {
+          return `OK clicked ${output.target} by ${output.how}`
+        }
         if (output._tag === 'PathBuilt') {
           return `OK ${output.artifact.id}: ${output.artifact.summary}`
         }

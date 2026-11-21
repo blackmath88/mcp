@@ -96,10 +96,10 @@ describe('the route of specimens', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: /Filesystem/ })),
+      click(role('button', { name: /CLI, reversed/ })),
       expect(
         text(
-          "Is the boundary defined at launch, by the client, or by the server's effective state?",
+          'Which parts discover a change dynamically, and which are generated artifacts that go stale?',
         ),
       ).toExist(),
       expect(text('Reference only · not built')).toExist(),
@@ -187,6 +187,33 @@ describe('memory and thinking stations', () => {
           'written by another model (scripted stand-in) · not checked against the map',
         ),
       ).toExist(),
+    )
+  })
+})
+
+describe('filesystem and perception stations', () => {
+  test('the boundary view shows launch, client and effective lists', () => {
+    scene(
+      { update, view },
+      given(initialModel),
+      click(role('button', { name: /Filesystem/ })),
+      expect(text('Set at launch')).toExist(),
+      expect(text('What the server enforces now')).toExist(),
+      expect(text('no · /valley/mill/ledger.txt')).toExist(),
+      click(role('button', { name: 'Client sends this root' })),
+      expect(text('yes · /valley/mill/ledger.txt')).toExist(),
+      expect(text('no · /valley/forge/orders.txt')).toExist(),
+    )
+  })
+
+  test('perception shows the page beside what the tool perceives', () => {
+    scene(
+      { update, view },
+      given(initialModel),
+      click(role('button', { name: /Browser perception/ })),
+      expect(text('The page, as a person sees it')).toExist(),
+      expect(text('no snapshot taken yet')).toExist(),
+      expect(text('pixels drawn on a canvas')).toExist(),
     )
   })
 })

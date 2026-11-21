@@ -81,12 +81,12 @@
     {
       "id": "filesystem",
       "title": "Filesystem",
-      "status": "reference",
+      "status": "simulated",
       "question": "Is the boundary defined at launch, by the client, or by the server's effective state?",
       "anchor": {
         "repo": "modelcontextprotocol/servers",
         "path": "src/filesystem",
-        "note": "File operations constrained by allowed directories."
+        "note": "File operations constrained by allowed directories given on the command line. For 2025-era clients, Roots sent by the client replace those directories unless --confine-roots is set. The README calls Roots deprecated as of protocol version 2026-07-28."
       },
       "diversions": [
         {
@@ -94,24 +94,25 @@
           "note": "Issue 3602: CLI-provided directories versus client-provided Roots."
         }
       ],
-      "bent": "Issue 5094 reports a roots update with no valid roots leaving the previous access list active; the thread records a later fix. A historical specimen, not a claim about current builds.",
-      "experiment": "Use disposable directories and change the permitted workspace mid-session.",
+      "bent": "Issue 3602 (roots replace command-line directories) was closed as working as designed. Issue 5094 (a roots update with no valid roots kept the previous list) is recorded as fixed; the current README describes revocation in that case.",
+      "experiment": "Keep one launch directory. Let the client send a root outside it, a root containing it, a root inside it, then revoke. Compare three builds: roots replace, roots only narrow, and the build before the fix.",
       "sources": [
         "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
         "https://github.com/modelcontextprotocol/servers/issues/3602",
         "https://github.com/modelcontextprotocol/servers/issues/5094"
       ],
-      "number": 4
+      "number": 4,
+      "checked": "README and issues 3602 and 5094 read on 2026-11-21 through a fetch tool. Not pinned to a commit; pull requests not opened."
     },
     {
       "id": "perception",
       "title": "Browser perception",
-      "status": "reference",
+      "status": "simulated",
       "question": "Can the assistant not perform the action, or can it not perceive the target through this interface?",
       "anchor": {
         "repo": "microsoft/playwright-mcp",
         "path": "",
-        "note": "Exposes structured accessibility snapshots with element references for browser interaction."
+        "note": "Interacts with pages through structured accessibility snapshots. Coordinate-based tools are opt-in through a vision capability."
       },
       "diversions": [
         {
@@ -126,7 +127,8 @@
         "https://github.com/microsoft/playwright.dev/blob/main/mcp/snapshots.mdx",
         "https://github.com/microsoft/playwright-mcp/releases"
       ],
-      "number": 5
+      "number": 5,
+      "checked": "README read on 2026-11-21 through a fetch tool; the page was truncated, so tool descriptions rest on a summary. Not pinned."
     },
     {
       "id": "cli",

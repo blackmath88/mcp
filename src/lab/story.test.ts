@@ -329,3 +329,35 @@ describe('backstage panel', () => {
     )
   })
 })
+
+describe('filesystem roots', () => {
+  test('sending a root replaces the list; revoking empties it', () => {
+    story(
+      update,
+      given(initialModel),
+      message(Message.SelectedStation({ station: 'filesystem' })),
+      message(Message.ClickedSendRoots()),
+      model(replaced => {
+        expect(replaced.world.files.allowed).toEqual(['/valley/mill'])
+      }),
+      message(Message.ClickedRevokeRoots()),
+      model(revoked => {
+        expect(revoked.world.files.allowed).toEqual([])
+      }),
+    )
+  })
+
+  test('changing the build starts from the launch directories again', () => {
+    story(
+      update,
+      given(initialModel),
+      message(Message.SelectedStation({ station: 'filesystem' })),
+      message(Message.ClickedSendRoots()),
+      message(Message.SelectedFsBuild({ build: 'confine' })),
+      model(rebuilt => {
+        expect(rebuilt.world.files.build).toBe('confine')
+        expect(rebuilt.world.files.allowed).toEqual(['/valley/forge'])
+      }),
+    )
+  })
+})

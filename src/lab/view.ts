@@ -10,16 +10,23 @@ import {
   catalogue,
 } from '../domain/capabilities.ts'
 import { siteUrls } from '../domain/fetch.ts'
+import { filePaths, rootChoices } from '../domain/files.ts'
 import { entities, observations, pathLabel } from '../domain/memory.ts'
+import { controls } from '../domain/perception.ts'
 import type { ComponentId, EngineEvent } from '../domain/services.ts'
 import { callerThoughts } from '../domain/thinking.ts'
 import {
   type FetchPolicy,
+  type FsBuild,
+  LAUNCH_DIRECTORIES,
+  NO_SNAPSHOT,
   type Path,
+  type Perception,
   type PlaceId,
   type StoragePath,
   type ThinkingMode,
   type World,
+  isAllowed,
   joins,
 } from '../domain/world.ts'
 import recording from '../recordings/entrances.json'
@@ -113,6 +120,12 @@ const componentNames: Record<ComponentId, string> = {
   disk: 'Disk',
   'thinking-tool': 'Thinking tool',
   'expert-model': 'Expert model (stand-in)',
+  'file-server': 'File server',
+  boundary: 'Boundary check',
+  'synthetic-files': 'Synthetic files',
+  'browser-tool': 'Browser tool',
+  'accessibility-tree': 'Accessibility tree',
+  'synthetic-page': 'Synthetic page',
 }
 
 const componentRoles: Record<ComponentId, string> = {
@@ -135,6 +148,12 @@ const componentRoles: Record<ComponentId, string> = {
   'thinking-tool':
     'Returns a plan. Where the plan comes from depends on the build.',
   'expert-model': 'A scripted stand-in for another model. No inference runs.',
+  'file-server': 'Reads a file if the boundary check lets it.',
+  boundary: 'Compares a path with the effective allowed directories.',
+  'synthetic-files': 'Three made-up text files.',
+  'browser-tool': 'Takes snapshots and clicks, by reference or by coordinates.',
+  'accessibility-tree': 'Lists only controls that have a role and a name.',
+  'synthetic-page': 'Four made-up controls. Every click re-renders it.',
 }
 
 const componentsOf = (station: Station): ReadonlyArray<ComponentId> =>
@@ -144,15 +163,31 @@ const componentsOf = (station: Station): ReadonlyArray<ComponentId> =>
       ? ['adapter', 'catalogue', 'memory-graph', 'disk']
       : station === 'thinking'
         ? ['adapter', 'catalogue', 'thinking-tool', 'map', 'expert-model']
-        : [
-            'adapter',
-            'catalogue',
-            'planner',
-            'map',
-            'validator',
-            'world-store',
-            'artifact-store',
-          ]
+        : station === 'filesystem'
+          ? [
+              'adapter',
+              'catalogue',
+              'file-server',
+              'boundary',
+              'synthetic-files',
+            ]
+          : station === 'perception'
+            ? [
+                'adapter',
+                'catalogue',
+                'browser-tool',
+                'accessibility-tree',
+                'synthetic-page',
+              ]
+            : [
+                'adapter',
+                'catalogue',
+                'planner',
+                'map',
+                'validator',
+                'world-store',
+                'artifact-store',
+              ]
 
 type Specimen = (typeof route.specimens)[number]
 
@@ -195,6 +230,18 @@ const thinkingModes: ReadonlyArray<
   { id: 'compute', label: 'Computes from the map' },
   { id: 'consult', label: 'Asks another model' },
 ]
+
+const fsBuilds: ReadonlyArray<Readonly<{ id: FsBuild; label: string }>> = [
+  { id: 'default', label: 'Roots replace' },
+  { id: 'confine', label: 'Roots only narrow' },
+  { id: 'pre-fix', label: 'Before the fix' },
+]
+
+const perceptions: ReadonlyArray<Readonly<{ id: Perception; label: string }>> =
+  [
+    { id: 'snapshot', label: 'Snapshot only' },
+    { id: 'vision', label: 'Coordinates on' },
+  ]
 
 const policies: ReadonlyArray<Readonly<{ id: FetchPolicy; label: string }>> = [
   { id: 'every-hop', label: 'Check every hop' },
@@ -245,6 +292,15 @@ const outcomeText = (record: RunRecord): string => {
   if (output._tag === 'RouteFound') {
     return `Route: ${output.route.places.join(' → ')} (span ${output.route.span}).`
   }
+  if (output._tag === 'FileRead') {
+    return `${output.path}: “${output.content}”`
+  }
+  if (output._tag === 'SnapshotTaken') {
+    return `The snapshot lists ${output.entries.length} controls. ${output.notExposed} more are on the page but not in it.`
+  }
+  if (output._tag === 'Clicked') {
+    return `Clicked ${output.target} by ${output.how}. The page is now at revision ${output.pageRevision}.`
+  }
   if (output._tag === 'Remembered') {
     return `Stored in ${output.storedAt}. The file now has ${output.factsInFile} line(s).`
   }
@@ -290,13 +346,17 @@ const fiveAnswers = (model: Model): ReadonlyArray<Answer> => {
     ask('Who authorised it?', record =>
       record.events.some(event => event.component === 'validator')
         ? 'Nobody was asked. The validator enforced the span limit in code; there is no approval step here.'
-        : record.events.some(event => event.component === 'memory-graph')
-          ? 'Nobody. Whatever the caller says is stored as given; nothing checks whether it is true.'
-          : record.events.some(event => event.component === 'thinking-tool')
-            ? 'Nobody was asked, and nobody checked the plan unless the build did.'
-            : record.events.some(event => event.component === 'fetcher')
-              ? 'Nobody asked you. The server’s robots policy decided, and only for the hops it was consulted on.'
-              : 'Nobody was asked, and nothing could change.',
+        : record.events.some(event => event.component === 'boundary')
+          ? 'Nobody asked you. The server compared the path with its effective list, which the client’s roots may have rewritten.'
+          : record.events.some(event => event.component === 'browser-tool')
+            ? 'Nobody was asked. The tool acted on whatever it could address.'
+            : record.events.some(event => event.component === 'memory-graph')
+              ? 'Nobody. Whatever the caller says is stored as given; nothing checks whether it is true.'
+              : record.events.some(event => event.component === 'thinking-tool')
+                ? 'Nobody was asked, and nobody checked the plan unless the build did.'
+                : record.events.some(event => event.component === 'fetcher')
+                  ? 'Nobody asked you. The server’s robots policy decided, and only for the hops it was consulted on.'
+                  : 'Nobody was asked, and nothing could change.',
     ),
     ask(
       'Where did it run?',
@@ -408,28 +468,68 @@ const titlebarView = (model: Model, h: H): Html =>
                 ),
                 h,
               )
-            : model.station === 'thinking'
+            : model.station === 'filesystem'
               ? bendView(
-                  'What is inside',
-                  Array.map(thinkingModes, mode =>
+                  'Server build',
+                  Array.map(fsBuilds, build =>
                     h.button(
                       [
                         h.Type('button'),
                         h.AriaPressed(
-                          model.world.thinkingMode === mode.id
+                          model.world.files.build === build.id
                             ? 'true'
                             : 'false',
                         ),
-                        h.OnClick(
-                          Message.SelectedThinkingMode({ mode: mode.id }),
-                        ),
+                        h.OnClick(Message.SelectedFsBuild({ build: build.id })),
                       ],
-                      [mode.label],
+                      [build.label],
                     ),
                   ),
                   h,
                 )
-              : h.empty,
+              : model.station === 'perception'
+                ? bendView(
+                    'Perception',
+                    Array.map(perceptions, mode =>
+                      h.button(
+                        [
+                          h.Type('button'),
+                          h.AriaPressed(
+                            model.world.page.mode === mode.id
+                              ? 'true'
+                              : 'false',
+                          ),
+                          h.OnClick(
+                            Message.SelectedPerception({ mode: mode.id }),
+                          ),
+                        ],
+                        [mode.label],
+                      ),
+                    ),
+                    h,
+                  )
+                : model.station === 'thinking'
+                  ? bendView(
+                      'What is inside',
+                      Array.map(thinkingModes, mode =>
+                        h.button(
+                          [
+                            h.Type('button'),
+                            h.AriaPressed(
+                              model.world.thinkingMode === mode.id
+                                ? 'true'
+                                : 'false',
+                            ),
+                            h.OnClick(
+                              Message.SelectedThinkingMode({ mode: mode.id }),
+                            ),
+                          ],
+                          [mode.label],
+                        ),
+                      ),
+                      h,
+                    )
+                  : h.empty,
     ],
   )
 
@@ -696,7 +796,11 @@ const statusbarView = (model: Model, h: H): Html =>
                 ? `storage: ${pathLabel[model.world.memory.storagePath]} · server start #${model.serverStarts}`
                 : model.station === 'thinking'
                   ? `build: ${model.world.thinkingMode}`
-                  : 'reference only · unverified',
+                  : model.station === 'filesystem'
+                    ? `allowed now: ${model.world.files.allowed.join(', ') || 'nothing'}`
+                    : model.station === 'perception'
+                      ? `page revision ${model.world.page.revision} · ${model.world.page.mode}`
+                      : 'reference only · unverified',
         ],
       ),
     ],
@@ -757,7 +861,13 @@ const specimenView = (specimen: Specimen, h: H): Html =>
       h.details(
         [h.Class('fold')],
         [
-          h.summary([], [`Sources (${specimen.sources.length}), unverified`]),
+          h.summary(
+            [],
+            [
+              `Sources (${specimen.sources.length}), ${'checked' in specimen ? 'read, not pinned' : 'unverified'}`,
+            ],
+          ),
+          'checked' in specimen ? h.p([], [specimen.checked]) : h.empty,
           h.ul(
             [h.Class('sources')],
             Array.map(specimen.sources, source =>
@@ -998,6 +1108,236 @@ const memoryPlacesView = (model: Model, h: H): Html => {
   )
 }
 
+// FILESYSTEM
+
+const executeButton = (model: Model, label: string, h: H): Html =>
+  h.button(
+    [
+      h.Type('button'),
+      h.Class('btn'),
+      h.Disabled(RunState.isAnyOf(['Running'])(model.run)),
+      h.OnClick(Message.ClickedExecute()),
+    ],
+    [label],
+  )
+
+const filesBenchView = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('ctl')],
+    [
+      optionSelect(
+        'path',
+        'File',
+        model.path,
+        filePaths,
+        value => Message.SelectedPath({ value }),
+        h,
+      ),
+      executeButton(model, 'Execute read_file', h),
+      optionSelect(
+        'root',
+        'Client root',
+        model.rootChoice,
+        rootChoices,
+        value => Message.SelectedRootChoice({ value }),
+        h,
+      ),
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('btn ghost'),
+          h.OnClick(Message.ClickedSendRoots()),
+        ],
+        ['Client sends this root'],
+      ),
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('btn ghost'),
+          h.OnClick(Message.ClickedRevokeRoots()),
+        ],
+        ['Client revokes its roots'],
+      ),
+    ],
+  )
+
+const pathLines = (paths: ReadonlyArray<string>, h: H): Html =>
+  Array.match(paths, {
+    onEmpty: () => h.p([h.Class('none')], ['nothing']),
+    onNonEmpty: lines =>
+      h.ul(
+        [h.Class('lines plain-list')],
+        Array.map(lines, line => h.keyed('li')(line, [], [line])),
+      ),
+  })
+
+const boundaryView = (model: Model, h: H): Html => {
+  const files = model.world.files
+  return h.div(
+    [h.Class('places')],
+    [
+      h.div(
+        [h.Class('placebox')],
+        [
+          h.h3([], ['Set at launch']),
+          h.p([h.Class('where')], ['command line · never changes']),
+          pathLines(LAUNCH_DIRECTORIES, h),
+        ],
+      ),
+      h.div(
+        [h.Class('placebox')],
+        [
+          h.h3([], ['Sent by the client']),
+          h.p([h.Class('where')], ['roots · last update']),
+          pathLines(files.clientRoots, h),
+        ],
+      ),
+      h.div(
+        [h.Class('placebox active')],
+        [
+          h.h3([], ['What the server enforces now']),
+          h.p([h.Class('where')], [files.note]),
+          pathLines(files.allowed, h),
+        ],
+      ),
+      h.div(
+        [h.Class('placebox')],
+        [
+          h.h3([], ['Files']),
+          h.p([h.Class('where')], ['readable right now?']),
+          h.ul(
+            [h.Class('lines plain-list')],
+            Array.map(filePaths, path =>
+              h.keyed('li')(
+                path,
+                [],
+                [`${isAllowed(files, path) ? 'yes' : 'no'} · ${path}`],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ],
+  )
+}
+
+// PERCEPTION
+
+const perceptionBenchView = (model: Model, h: H): Html => {
+  const isClick = Option.contains(model.maybeSelected, 'click')
+  return h.div(
+    [h.Class('ctl')],
+    [
+      isClick
+        ? optionSelect(
+            'target',
+            'Control',
+            model.target,
+            Array.map(controls, control => control.id),
+            value => Message.SelectedTarget({ value }),
+            h,
+          )
+        : h.empty,
+      executeButton(
+        model,
+        isClick ? 'Execute click' : 'Execute take_snapshot',
+        h,
+      ),
+    ],
+  )
+}
+
+const controlState = (model: Model, id: string): string => {
+  const page = model.world.page
+  if (id === 'gate') {
+    return page.gate ? 'open' : 'closed'
+  }
+  if (id === 'lever') {
+    return page.lever ? 'pulled' : 'up'
+  }
+  if (id === 'valve') {
+    return page.valve ? 'open' : 'shut'
+  }
+  return `rung ${page.bell} time(s)`
+}
+
+const pageView = (model: Model, h: H): Html => {
+  const page = model.world.page
+  const hasSnapshot = page.snapshotRevision !== NO_SNAPSHOT
+  const isFresh = page.snapshotRevision === page.revision
+  return h.div(
+    [h.Class('places')],
+    [
+      h.div(
+        [h.Class('placebox')],
+        [
+          h.h3([], ['The page, as a person sees it']),
+          h.p(
+            [h.Class('where')],
+            [`revision ${page.revision} · four controls`],
+          ),
+          h.ul(
+            [h.Class('tiles')],
+            Array.map(controls, control =>
+              h.keyed('li')(
+                control.id,
+                [],
+                [
+                  h.b([], [control.label]),
+                  h.span([], [controlState(model, control.id)]),
+                  h.small([], [control.madeOf]),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      h.div(
+        [h.Class('placebox active')],
+        [
+          h.h3([], ['The page, as the tool perceives it']),
+          h.p(
+            [h.Class('where')],
+            [
+              !hasSnapshot
+                ? 'no snapshot taken yet'
+                : isFresh
+                  ? `snapshot of revision ${page.snapshotRevision} · current`
+                  : `snapshot of revision ${page.snapshotRevision} · stale, the page is at ${page.revision}`,
+            ],
+          ),
+          hasSnapshot
+            ? h.ul(
+                [h.Class('lines plain-list')],
+                Array.flatMap(controls, (control, index) =>
+                  control.inSnapshot
+                    ? [
+                        h.keyed('li')(
+                          control.id,
+                          [],
+                          [
+                            `r${page.snapshotRevision}e${index + 1} · button · “${control.label}”`,
+                          ],
+                        ),
+                      ]
+                    : [],
+                ),
+              )
+            : h.p([h.Class('none')], ['nothing']),
+          h.p(
+            [h.Class('where')],
+            [
+              page.mode === 'vision'
+                ? 'Coordinates are on: the tool can click any point, without knowing what is there.'
+                : 'The Lever and the Valve have no role or name, so they never appear here.',
+            ],
+          ),
+        ],
+      ),
+    ],
+  )
+}
+
 // THINKING
 
 const thinkingBenchView = (model: Model, h: H): Html =>
@@ -1091,6 +1431,8 @@ const workbenchView = (model: Model, h: H): Html =>
               h.span([h.Class('eyebrow')], ['Onstage · what you see']),
               model.station === 'fetch' ||
               model.station === 'memory' ||
+              model.station === 'filesystem' ||
+              model.station === 'perception' ||
               model.station === 'thinking'
                 ? runPill(model.run, h)
                 : h.empty,
@@ -1112,20 +1454,32 @@ const workbenchView = (model: Model, h: H): Html =>
                   resultView(model, h),
                   memoryPlacesView(model, h),
                 ]
-              : model.station === 'thinking'
+              : model.station === 'filesystem'
                 ? [
-                    thinkingBenchView(model, h),
+                    filesBenchView(model, h),
                     resultView(model, h),
-                    planView(model, h),
+                    boundaryView(model, h),
                   ]
-                : [
-                    h.p(
-                      [h.Class('empty')],
-                      [
-                        'Nothing to run yet. This station is a research lead waiting for its simulation.',
-                      ],
-                    ),
-                  ]),
+                : model.station === 'perception'
+                  ? [
+                      perceptionBenchView(model, h),
+                      resultView(model, h),
+                      pageView(model, h),
+                    ]
+                  : model.station === 'thinking'
+                    ? [
+                        thinkingBenchView(model, h),
+                        resultView(model, h),
+                        planView(model, h),
+                      ]
+                    : [
+                        h.p(
+                          [h.Class('empty')],
+                          [
+                            'Nothing to run yet. This station is a research lead waiting for its simulation.',
+                          ],
+                        ),
+                      ]),
         ],
       )
 
@@ -1345,6 +1699,14 @@ const controlsView = (model: Model, h: H): Html => {
   })
 }
 
+const undoneText = (record: RunRecord): string =>
+  record.events.some(event => event.kind === 'state-changed')
+    ? 'Something changed before the failure. Check the trace.'
+    : record.capability === 'build_path' ||
+        record.capability === 'connect_places'
+      ? `Nothing was built. The map is still at revision ${record.revisionAfter}.`
+      : 'Nothing changed.'
+
 const resultView = (model: Model, h: H): Html =>
   RunState.match(model.run, {
     Idle: () => h.empty,
@@ -1360,19 +1722,7 @@ const resultView = (model: Model, h: H): Html =>
     Failed: ({ record }) =>
       h.div(
         [h.Class('result warn'), h.AriaLive('polite')],
-        [
-          h.p([], [outcomeText(record)]),
-          h.p(
-            [],
-            [
-              record.revisionAfter === record.revisionBefore
-                ? record.capability === 'fetch_page'
-                  ? 'No page content was returned.'
-                  : `Nothing was built. The map is still at revision ${record.revisionAfter}.`
-                : `The map changed before the failure: revision ${record.revisionBefore} → ${record.revisionAfter}.`,
-            ],
-          ),
-        ],
+        [h.p([], [outcomeText(record)]), h.p([], [undoneText(record)])],
       ),
     Cancelled: ({ capability }) =>
       h.p(

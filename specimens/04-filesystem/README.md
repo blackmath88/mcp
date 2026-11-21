@@ -2,7 +2,7 @@
 
 > Is the boundary defined at launch, by the client, or by the server's effective state?
 
-Status: reference only; not built. Claims below are unverified research leads.
+Status: simulated in the lab on synthetic data; upstream not executed. Claims below are unverified research leads.
 
 ## Anchor
 
@@ -27,10 +27,10 @@ Use disposable directories and change the permitted workspace mid-session.
 | Field | Value |
 | --- | --- |
 | Pinned upstream revision | not pinned |
-| Documented behaviour checked against source | no |
-| Controlled mutation | not defined |
-| Actual evidence | none |
-| What this does not prove | not applicable yet |
+| Documented behaviour checked against source | yes, README and issues 3602 and 5094 read 2026-11-21; not pinned to a commit |
+| Controlled mutation | server build (roots replace, roots only narrow, before the fix) and client roots updates |
+| Actual evidence | lab simulation only: `npm run lab -- read_file --path /valley/mill/ledger.txt --roots /valley/mill` |
+| What this does not prove | anything about how the upstream server behaves when run |
 
 ## Sources
 

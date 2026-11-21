@@ -8,10 +8,13 @@ import { Pace } from '../domain/services.ts'
 import {
   CALM_MAX_SPAN,
   FetchPolicy,
+  FsBuild,
+  Perception,
   STORM_MAX_SPAN,
   StoragePath,
   ThinkingMode,
   World,
+  applyRootsUpdate,
   reinstallPackage,
   seedWorld,
   useStoragePath,
@@ -29,6 +32,11 @@ Options:
   --reinstall     simulate reinstalling the package: wipes the package cache first
   --thinking <m>  plan_steps build: record (default), compute, consult
   --thought <t>   a caller thought for plan_steps; repeatable
+  --path <p>      file for read_file, e.g. /valley/mill/ledger.txt
+  --roots <a,b>   client roots update applied before the run; empty string revokes
+  --fs-build <b>  default, confine or pre-fix
+  --target <t>    control for click: gate, lever, valve, bell
+  --perception <m>  snapshot (default) or vision
   --storm         start from the storm world (span limit ${STORM_MAX_SPAN} instead of ${CALM_MAX_SPAN})
   --state <file>  keep the world in this file between runs (default: a fresh world each run)
   --json          print the full run record as JSON
@@ -49,6 +57,11 @@ const { values, positionals } = parseArgs({
     'memory-path': { type: 'string' },
     thinking: { type: 'string' },
     reinstall: { type: 'boolean', default: false },
+    path: { type: 'string' },
+    roots: { type: 'string' },
+    'fs-build': { type: 'string' },
+    target: { type: 'string' },
+    perception: { type: 'string' },
     storm: { type: 'boolean', default: false },
     state: { type: 'string' },
     json: { type: 'boolean', default: false },
@@ -68,6 +81,8 @@ const loadWorld = (statePath: string | undefined, storm: boolean): World =>
           values['memory-path'] ?? 'package-cache',
         ),
         Schema.decodeUnknownSync(ThinkingMode)(values.thinking ?? 'record'),
+        Schema.decodeUnknownSync(FsBuild)(values['fs-build'] ?? 'default'),
+        Schema.decodeUnknownSync(Perception)(values.perception ?? 'snapshot'),
       )
 
 const saveWorld = (statePath: string | undefined, world: World): void => {
@@ -92,15 +107,19 @@ if (command === 'list') {
 }
 
 const input =
-  values.entity !== undefined
-    ? { entity: values.entity, observation: values.observation }
-    : values.thought !== undefined
-      ? { from: values.from, to: values.to, thoughts: values.thought }
-      : values.url !== undefined
-        ? { url: values.url }
-        : values.from === undefined && values.to === undefined
-          ? {}
-          : { from: values.from, to: values.to }
+  values.path !== undefined
+    ? { path: values.path }
+    : values.target !== undefined
+      ? { target: values.target }
+      : values.entity !== undefined
+        ? { entity: values.entity, observation: values.observation }
+        : values.thought !== undefined
+          ? { from: values.from, to: values.to, thoughts: values.thought }
+          : values.url !== undefined
+            ? { url: values.url }
+            : values.from === undefined && values.to === undefined
+              ? {}
+              : { from: values.from, to: values.to }
 
 const loaded = loadWorld(values.state, values.storm)
 const moved =
@@ -110,7 +129,14 @@ const moved =
         loaded,
         Schema.decodeUnknownSync(StoragePath)(values['memory-path']),
       )
-const startWorld = values.reinstall ? reinstallPackage(moved) : moved
+const reinstalled = values.reinstall ? reinstallPackage(moved) : moved
+const startWorld =
+  values.roots === undefined
+    ? reinstalled
+    : applyRootsUpdate(
+        reinstalled,
+        values.roots === '' ? [] : values.roots.split(','),
+      )
 
 const result = await Effect.runPromise(
   runOn(startWorld, command, input).pipe(Effect.provide(Pace.unpaced)),

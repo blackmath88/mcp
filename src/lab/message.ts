@@ -5,6 +5,8 @@ import { defineMessageUnion } from 'foldkit/message'
 import { CapabilityName, RunRecord } from '../domain/capabilities.ts'
 import {
   FetchPolicy,
+  FsBuild,
+  Perception,
   StoragePath,
   ThinkingMode,
   World,
@@ -19,6 +21,13 @@ export const Message = defineMessageUnion({
   SelectedThinkingMode: { mode: ThinkingMode },
   SelectedEntity: { value: Schema.String },
   SelectedObservation: { value: Schema.String },
+  SelectedFsBuild: { build: FsBuild },
+  SelectedPerception: { mode: Perception },
+  SelectedPath: { value: Schema.String },
+  SelectedTarget: { value: Schema.String },
+  SelectedRootChoice: { value: Schema.String },
+  ClickedSendRoots: {},
+  ClickedRevokeRoots: {},
   ClickedRestartClient: {},
   ClickedRestartServer: {},
   ClickedReinstallPackage: {},

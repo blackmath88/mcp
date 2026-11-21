@@ -1,5 +1,23 @@
 # Handoff
 
+## Filesystem and Perception stations — 2026-11-21
+
+Sources read this time (through a fetch tool, 2026-11-21, not pinned to a commit): the filesystem server README, issues 3602 and 5094 in modelcontextprotocol/servers, and the playwright-mcp README (truncated; tool descriptions rest on a summary). modelcontextprotocol.io did not resolve from the session, so nothing was checked against the specification.
+
+What those sources say, as read: for 2025-era clients, client Roots replace the command-line directories unless `--confine-roots` is set, in which case they can only narrow them; an update with no valid roots keeps the command-line list if no root was ever in force and revokes access otherwise; issue 3602 was closed as working as designed; issue 5094 (previous list kept after an empty update) is recorded as fixed; the README calls Roots deprecated as of protocol version 2026-07-28. Playwright MCP describes structured accessibility snapshots as the default and coordinate tools as opt-in through a vision capability.
+
+Changed:
+
+- `src/domain/files.ts` and `applyRootsUpdate` in `world.ts`: `read_file` over three made-up files, a launch directory, client roots, and three server builds (roots replace, roots only narrow, before the fix). The workbench shows launch list, client roots, the effective list with the reason, and which files are readable now.
+- `src/domain/perception.ts`: `take_snapshot` and `click` over a made-up page with four controls (two labelled buttons, an unlabelled picture, a canvas drawing). References go stale after every click. Bend: coordinates on.
+- CLI flags `--path`, `--roots`, `--fs-build`, `--target`, `--perception`; MCP server flags `--fs-build=`, `--perception=`.
+- A failed run no longer prints the valley's "nothing was built" line for other stations.
+
+Evidence: typecheck, lint, build pass; 84 tests pass. Headless Chromium at 1440 and 400 px, no console errors, no overflow. Screenshots: `docs/reports/first-slice/filesystem-station.png`, `perception-station.png`.
+
+Limits: roots updates are page-level events in the browser and a CLI flag; the MCP server does not exchange real Roots messages with its client. The "before the fix" build models the issue's description, not the old code. The perception page is four fixed controls, not a browser. Pull requests 5095 and 5096 were not opened, so their merge state is unverified.
+
+
 ## Memory and Thinking stations — 2026-11-21
 
 Changed:

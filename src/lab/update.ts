@@ -8,7 +8,10 @@ import { callerThoughts } from '../domain/thinking.ts'
 import {
   PlaceId,
   World,
+  applyRootsUpdate,
   reinstallPackage,
+  useFsBuild,
+  usePerception,
   useStoragePath,
   useThinkingMode,
 } from '../domain/world.ts'
@@ -37,10 +40,23 @@ export const RunCapability = Command.define('RunCapability', {
     url: Schema.String,
     entity: Schema.String,
     observation: Schema.String,
+    path: Schema.String,
+    target: Schema.String,
   },
   messages: [Message.CompletedRunCapability],
   interrupt: true,
-  execute: ({ runId, world, capability, from, to, url, entity, observation }) =>
+  execute: ({
+    runId,
+    world,
+    capability,
+    from,
+    to,
+    url,
+    entity,
+    observation,
+    path,
+    target,
+  }) =>
     runInProcess(
       world,
       capability,
@@ -52,7 +68,11 @@ export const RunCapability = Command.define('RunCapability', {
             ? { entity }
             : capability === 'plan_steps'
               ? { from, to, thoughts: callerThoughts }
-              : { from, to },
+              : capability === 'read_file'
+                ? { path }
+                : capability === 'click'
+                  ? { target }
+                  : { from, to },
     ).pipe(
       Effect.map(result =>
         Message.CompletedRunCapability({
@@ -84,6 +104,9 @@ export const initialModel: Model = {
   url: 'https://valley.test/notice',
   entity: 'Workshop A',
   observation: 'belongs to Team Blue',
+  path: '/valley/mill/ledger.txt',
+  target: 'gate',
+  rootChoice: '/valley/mill',
   conversation: [],
   serverStarts: 1,
   world: worldFor('calm'),
@@ -184,6 +207,8 @@ const freshWorld = (model: Model, weather: Weather): Model =>
         model.fetchPolicy,
         model.world.memory.storagePath,
         model.world.thinkingMode,
+        model.world.files.build,
+        model.world.page.mode,
       ),
     conversation: () => [],
     serverStarts: () => 1,
@@ -285,7 +310,11 @@ export const update = (current: Model, message: Message) => {
               ? Option.some('remember')
               : station === 'thinking'
                 ? Option.some('plan_steps')
-                : Option.none(),
+                : station === 'filesystem'
+                  ? Option.some('read_file')
+                  : station === 'perception'
+                    ? Option.some('take_snapshot')
+                    : Option.none(),
         tab: () => 'engine',
       }),
       commands: interruptIfRunning(model),
@@ -323,6 +352,44 @@ export const update = (current: Model, message: Message) => {
 
     SelectedObservation: ({ value }) => ({
       model: modifyFields(model, { observation: () => value }),
+    }),
+
+    SelectedFsBuild: ({ build }) => ({
+      model: freshWorld(
+        modifyFields(model, { world: world => useFsBuild(world, build) }),
+        model.weather,
+      ),
+      commands: interruptIfRunning(model),
+    }),
+
+    SelectedPerception: ({ mode }) => ({
+      model: modifyFields(model, {
+        world: world => usePerception(world, mode),
+      }),
+    }),
+
+    SelectedPath: ({ value }) => ({
+      model: modifyFields(model, { path: () => value }),
+    }),
+
+    SelectedTarget: ({ value }) => ({
+      model: modifyFields(model, { target: () => value }),
+    }),
+
+    SelectedRootChoice: ({ value }) => ({
+      model: modifyFields(model, { rootChoice: () => value }),
+    }),
+
+    ClickedSendRoots: () => ({
+      model: modifyFields(model, {
+        world: world => applyRootsUpdate(world, [model.rootChoice]),
+      }),
+    }),
+
+    ClickedRevokeRoots: () => ({
+      model: modifyFields(model, {
+        world: world => applyRootsUpdate(world, []),
+      }),
     }),
 
     ClickedRestartClient: () => ({
@@ -383,6 +450,8 @@ export const update = (current: Model, message: Message) => {
                   url: model.url,
                   entity: model.entity,
                   observation: model.observation,
+                  path: model.path,
+                  target: model.target,
                 }),
               ],
             }),

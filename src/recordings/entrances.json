@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-11-21T15:31:53.990Z",
+  "recordedAt": "2026-11-21T15:43:36.835Z",
   "node": "v22.23.5",
   "mcpSdk": "1.32.2",
   "calm": {
@@ -432,6 +432,61 @@
                     }
                   },
                   "required": ["from", "to"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "read_file",
+                "title": "File reader",
+                "description": "Read a text file inside the allowed directories.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "enum": [
+                        "/valley/forge/orders.txt",
+                        "/valley/forge/plans/bridge.txt",
+                        "/valley/mill/ledger.txt"
+                      ]
+                    }
+                  },
+                  "required": ["path"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "take_snapshot",
+                "title": "Page snapshot",
+                "description": "Capture the accessibility snapshot of the page: every control that has a role and a name.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "click",
+                "title": "Click",
+                "description": "Click one control on the page.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "target": {
+                      "type": "string",
+                      "enum": ["gate", "lever", "valve", "bell"]
+                    }
+                  },
+                  "required": ["target"],
                   "additionalProperties": false
                 },
                 "annotations": {
@@ -1030,6 +1085,61 @@
                     }
                   },
                   "required": ["from", "to"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "read_file",
+                "title": "File reader",
+                "description": "Read a text file inside the allowed directories.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "enum": [
+                        "/valley/forge/orders.txt",
+                        "/valley/forge/plans/bridge.txt",
+                        "/valley/mill/ledger.txt"
+                      ]
+                    }
+                  },
+                  "required": ["path"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "take_snapshot",
+                "title": "Page snapshot",
+                "description": "Capture the accessibility snapshot of the page: every control that has a role and a name.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "click",
+                "title": "Click",
+                "description": "Click one control on the page.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "target": {
+                      "type": "string",
+                      "enum": ["gate", "lever", "valve", "bell"]
+                    }
+                  },
+                  "required": ["target"],
                   "additionalProperties": false
                 },
                 "annotations": {

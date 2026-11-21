@@ -5,6 +5,8 @@ import { CapabilityName, RunRecord } from '../domain/capabilities.ts'
 import {
   CALM_MAX_SPAN,
   FetchPolicy,
+  type FsBuild,
+  type Perception,
   PlaceId,
   STORM_MAX_SPAN,
   type StoragePath,
@@ -86,6 +88,9 @@ export const Model = Schema.Struct({
   url: Schema.String,
   entity: Schema.String,
   observation: Schema.String,
+  path: Schema.String,
+  target: Schema.String,
+  rootChoice: Schema.String,
   conversation: Schema.Array(Schema.String),
   serverStarts: Schema.Number,
   world: World,
@@ -107,5 +112,14 @@ export const worldFor = (
   fetchPolicy: FetchPolicy = 'every-hop',
   storagePath: StoragePath = 'package-cache',
   thinkingMode: ThinkingMode = 'record',
+  fsBuild: FsBuild = 'default',
+  perception: Perception = 'snapshot',
 ): World =>
-  seedWorld(maxSpanIn(weather), fetchPolicy, storagePath, thinkingMode)
+  seedWorld(
+    maxSpanIn(weather),
+    fetchPolicy,
+    storagePath,
+    thinkingMode,
+    fsBuild,
+    perception,
+  )

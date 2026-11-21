@@ -46,8 +46,10 @@ Agreed 2026-11-21: the lab follows the twelve specimens in specimens/route.json.
 | 01 Fetch a page | simulated: three robots policies, redirect, loop |
 | 02 Memory | simulated: storage path, client and server restart, reinstall, conflicting statements |
 | 03 "Thinking" as a tool | simulated: record, compute, consult (scripted stand-in) behind one tool name |
-| 04 Filesystem | next |
-| 05 to 12 | reference cards only |
+| 04 Filesystem | simulated: three server builds, client roots sent and revoked |
+| 05 Browser perception | simulated: snapshot versus coordinates, stale references |
+| 06 CLI, reversed | next |
+| 07 to 12 | reference cards only |
 
 Per station, before calling it done: pin the upstream revision, check the documented behaviour against the source, and fill the evidence record in its README. None of that has been done for any station.
 
@@ -55,7 +57,7 @@ Protocol facts (revision, feature status, client support) still need a check aga
 
 ## Immediate next action
 
-Build station 04 (Filesystem: who defines the boundary) and 05 (Browser perception). Both touch protocol features (Roots, snapshots), so check the specification and the cited issues first. In parallel, verify the claims behind stations 01 to 03 against their upstream sources and pin revisions.
+Build station 06 (CLI, reversed: a generated CLI going stale when the schema changes) and 07 (Local and remote: who owns the process and its state). Read the mcporter and supergateway sources first, as done for station 04. The specification site was not reachable from the build session; allow it or supply the pages before stations that depend on protocol wording.
 
 ## Explicit exclusions for this change
 

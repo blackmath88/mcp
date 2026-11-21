@@ -55,12 +55,43 @@ export const Memory = Schema.Struct({
 })
 export type Memory = typeof Memory.Type
 
+export const FsBuild = Schema.Literals(['default', 'confine', 'pre-fix'])
+export type FsBuild = typeof FsBuild.Type
+
+export const Files = Schema.Struct({
+  build: FsBuild,
+  allowed: Schema.Array(Schema.String),
+  rootsInForce: Schema.Boolean,
+  clientRoots: Schema.Array(Schema.String),
+  note: Schema.String,
+})
+export type Files = typeof Files.Type
+
+export const Perception = Schema.Literals(['snapshot', 'vision'])
+export type Perception = typeof Perception.Type
+
+export const Page = Schema.Struct({
+  mode: Perception,
+  revision: Schema.Number,
+  snapshotRevision: Schema.Number,
+  gate: Schema.Boolean,
+  lever: Schema.Boolean,
+  valve: Schema.Boolean,
+  bell: Schema.Number,
+})
+export type Page = typeof Page.Type
+
+export const LAUNCH_DIRECTORIES: ReadonlyArray<string> = ['/valley/forge']
+export const NO_SNAPSHOT = -1
+
 export const World = Schema.Struct({
   revision: Schema.Number,
   maxSpan: Schema.Number,
   fetchPolicy: FetchPolicy,
   memory: Memory,
   thinkingMode: ThinkingMode,
+  files: Files,
+  page: Page,
   places: Schema.Array(Place),
   paths: Schema.Array(Path),
   artifacts: Schema.Array(Artifact),
@@ -109,12 +140,30 @@ export const seedWorld = (
   fetchPolicy: FetchPolicy = 'every-hop',
   storagePath: StoragePath = 'package-cache',
   thinkingMode: ThinkingMode = 'record',
+  fsBuild: FsBuild = 'default',
+  perception: Perception = 'snapshot',
 ): World => ({
   revision: 0,
   maxSpan,
   fetchPolicy,
   memory: { storagePath, packageCache: [], home: [] },
   thinkingMode,
+  files: {
+    build: fsBuild,
+    allowed: LAUNCH_DIRECTORIES,
+    rootsInForce: false,
+    clientRoots: [],
+    note: 'No roots received yet. The command-line directories apply.',
+  },
+  page: {
+    mode: perception,
+    revision: 1,
+    snapshotRevision: NO_SNAPSHOT,
+    gate: false,
+    lever: false,
+    valve: false,
+    bell: 0,
+  },
   places: seedPlaces,
   paths: [seedPath('forge', 'mill'), seedPath('kiln', 'dock')],
   artifacts: [],
@@ -224,3 +273,82 @@ export const useThinkingMode = (
   world: World,
   thinkingMode: ThinkingMode,
 ): World => ({ ...world, thinkingMode })
+
+const isInside = (path: string, directory: string): boolean =>
+  path === directory || path.startsWith(`${directory}/`)
+
+export const isAllowed = (files: Files, path: string): boolean =>
+  files.allowed.some(directory => isInside(path, directory))
+
+const confined = (roots: ReadonlyArray<string>): ReadonlyArray<string> =>
+  roots.flatMap(root =>
+    LAUNCH_DIRECTORIES.flatMap(directory =>
+      isInside(root, directory)
+        ? [root]
+        : isInside(directory, root)
+          ? [directory]
+          : [],
+    ),
+  )
+
+// NOTE: Models the behaviour described in the filesystem server README and
+// issues 3602 and 5094 as read on 2026-11-21. It is the lab's simulation, not
+// upstream code.
+export const applyRootsUpdate = (
+  world: World,
+  roots: ReadonlyArray<string>,
+): World => {
+  const files = world.files
+  const valid = files.build === 'confine' ? confined(roots) : roots
+  const next = (
+    allowed: ReadonlyArray<string>,
+    inForce: boolean,
+    note: string,
+  ) => ({
+    ...world,
+    files: {
+      ...files,
+      clientRoots: roots,
+      allowed,
+      rootsInForce: inForce,
+      note,
+    },
+  })
+  if (valid.length > 0) {
+    return next(
+      valid,
+      true,
+      files.build === 'confine'
+        ? 'Roots narrowed the command-line directories. They could not widen them.'
+        : 'The client’s roots replaced the command-line directories.',
+    )
+  }
+  if (!files.rootsInForce) {
+    return next(
+      files.allowed,
+      false,
+      'No valid roots, and none were in force before: the command-line directories stay.',
+    )
+  }
+  return files.build === 'pre-fix'
+    ? next(
+        files.allowed,
+        true,
+        'No valid roots, but this older build keeps the previous list. The client revoked; the server did not.',
+      )
+    : next(
+        [],
+        true,
+        'No valid roots after roots were in force: access is revoked.',
+      )
+}
+
+export const useFsBuild = (world: World, build: FsBuild): World => ({
+  ...world,
+  files: { ...world.files, build },
+})
+
+export const usePerception = (world: World, mode: Perception): World => ({
+  ...world,
+  page: { ...world.page, mode },
+})

@@ -17,6 +17,12 @@ export const ComponentId = Schema.Literals([
   'disk',
   'thinking-tool',
   'expert-model',
+  'file-server',
+  'boundary',
+  'synthetic-files',
+  'browser-tool',
+  'accessibility-tree',
+  'synthetic-page',
 ])
 export type ComponentId = typeof ComponentId.Type
 

@@ -17,6 +17,7 @@ import {
   describeError,
 } from './errors.ts'
 import { PageFetched, fetchPage, siteUrls } from './fetch.ts'
+import { FileRead, filePaths, readFile } from './files.ts'
 import {
   Recalled,
   Remembered,
@@ -25,6 +26,13 @@ import {
   recall,
   remember,
 } from './memory.ts'
+import {
+  Clicked,
+  SnapshotTaken,
+  click,
+  controlIds,
+  takeSnapshot,
+} from './perception.ts'
 import {
   type ComponentId,
   EngineEvent,
@@ -46,12 +54,21 @@ export const CapabilityName = Schema.Literals([
   'remember',
   'recall',
   'plan_steps',
+  'read_file',
+  'take_snapshot',
+  'click',
 ])
 export type CapabilityName = typeof CapabilityName.Type
 
 export type Affordance = 'readable' | 'queryable' | 'operable' | 'program'
 
-export type Specimen = 'valley' | 'fetch' | 'memory' | 'thinking'
+export type Specimen =
+  | 'valley'
+  | 'fetch'
+  | 'memory'
+  | 'thinking'
+  | 'filesystem'
+  | 'perception'
 
 export type Capability = Readonly<{
   name: CapabilityName
@@ -59,7 +76,15 @@ export type Capability = Readonly<{
   title: string
   affordance: Affordance
   description: string
-  input: 'none' | 'endpoints' | 'url' | 'fact' | 'entity' | 'thoughts'
+  input:
+    | 'none'
+    | 'endpoints'
+    | 'url'
+    | 'fact'
+    | 'entity'
+    | 'thoughts'
+    | 'path'
+    | 'target'
   observe: string
   request: string
   produces: string
@@ -187,6 +212,50 @@ export const catalogue: ReadonlyArray<Capability> = [
     finishes: 'Immediately.',
     dependsOn: ['thinking-tool', 'map', 'expert-model'],
   },
+  {
+    name: 'read_file',
+    specimen: 'filesystem',
+    title: 'File reader',
+    affordance: 'readable',
+    description: 'Read a text file inside the allowed directories.',
+    input: 'path',
+    observe: 'The content of one file, if its path is allowed right now.',
+    request: 'A path.',
+    produces: 'Text.',
+    changes: 'Nothing.',
+    finishes: 'Immediately.',
+    dependsOn: ['file-server', 'boundary', 'synthetic-files'],
+  },
+  {
+    name: 'take_snapshot',
+    specimen: 'perception',
+    title: 'Page snapshot',
+    affordance: 'readable',
+    description:
+      'Capture the accessibility snapshot of the page: every control that has a role and a name.',
+    input: 'none',
+    observe:
+      'The controls the accessibility tree exposes, each with a reference.',
+    request: 'Nothing.',
+    produces: 'A list of references, valid until the page changes.',
+    changes: 'Nothing on the page.',
+    finishes: 'Immediately.',
+    dependsOn: ['browser-tool', 'accessibility-tree'],
+  },
+  {
+    name: 'click',
+    specimen: 'perception',
+    title: 'Click',
+    affordance: 'operable',
+    description: 'Click one control on the page.',
+    input: 'target',
+    observe: 'Nothing beyond a confirmation.',
+    request: 'Which control to click.',
+    produces: 'A confirmation of how it clicked.',
+    changes: 'The page. Every click re-renders it.',
+    finishes: 'Immediately, or not at all.',
+    dependsOn: ['browser-tool', 'accessibility-tree', 'synthetic-page'],
+  },
 ]
 
 export const Endpoints = Schema.Struct({ from: PlaceId, to: PlaceId })
@@ -243,18 +312,36 @@ const thoughtsJsonSchema = {
   additionalProperties: false,
 } as const
 
+const pathJsonSchema = {
+  type: 'object',
+  properties: { path: { type: 'string', enum: filePaths } },
+  required: ['path'],
+  additionalProperties: false,
+} as const
+
+const targetJsonSchema = {
+  type: 'object',
+  properties: { target: { type: 'string', enum: controlIds } },
+  required: ['target'],
+  additionalProperties: false,
+} as const
+
 export const inputJsonSchema = (capability: Capability) =>
-  capability.input === 'fact'
-    ? factJsonSchema
-    : capability.input === 'entity'
-      ? entityJsonSchema
-      : capability.input === 'thoughts'
-        ? thoughtsJsonSchema
-        : capability.input === 'endpoints'
-          ? endpointsJsonSchema
-          : capability.input === 'url'
-            ? urlJsonSchema
-            : emptyInputJsonSchema
+  capability.input === 'path'
+    ? pathJsonSchema
+    : capability.input === 'target'
+      ? targetJsonSchema
+      : capability.input === 'fact'
+        ? factJsonSchema
+        : capability.input === 'entity'
+          ? entityJsonSchema
+          : capability.input === 'thoughts'
+            ? thoughtsJsonSchema
+            : capability.input === 'endpoints'
+              ? endpointsJsonSchema
+              : capability.input === 'url'
+                ? urlJsonSchema
+                : emptyInputJsonSchema
 
 // EXECUTION
 
@@ -267,6 +354,9 @@ export const CapabilityOutput = Schema.Union([
   Remembered,
   Recalled,
   PlanMade,
+  FileRead,
+  SnapshotTaken,
+  Clicked,
 ])
 export type CapabilityOutput = typeof CapabilityOutput.Type
 
@@ -323,6 +413,16 @@ const decodeThoughts = (input: unknown) =>
     Effect.mapError(invalid('thoughts must be a list of strings')),
   )
 
+const decodeField = (field: 'path' | 'target') => (input: unknown) =>
+  Schema.decodeUnknownEffect(Schema.Record(Schema.String, Schema.Unknown))(
+    input,
+  ).pipe(
+    Effect.flatMap(decoded =>
+      Schema.decodeUnknownEffect(Schema.String)(decoded[field]),
+    ),
+    Effect.mapError(invalid(`expected { ${field} } with a string`)),
+  )
+
 const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
   const trace = yield* Trace
   const step = {
@@ -349,7 +449,11 @@ const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
     const entity = capability === 'recall' ? yield* decodeEntity(input) : ''
     const thoughts =
       capability === 'plan_steps' ? yield* decodeThoughts(input) : []
-    return { capability, endpoints, url, fact, entity, thoughts }
+    const path =
+      capability === 'read_file' ? yield* decodeField('path')(input) : ''
+    const target =
+      capability === 'click' ? yield* decodeField('target')(input) : ''
+    return { capability, endpoints, url, fact, entity, thoughts, path, target }
   }).pipe(
     Effect.tapError(error =>
       trace.emit({ ...step, kind: 'failed', detail: describeError(error) }),
@@ -367,10 +471,8 @@ export const execute = Effect.fnUntraced(function* (
   name: string,
   input: unknown,
 ): Effect.fn.Return<CapabilityOutput, DomainError, Trace | WorldStore | Pace> {
-  const { capability, endpoints, url, fact, entity, thoughts } = yield* resolve(
-    name,
-    input,
-  )
+  const { capability, endpoints, url, fact, entity, thoughts, path, target } =
+    yield* resolve(name, input)
   const { from, to } = endpoints
   return yield* Match.value(capability).pipe(
     Match.when('read_map', () => readMap('catalogue')),
@@ -386,6 +488,9 @@ export const execute = Effect.fnUntraced(function* (
       remember('catalogue', fact.entity, fact.observation),
     ),
     Match.when('recall', () => recall('catalogue', entity)),
+    Match.when('read_file', () => readFile('catalogue', path)),
+    Match.when('take_snapshot', () => takeSnapshot('catalogue')),
+    Match.when('click', () => click('catalogue', target)),
     Match.when('plan_steps', () => planSteps('catalogue', from, to, thoughts)),
     Match.exhaustive,
   )

@@ -33,6 +33,12 @@ const held = {
       : process.argv.includes('--thinking=consult')
         ? 'consult'
         : 'record',
+    process.argv.includes('--fs-build=confine')
+      ? 'confine'
+      : process.argv.includes('--fs-build=pre-fix')
+        ? 'pre-fix'
+        : 'default',
+    process.argv.includes('--perception=vision') ? 'vision' : 'snapshot',
   ),
 }
 

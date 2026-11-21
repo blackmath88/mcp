@@ -219,6 +219,36 @@ describe('memory and thinking through MCP', () => {
   })
 })
 
+describe('filesystem and perception through MCP', () => {
+  test('read_file is confined to the launch directory', async () => {
+    const results = await withClient([], async client => [
+      await client.callTool({
+        name: 'read_file',
+        arguments: { path: '/valley/forge/orders.txt' },
+      }),
+      await client.callTool({
+        name: 'read_file',
+        arguments: { path: '/valley/mill/ledger.txt' },
+      }),
+    ])
+    expect(results.map(result => result.isError)).toEqual([false, true])
+  })
+
+  test('snapshot then click works; an unlabelled control fails unless coordinates are on', async () => {
+    const lever = (client: Client) =>
+      client.callTool({ name: 'click', arguments: { target: 'lever' } })
+    const byRef = await withClient([], async client => {
+      await client.callTool({ name: 'take_snapshot', arguments: {} })
+      return lever(client)
+    })
+    const byXy = await withClient(['--perception=vision'], lever)
+    expect(byRef.structuredContent).toMatchObject({
+      outcome: { error: 'NotPerceivable' },
+    })
+    expect(byXy.isError).toBe(false)
+  })
+})
+
 describe('recording shown in the lab', () => {
   test('carries its provenance and a real handshake', () => {
     expect(recording.mcpSdk).toMatch(/^\d+\.\d+\.\d+$/)
