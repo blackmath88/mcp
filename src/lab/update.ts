@@ -14,6 +14,7 @@ import {
 } from '../adapters/in-tab-mcp.ts'
 import { DEFAULT_PROGRAM, runProgram } from '../adapters/python-runner.ts'
 import type { CapabilityName, RunRecord } from '../domain/capabilities.ts'
+import { pinNew } from '../domain/lens.ts'
 import { Pace } from '../domain/services.ts'
 import { applySettings } from '../domain/settings.ts'
 import { callerThoughts } from '../domain/thinking.ts'
@@ -99,10 +100,10 @@ export const RunCapability = Command.define('RunCapability', {
 })
 
 export const EnterDomain = Command.define('EnterDomain', {
-  args: { world: World, station: Station },
+  args: { world: World, station: Station, tamper: Schema.Boolean },
   messages: [Message.CompletedEnterDomain, Message.FailedEnterDomain],
-  execute: ({ world, station }) =>
-    enterDomain(world, station, labPace).pipe(
+  execute: ({ world, station, tamper }) =>
+    enterDomain(world, station, labPace, tamper).pipe(
       Effect.map(entered =>
         Message.CompletedEnterDomain({
           station,
@@ -235,6 +236,8 @@ export const initialModel: Model = {
   python: 'idle',
   screen: 'bench',
   atlasView: 'map',
+  pins: [],
+  tampered: false,
   lens: 'family',
   transport: 'mcp-in-tab',
   tab: 'engine',
@@ -245,7 +248,13 @@ export const initialModel: Model = {
 
 export const init: Runtime.ApplicationInit<Model, Message> = () => ({
   model: modifyFields(initialModel, { screen: () => 'home' }),
-  commands: [EnterDomain({ world: initialModel.world, station: 'valley' })],
+  commands: [
+    EnterDomain({
+      world: initialModel.world,
+      station: 'valley',
+      tamper: false,
+    }),
+  ],
 })
 
 // UPDATE
@@ -506,6 +515,7 @@ export const update = (current: Model, message: Message): UpdateReturn => {
     SelectedStation: ({ station }) => ({
       model: modifyFields(model, {
         station: () => station,
+        tampered: () => false,
         screen: () => 'bench',
         maybeSelected: () => defaultCapability(station),
         savedRuns: saved => [
@@ -531,7 +541,7 @@ export const update = (current: Model, message: Message): UpdateReturn => {
       }),
       commands: [
         ...interruptIfRunning(model),
-        EnterDomain({ world: model.world, station }),
+        EnterDomain({ world: model.world, station, tamper: false }),
       ],
     }),
 
@@ -849,6 +859,17 @@ export const update = (current: Model, message: Message): UpdateReturn => {
       model: modifyFields(model, { lens: () => lens }),
     }),
 
+    ClickedTamper: ({ on }) => ({
+      model: modifyFields(model, {
+        tampered: () => on,
+        tab: () => 'lens',
+        backstage: () => 'open',
+      }),
+      commands: [
+        EnterDomain({ world: model.world, station: model.station, tamper: on }),
+      ],
+    }),
+
     ClickedShowOnAtlas: () => ({
       model: modifyFields(model, {
         screen: () => 'home',
@@ -920,6 +941,7 @@ export const update = (current: Model, message: Message): UpdateReturn => {
     CompletedEnterDomain: ({ station, tools, frames }) => ({
       model: modifyFields(model, {
         tools: previous => (station === model.station ? tools : previous),
+        pins: pins => pinNew(pins, tools),
         connection: () => 'connected',
         frames: previous => keepFrames(previous, frames),
       }),

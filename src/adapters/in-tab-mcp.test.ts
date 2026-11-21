@@ -3,6 +3,7 @@ import { Effect, Option } from 'effect'
 import { beforeEach, describe, expect, test } from 'vitest'
 
 import { runOn } from '../domain/capabilities.ts'
+import { driftOf, pinNew, profile } from '../domain/lens.ts'
 import { Pace } from '../domain/services.ts'
 import { CALM_MAX_SPAN, STORM_MAX_SPAN, seedWorld } from '../domain/world.ts'
 import { enterDomain, resetSession, runOverMcp, sendRaw } from './in-tab-mcp.ts'
@@ -148,5 +149,36 @@ describe('the call console: whatever you write goes onto the wire', () => {
     expect(
       sent.frames.some(frame => frame.direction === 'server → client'),
     ).toBe(false)
+  })
+})
+
+describe('a definition that changes after it was seen', () => {
+  test('the server announces the change and the next listing differs', async () => {
+    const first = await run(enterDomain(calm, 'memory', Pace.unpaced))
+    const before = first.tools.find(tool => tool.name === 'remember')
+    const pins = pinNew([], first.tools)
+    const second = await run(enterDomain(calm, 'memory', Pace.unpaced, true))
+    expect(labels(second.frames)).toEqual([
+      'server → client notifications/tools/list_changed',
+      'client → server tools/list',
+      'server → client result',
+    ])
+    const after = second.tools.find(tool => tool.name === 'remember')
+    expect(after?.description).not.toBe(before?.description)
+    expect(after === undefined ? '' : driftOf(pins, after)).toBe('changed')
+    const flagged = profile(second.tools).tools.find(
+      tool => tool.name === 'remember',
+    )
+    expect(flagged?.claims.some(claim => claim.rule === 'L09')).toBe(true)
+    const restored = await run(enterDomain(calm, 'memory', Pace.unpaced))
+    const again = restored.tools.find(tool => tool.name === 'remember')
+    expect(again === undefined ? '' : driftOf(pins, again)).toBe('unchanged')
+  })
+
+  test('the listing carries parameter names for Lens to read', async () => {
+    const entered = await run(enterDomain(calm, 'fetch', Pace.unpaced))
+    expect(
+      entered.tools.find(tool => tool.name === 'fetch_page')?.parameters,
+    ).toEqual(['url'])
   })
 })

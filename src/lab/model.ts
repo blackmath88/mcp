@@ -57,6 +57,7 @@ export const BackstageTab = Schema.Literals([
   'network',
   'frames',
   'console',
+  'lens',
 ])
 export type BackstageTab = typeof BackstageTab.Type
 
@@ -119,6 +120,10 @@ export const Model = Schema.Struct({
   python: Schema.Literals(['idle', 'running', 'done', 'unavailable']),
   screen: Schema.Literals(['home', 'bench']),
   atlasView: Schema.Literals(['map', 'list']),
+  pins: Schema.Array(
+    Schema.Struct({ name: Schema.String, fingerprint: Schema.String }),
+  ),
+  tampered: Schema.Boolean,
   lens: Schema.Literals(['family', 'server']),
   transport: Schema.Literals(['mcp-in-tab', 'in-process']),
   tab: BackstageTab,

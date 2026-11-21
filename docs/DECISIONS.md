@@ -134,6 +134,12 @@ Status: owner brief and "implement it", 2026-11-21. Implemented.
 
 The lab opens on a capability atlas, not a numbered route. People enter anywhere. Capabilities carry a family (our teaching groups), a fixed place on the atlas and one pixel sprite used everywhere. A nine-slot belt shows what one named server exposes and where that list came from; selecting a slot inspects and never executes. Authorisation and approval are shown as unknown because nothing in the simulation establishes them. Station numbers and ordered phases are removed; the valley's steps stay as an optional walk-through.
 
+## D17 — Lens starts as a listing-only classifier
+
+Status: owner note "mcp recon does what we need for lens", 2026-11-21. First cut implemented.
+
+Lens reads only what a server says about its tools and emits claims with stable rule ids, the field each rests on, and a declared/inferred label. It pins a fingerprint of each definition on first sight and reports later change. It never states what a tool does when called. Recon tooling built for attackers is the model for the reading; the lab applies it defensively to its own simulated servers only.
+
 ## Still undecided
 
 Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.

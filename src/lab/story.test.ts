@@ -535,7 +535,13 @@ describe('browsing between stations', () => {
 
 describe('the live session', () => {
   const tools = [
-    { name: 'remember', title: 'Remember', description: '', readOnly: false },
+    {
+      name: 'remember',
+      title: 'Remember',
+      description: '',
+      readOnly: false,
+      parameters: [],
+    },
   ]
 
   test('entering a station asks the server and adopts its tool list', () => {
@@ -758,7 +764,13 @@ describe('the belt selects and never executes', () => {
       station: 'memory',
       connection: 'connected',
       tools: [
-        { name: 'recall', title: 'Recall', description: '', readOnly: true },
+        {
+          name: 'recall',
+          title: 'Recall',
+          description: '',
+          readOnly: true,
+          parameters: [],
+        },
       ],
     })
     expect(asked.source).toBe('server')

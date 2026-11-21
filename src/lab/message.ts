@@ -72,6 +72,7 @@ export const Message = defineMessageUnion({
   SelectedLens: { lens: Schema.Literals(['family', 'server']) },
   ClickedOpenSpecimen: { name: CapabilityName },
   ClickedShowOnAtlas: {},
+  ClickedTamper: { on: Schema.Boolean },
   ClickedOpenInventory: {},
   PressedSlotKey: { slot: Schema.Number },
   ClickedMapPlace: { place: Schema.String },

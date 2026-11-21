@@ -8,6 +8,7 @@ import {
   catalogue,
   families,
 } from '../domain/capabilities.ts'
+import { listedFromCatalogue, profile } from '../domain/lens.ts'
 import {
   BELT_SLOTS,
   beltOf,
@@ -363,6 +364,38 @@ const listView = (model: Model, h: H): Html =>
     }),
   )
 
+// Across everything one caller could hold: the lab's whole catalogue.
+const inventoryLensView = (h: H): Html => {
+  const report = profile(Array.map(catalogue, listedFromCatalogue))
+  return h.div(
+    [h.Class('inv-lens')],
+    [
+      h.p(
+        [h.Class('mode')],
+        [
+          h.b([], ['Lens, across all thirteen servers']),
+          ' · if one caller held every tool below. Read from the lab’s catalogue; no server was asked.',
+        ],
+      ),
+      ...Array.match(report.compositions, {
+        onEmpty: () => [
+          h.p([h.Class('side-note')], ['No combination rule matched.']),
+        ],
+        onNonEmpty: compositions =>
+          Array.map(compositions, composition =>
+            h.p(
+              [h.Class('result warn')],
+              [
+                h.b([], [`${composition.rule} · `]),
+                `${composition.statement} (${composition.tools.join(', ')})`,
+              ],
+            ),
+          ),
+      }),
+    ],
+  )
+}
+
 // DETAIL
 
 const evidenceRow = (
@@ -607,7 +640,12 @@ export const atlasScreenView = (model: Model, h: H): Html =>
       h.div(
         [h.Class('atlas-body')],
         [
-          model.atlasView === 'map' ? mapView(model, h) : listView(model, h),
+          model.atlasView === 'map'
+            ? mapView(model, h)
+            : h.div(
+                [h.Class('stack')],
+                [inventoryLensView(h), listView(model, h)],
+              ),
           detailView(model, h),
         ],
       ),

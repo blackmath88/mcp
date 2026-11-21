@@ -1,5 +1,32 @@
 # Handoff
 
+## Lens, first working cut — 2026-11-21
+
+Owner note: "mcp recon does what we need for lens", with a text on how bounty hunters read MCP servers. The text is stored in `docs/research/2026-11-21-mcp-recon-and-bounty.md`, marked unverified, with a table of what the lab took from it.
+
+### Changed
+
+- `src/domain/lens.ts`: a pure classifier over a tool listing (name, title, description, read-only hint, parameter names). Ten rules L01 to L10, each claim carrying its rule id, the field it rests on, and whether it is declared by the server or inferred from wording. One combination rule C01 (a stored-data reader plus a destination-taking tool). A fingerprint per definition and pins that keep the first one seen.
+- Backstage has a **Lens** tab. On a bench it reads the server's real `tools/list` answer and says so; without a connection it reads the catalogue and says that instead.
+- **Bend: the server changes a description after you saw it.** The in-tab server appends an instruction-like sentence to one tool, sends `notifications/tools/list_changed`, the client lists again, and Lens shows a new fingerprint, "changed since you first saw it" and rule L09.
+- The full inventory shows Lens across all thirteen servers. C01 matches there (recall, read_file, fetch_page) and on no single server.
+- The session's tool listing now carries parameter names.
+
+### Evidence (observed in this session)
+
+- `typecheck`, `lint`, `test` (172 passed), `build` pass.
+- By test, over a real client and server on the in-memory transport: toggling the bend yields exactly `list_changed → tools/list → result`; the pinned tool drifts to "changed" and back to "unchanged" on restore; L09 fires on the changed listing. By test on fixtures: identical output for the same listing twice; invisible characters flagged; none of the lab's own descriptions is flagged.
+- Headless Chromium, Memory bench: fingerprint `9313a41a` → `f1aa5f86` with the red tag and L09, the wire rail ending in `notifications/tools/list_changed`, `tools/list`, `result`; restore not captured in output (the script ended before printing it). Screenshot `docs/reports/atlas/lens-changed-description.png`.
+
+### Limits, stated plainly
+
+- Lens is a teaching instrument over the lab's own simulated servers. It is not a scanner and connects to nothing else.
+- The wording rules are a handful of regular expressions written for this catalogue. They will miss most real poisoning and will misfire on innocent text elsewhere.
+- The fingerprint is a 32-bit hash for noticing change, not a signature.
+- Not built: behavioural checks (calling a tool repeatedly and inspecting replies), schema-aware fuzzing, any supply-chain check, a CLI or MCP entrance to Lens, pointing Lens at itself.
+- While the bend is on, the inspector card still shows the catalogue's description, not the changed one the server now lists.
+- In `npm run dev`, state restored from before a model change can lack new fields; restart the dev server after pulling.
+
 ## Follow-up fixes after the atlas — 2026-11-21
 
 - Fetch: a URL chip fetches at once (`ClickedFetch`); the separate Fetch button is gone.

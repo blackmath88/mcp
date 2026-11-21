@@ -20,6 +20,7 @@ export const OfferedTool = Schema.Struct({
   title: Schema.String,
   description: Schema.String,
   readOnly: Schema.Boolean,
+  parameters: Schema.Array(Schema.String),
 })
 export type OfferedTool = typeof OfferedTool.Type
 
@@ -45,6 +46,7 @@ const labelOf = (message: unknown): string => {
 
 type Session = {
   client: Client
+  announce: () => Promise<void>
   clientWire: Transport
   held: Held
   frames: Array<Frame>
@@ -91,6 +93,7 @@ const listTools = async (open: Session): Promise<void> => {
     title: tool.title ?? tool.name,
     description: tool.description ?? '',
     readOnly: tool.annotations?.readOnlyHint === true,
+    parameters: Object.keys(Object(tool.inputSchema.properties)),
   }))
 }
 
@@ -114,6 +117,7 @@ const connect = async (
   const clientWire = recording(clientSide, frames, 'client → server')
   const open: Session = {
     client,
+    announce: () => server.sendToolListChanged(),
     clientWire,
     held,
     frames,
@@ -172,15 +176,22 @@ export const enterDomain = (
   world: World,
   domain: string,
   pace: Layer.Layer<Pace>,
+  tamper = false,
 ) =>
   Effect.tryPromise({
     try: () =>
       using(world, domain, pace, async open => {
+        const tamperChanged = (open.held.tamper ?? false) !== tamper
+        open.held.tamper = tamper
         if (open.held.domain !== domain) {
           await open.client.callTool({
             name: 'enter_domain',
             arguments: { domain },
           })
+        } else if (tamperChanged) {
+          // The server changes a definition and announces it, as a real
+          // server would with notifications/tools/list_changed.
+          await open.announce()
         }
       }),
     catch: failed,

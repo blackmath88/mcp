@@ -22,6 +22,7 @@ import {
 import { calledToolOf, findCapability } from './belt.ts'
 import { benchView, bendView } from './benches.ts'
 import { iconView } from './icons.ts'
+import { lensTabView } from './lens-view.ts'
 import { Message } from './message.ts'
 import {
   type BackstageTab,
@@ -1157,6 +1158,7 @@ const resultView = (model: Model, h: H): Html =>
 const tabs: ReadonlyArray<Readonly<{ id: BackstageTab; label: string }>> = [
   { id: 'frames', label: 'MCP frames' },
   { id: 'console', label: 'Call console' },
+  { id: 'lens', label: 'Lens' },
   { id: 'engine', label: 'Engine events' },
   { id: 'app', label: 'App messages' },
   { id: 'recording', label: 'Recorded CLI + MCP' },
@@ -1199,15 +1201,17 @@ const backstageView = (model: Model, h: H): Html =>
         ? h.empty
         : model.tab === 'console'
           ? consoleTabView(model, h)
-          : model.tab === 'frames'
-            ? framesTabView(model, h)
-            : model.tab === 'engine'
-              ? engineTabView(model, h)
-              : model.tab === 'app'
-                ? appTabView(model, h)
-                : model.tab === 'recording'
-                  ? recordingTabView(model, h)
-                  : networkView(model, h),
+          : model.tab === 'lens'
+            ? lensTabView(model, h)
+            : model.tab === 'frames'
+              ? framesTabView(model, h)
+              : model.tab === 'engine'
+                ? engineTabView(model, h)
+                : model.tab === 'app'
+                  ? appTabView(model, h)
+                  : model.tab === 'recording'
+                    ? recordingTabView(model, h)
+                    : networkView(model, h),
     ],
   )
 
