@@ -120,7 +120,8 @@ export const Model = Schema.Struct({
   pythonError: Schema.String,
   python: Schema.Literals(['idle', 'running', 'done', 'unavailable']),
   screen: Schema.Literals(['home', 'bench']),
-  atlasView: Schema.Literals(['map', 'list', 'ladder']),
+  atlasView: Schema.Literals(['map', 'list', 'ladder', 'yours']),
+  pastedTools: Schema.String,
   approval: Schema.Literals(['never', 'writes', 'always']),
   pending: Schema.Option(
     Schema.Struct({

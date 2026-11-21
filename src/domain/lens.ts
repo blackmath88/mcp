@@ -106,7 +106,15 @@ const rules: ReadonlyArray<Rule> = [
     basis: 'inferred',
     isWarning: false,
     statement: 'Takes a destination, so it can be pointed somewhere.',
-    match: parameterIn(['url', 'uri', 'endpoint', 'host', 'webhook']),
+    match: parameterIn([
+      'url',
+      'uri',
+      'endpoint',
+      'host',
+      'webhook',
+      'recipient',
+      'email',
+    ]),
   },
   {
     id: 'L04',

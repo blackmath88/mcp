@@ -14,6 +14,7 @@ import {
 } from '../adapters/in-tab-mcp.ts'
 import { DEFAULT_PROGRAM, runProgram } from '../adapters/python-runner.ts'
 import type { CapabilityName, RunRecord } from '../domain/capabilities.ts'
+import { EXAMPLE_LISTING } from '../domain/foreign.ts'
 import { pinNew } from '../domain/lens.ts'
 import { Pace } from '../domain/services.ts'
 import { applySettings } from '../domain/settings.ts'
@@ -239,6 +240,7 @@ export const initialModel: Model = {
   python: 'idle',
   screen: 'bench',
   atlasView: 'map',
+  pastedTools: '',
   pins: [],
   approval: 'never',
   pending: Option.none(),
@@ -956,6 +958,14 @@ export const update = (current: Model, message: Message): UpdateReturn => {
         }),
       }
     },
+
+    UpdatedPastedTools: ({ value }) => ({
+      model: modifyFields(model, { pastedTools: () => value }),
+    }),
+
+    ClickedLoadExample: () => ({
+      model: modifyFields(model, { pastedTools: () => EXAMPLE_LISTING }),
+    }),
 
     ClickedWatch: () => {
       const rewound = update(model, Message.ClickedReplayFromStart())

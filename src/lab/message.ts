@@ -68,7 +68,11 @@ export const Message = defineMessageUnion({
   },
   FailedRunPython: {},
   ClickedHome: {},
-  SelectedAtlasView: { view: Schema.Literals(['map', 'list', 'ladder']) },
+  SelectedAtlasView: {
+    view: Schema.Literals(['map', 'list', 'ladder', 'yours']),
+  },
+  UpdatedPastedTools: { value: Schema.String },
+  ClickedLoadExample: {},
   SelectedLens: { lens: Schema.Literals(['family', 'server']) },
   ClickedOpenSpecimen: { name: CapabilityName },
   ClickedShowOnAtlas: {},

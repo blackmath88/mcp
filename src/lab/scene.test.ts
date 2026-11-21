@@ -670,6 +670,7 @@ describe('two ways in', () => {
       given({ ...initialModel, screen: 'home' }),
       expect(text('A server hands your AI tools')).toExist(),
       expect(text('The host decides what runs')).toExist(),
+      expect(text('Seven words you will meet here')).toExist(),
       click(
         role('button', {
           name: 'Straight to the wire: raw JSON-RPC',
@@ -677,6 +678,24 @@ describe('two ways in', () => {
       ),
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('Your own message')).toExist(),
+    )
+  })
+})
+
+describe('your server', () => {
+  test('a pasted listing becomes a bench with nothing invented behind it', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'home', atlasView: 'yours' }),
+      expect(
+        text(
+          'Nothing pasted yet. Load the example to see how a listing reads.',
+        ),
+      ).toExist(),
+      click(role('button', { name: 'Load an invented example' })),
+      expect(text('5 tools')).toExist(),
+      expect(text(/Read these before approving anything/)).toExist(),
+      expect(text(/^C01/)).toExist(),
     )
   })
 })

@@ -1,5 +1,26 @@
 # Handoff
 
+## Call path, "Your server", glossary — 2026-11-21
+
+Owner: "90 minutes go".
+
+### Changed
+
+- **The path a call took** (`src/lab/flow.ts`): the tray draws tool → each component reached, in order → result or error, read from the run's engine events. During "Watch it again" only components reached so far are lit; changes amber, failures red. Nothing on it is authored.
+- **Your server** (atlas view, `src/domain/foreign.ts`): paste any `tools/list` answer (`{"tools": [...]}`, a JSON-RPC response, or a plain array). Each tool gets a card with all four hints, absent ones shown as absent with the spec's default reading; Lens claims; a hidden-character check; a guessed family that names the rule it rests on; and a dashed "what it works on: not known from the list". Combination warnings (C01) and a "read these before approving" list sit on top. Nothing is sent or run. A load-an-example button fills an invented listing with one poisoned description and one hidden payload.
+- Lens L03 also reads `recipient` and `email` parameters as destinations.
+- Atlas primer has a seven-word glossary (server, host, client, tool, tools/list, tools/call, hint).
+
+### Evidence
+
+- `typecheck`, `lint`, `test` (196 passed), `build` pass. New tests: the call path from real runs (order, partial replay, failure marked); the parser's three accepted shapes and its error messages; absent hints stay absent; the example triggers L09, L10 and C01; the family guess names its basis; a scene test for the Your server view.
+- Headless Chromium: example listing rendered with the warnings; Valley `connect_places` replay with the path lit to "World store" at event 5 of 20; no page errors. Screenshots `docs/reports/toolbench/your-server.png`, `call-path-replay.png`.
+
+### Limits
+
+- The family guess is a heuristic over this lab's ten Lens rules; it will often be wrong for real servers, and says what it rests on.
+- Pasted listings are not pinned, so a later change to the same server is not diffed here (the in-tab Lens tab does that for the lab's own servers).
+
 ## Every station is a toolbench; the host can ask first — 2026-11-21
 
 Owner: "take 100 minutes … build out the whole repo, test and judge … a place where somebody learns about MCP the first time but also the nerds get into the nitty gritty". Built from board F of the architecture canvas (white background, as asked) and the external review in `docs/research/2026-11-21-visualisation-research.md`.

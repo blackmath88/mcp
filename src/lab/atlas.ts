@@ -8,6 +8,12 @@ import {
   catalogue,
   families,
 } from '../domain/capabilities.ts'
+import {
+  type ForeignTool,
+  characterNote,
+  hintDefaults,
+  parseListing,
+} from '../domain/foreign.ts'
 import { ladder } from '../domain/ladder.ts'
 import { listedFromCatalogue, profile } from '../domain/lens.ts'
 import {
@@ -397,6 +403,247 @@ const inventoryLensView = (h: H): Html => {
   )
 }
 
+// YOUR SERVER: a tool list the lab did not write, read and nothing more
+
+const FAMILY_SPRITE: Record<Family, CapabilityName> = {
+  read: 'read_file',
+  query: 'find_route',
+  perceive: 'take_snapshot',
+  remember: 'remember',
+  change: 'write_entry',
+  app: 'show_map',
+  compose: 'run_as_program',
+  delegate: 'ask_expert',
+  workflow: 'refine_plan',
+  gateway: 'call_tool',
+}
+
+const hintText = (
+  label: string,
+  value: boolean | undefined,
+  fallback: boolean,
+): string =>
+  value === undefined ? `${label} — (read as ${fallback})` : `${label} ${value}`
+
+const foreignCard = (tool: ForeignTool, h: H): Html =>
+  h.keyed('article')(
+    tool.name,
+    [h.Class('foreign')],
+    [
+      h.div(
+        [h.Class('foreign-head')],
+        [
+          h.span(
+            [h.Class('bigicon')],
+            [iconView(FAMILY_SPRITE[tool.family], h)],
+          ),
+          h.div(
+            [],
+            [
+              h.b(
+                [h.Class('mono-strong')],
+                [`${tool.name}(${tool.parameters.join(', ')})`],
+              ),
+              h.p([h.Class('tb-note')], [tool.title]),
+              h.p(
+                [h.Class('foreign-guess')],
+                [`Guessed: ${familyName(tool.family)} · ${tool.familyBasis}`],
+              ),
+            ],
+          ),
+        ],
+      ),
+      h.p(
+        [h.Class('foreign-desc')],
+        [tool.description === '' ? '(no description)' : tool.description],
+      ),
+      h.p(
+        [h.Class('foreign-hints')],
+        [
+          [
+            hintText(
+              'readOnlyHint',
+              tool.hints.readOnly,
+              hintDefaults.readOnly,
+            ),
+            hintText(
+              'destructiveHint',
+              tool.hints.destructive,
+              hintDefaults.destructive,
+            ),
+            hintText(
+              'idempotentHint',
+              tool.hints.idempotent,
+              hintDefaults.idempotent,
+            ),
+            hintText(
+              'openWorldHint',
+              tool.hints.openWorld,
+              hintDefaults.openWorld,
+            ),
+          ].join(' · '),
+        ],
+      ),
+      h.ul(
+        [h.Class('claims')],
+        Array.map(tool.claims, claim =>
+          h.keyed('li')(
+            claim.rule,
+            [h.Class(`claim ${claim.isWarning ? 'warn' : ''}`)],
+            [
+              h.span([h.Class('rule')], [claim.rule]),
+              h.span([h.Class('claim-text')], [claim.statement]),
+              h.span(
+                [h.Class('basis')],
+                [
+                  `${claim.basis === 'declared' ? 'declared' : 'inferred'} · ${claim.evidence}`,
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      h.p(
+        [
+          h.Class(
+            `side-note ${/display/.test(characterNote(tool.description)) ? 'warn-text' : ''}`,
+          ),
+        ],
+        [characterNote(tool.description)],
+      ),
+      h.div(
+        [h.Class('foreign-unknown')],
+        [
+          'What it works on: not known from the list. Only running it, or reading its source, would tell.',
+        ],
+      ),
+      h.details(
+        [h.Class('fold')],
+        [
+          h.summary([], ['The entry as pasted']),
+          h.pre([h.Class('page')], [tool.json]),
+        ],
+      ),
+    ],
+  )
+
+const yoursView = (model: Model, h: H): Html => {
+  const parsed = parseListing(model.pastedTools)
+  return h.div(
+    [h.Class('stack yours')],
+    [
+      h.p(
+        [h.Class('mode')],
+        [
+          h.b([], ['Your server']),
+          ' · paste what any MCP server answered to tools/list. It is read in this page only; nothing is sent anywhere and nothing is run.',
+        ],
+      ),
+      h.label(
+        [h.For('paste'), h.Class('eyebrow')],
+        ['tools/list answer (JSON)'],
+      ),
+      h.textarea([
+        h.Id('paste'),
+        h.Class('console-text'),
+        h.Rows(8),
+        h.Spellcheck(false),
+        h.Value(model.pastedTools),
+        h.OnInput(value => Message.UpdatedPastedTools({ value })),
+      ]),
+      h.div(
+        [h.Class('ctl')],
+        [
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('btn ghost small'),
+              h.OnClick(Message.ClickedLoadExample()),
+            ],
+            ['Load an invented example'],
+          ),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('btn ghost small'),
+              h.OnClick(Message.UpdatedPastedTools({ value: '' })),
+            ],
+            ['Clear'],
+          ),
+        ],
+      ),
+      parsed.ok
+        ? yoursReport(parsed.tools, h)
+        : parsed.error === ''
+          ? h.p(
+              [h.Class('empty')],
+              [
+                'Nothing pasted yet. Load the example to see how a listing reads.',
+              ],
+            )
+          : h.p([h.Class('result warn')], [parsed.error]),
+    ],
+  )
+}
+
+const yoursReport = (tools: ReadonlyArray<ForeignTool>, h: H): Html => {
+  const report = profile(tools)
+  const warned = tools.filter(tool =>
+    tool.claims.some(claim => claim.isWarning),
+  )
+  return h.div(
+    [h.Class('stack')],
+    [
+      h.div(
+        [h.Class('foreign-summary')],
+        [
+          h.b([], [`${tools.length} tool${tools.length === 1 ? '' : 's'}`]),
+          h.span(
+            [h.Class('foreign-strip'), h.AriaLabel('Guessed shape')],
+            Array.map(families, entry =>
+              tools.some(tool => tool.family === entry.id)
+                ? h.span(
+                    [h.Class('slotmini on'), h.Title(entry.name)],
+                    [iconView(FAMILY_SPRITE[entry.id], h)],
+                  )
+                : h.span([h.Class('slotmini'), h.Title(entry.name)], []),
+            ),
+          ),
+          h.span(
+            [h.Class('tb-note')],
+            [
+              'shape guessed from hints and wording; a server is free to describe itself wrongly',
+            ],
+          ),
+        ],
+      ),
+      ...Array.map(report.compositions, composition =>
+        h.p(
+          [h.Class('result warn')],
+          [
+            h.b([], [`${composition.rule} · `]),
+            `${composition.statement} (${composition.tools.join(', ')})`,
+          ],
+        ),
+      ),
+      warned.length === 0
+        ? h.empty
+        : h.p(
+            [h.Class('result warn')],
+            [
+              h.b([], ['Read these before approving anything: ']),
+              warned.map(tool => tool.name).join(', '),
+              '. Their descriptions instruct whoever reads them, or hide characters.',
+            ],
+          ),
+      h.div(
+        [h.Class('foreign-grid')],
+        Array.map(tools, tool => foreignCard(tool, h)),
+      ),
+    ],
+  )
+}
+
 // THE THIRTEEN QUESTIONS (optional: an index, not an order)
 
 const ladderView = (model: Model, h: H): Html =>
@@ -636,6 +883,34 @@ const detailView = (model: Model, h: H): Html =>
 
 // PRIMER: three sentences for someone new, one door each for both readers
 
+const glossary: ReadonlyArray<readonly [string, string]> = [
+  [
+    'Server',
+    'A program that offers tools. It can run on your machine or far away.',
+  ],
+  [
+    'Host',
+    'The app you use, with the AI inside. It connects to servers and decides what runs.',
+  ],
+  ['Client', 'The part of the host that speaks MCP to one server.'],
+  [
+    'Tool',
+    'One thing a server offers: a name, the inputs it takes, a description.',
+  ],
+  [
+    'tools/list',
+    'The question “what do you offer?” and the server’s answer. This is all the AI is told.',
+  ],
+  [
+    'tools/call',
+    'Using one tool with some inputs. The server runs it and answers.',
+  ],
+  [
+    'Hint',
+    'A server’s own claim about a tool, like “read-only”. Nothing checks it.',
+  ],
+]
+
 const primerCard = (n: string, title: string, body: string, h: H): Html =>
   h.div(
     [h.Class('primer-card')],
@@ -674,6 +949,7 @@ export const atlasScreenView = (model: Model, h: H): Html =>
                   ['map', 'Map'],
                   ['list', 'Full inventory'],
                   ['ladder', 'Thirteen questions'],
+                  ['yours', 'Your server'],
                 ],
                 view => Message.SelectedAtlasView({ view }),
                 h,
@@ -720,6 +996,22 @@ export const atlasScreenView = (model: Model, h: H): Html =>
               ),
             ],
           ),
+          h.details(
+            [h.Class('fold glossary')],
+            [
+              h.summary([], ['Seven words you will meet here']),
+              h.dl(
+                [h.Class('facts')],
+                Array.map(glossary, ([word, meaning]) =>
+                  h.keyed('div')(
+                    word,
+                    [],
+                    [h.dt([], [word]), h.dd([], [meaning])],
+                  ),
+                ),
+              ),
+            ],
+          ),
           h.div(
             [h.Class('primer-doors')],
             [
@@ -748,13 +1040,15 @@ export const atlasScreenView = (model: Model, h: H): Html =>
         [
           model.atlasView === 'map'
             ? mapView(model, h)
-            : model.atlasView === 'ladder'
-              ? ladderView(model, h)
-              : h.div(
-                  [h.Class('stack')],
-                  [inventoryLensView(h), listView(model, h)],
-                ),
-          detailView(model, h),
+            : model.atlasView === 'yours'
+              ? yoursView(model, h)
+              : model.atlasView === 'ladder'
+                ? ladderView(model, h)
+                : h.div(
+                    [h.Class('stack')],
+                    [inventoryLensView(h), listView(model, h)],
+                  ),
+          model.atlasView === 'yours' ? h.empty : detailView(model, h),
         ],
       ),
       h.p(

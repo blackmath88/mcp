@@ -6,6 +6,7 @@ import {
   families,
   inputJsonSchema,
 } from '../domain/capabilities.ts'
+import { characterNote } from '../domain/foreign.ts'
 import {
   type ListedTool,
   listedFromCatalogue,
@@ -116,27 +117,6 @@ const rawFor = (
       onSome: tool => ({ json: tool.json, isObserved: true }),
     }),
   )
-
-const HIDDEN = /[​-‏⁠\u{E0000}-\u{E007F}]/u
-
-const characterNote = (text: string): string => {
-  if (HIDDEN.test(text)) {
-    return 'Contains characters that do not display. A person approving this would not see them.'
-  }
-  const unusual = pipe(
-    [...text],
-    Array.filter(letter => (letter.codePointAt(0) ?? 0) > 0x7e),
-    Array.dedupe,
-  )
-  return Array.isReadonlyArrayEmpty(unusual)
-    ? 'Plain ASCII. Nothing hidden.'
-    : `No hidden characters. Non-ASCII: ${unusual
-        .map(
-          letter =>
-            `${letter} U+${(letter.codePointAt(0) ?? 0).toString(16).toUpperCase().padStart(4, '0')}`,
-        )
-        .join(', ')}.`
-}
 
 // PARTS
 
