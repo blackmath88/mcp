@@ -48,6 +48,10 @@ export const Message = defineMessageUnion({
   SelectedTo: { value: Schema.String },
   SelectedWeather: { weather: Weather },
   ClickedExecute: {},
+  ClickedRun: { name: CapabilityName },
+  ClickedMapPlace: { place: Schema.String },
+  SelectedReading: { reading: Schema.Literals(['person', 'model', 'server']) },
+  ClickedInspectRun: {},
   CompletedRunCapability: {
     runId: Schema.Number,
     record: RunRecord,

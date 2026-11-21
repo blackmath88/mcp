@@ -68,13 +68,10 @@ Protocol facts (revision, feature status, client support) still need a check aga
 
 ## Immediate next action
 
-All twelve stations are playable as simulations. The breadth is there; the depth and the evidence are not. In order:
-
-1. Try the route with one person from the intended audience and note where it loses them.
-2. Reduce what is on screen further and make the panes resizable.
-3. Pin upstream revisions and fill the evidence records, starting with stations 01 to 03, which were never checked against a source.
-4. Decide with the owner whether stations 10 and 11 should get a real model, and whether any station should go live.
-5. Station 12 has no repair bench yet: no malformed messages, no fuzzing.
+1. Hand station 08 to one person on a phone. Within a minute, can they say where they are, move the map, notice the model still sees the old place, and find why? Then visit another station and come back.
+2. If that works, carry the pattern (specimen in the centre, readings beside it, evidence on demand) to the other stations, starting with 02 Memory and 04 Filesystem, whose boxes already are three readings.
+3. Align the stations with the owner's single-map thread in LEARNER-JOURNEY.md (route, moved bridge, print job). Today each station has its own small world.
+4. Pin upstream revisions; stations 01 to 03 were never checked against a source.
 
 ## Explicit exclusions for this change
 

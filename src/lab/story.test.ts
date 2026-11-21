@@ -314,17 +314,25 @@ describe('memory lifecycle', () => {
 })
 
 describe('backstage panel', () => {
-  test('collapses, and choosing a tab opens it again', () => {
+  test('starts collapsed; a tab or Inspect run opens it; the toggle closes it', () => {
     story(
       update,
       given(initialModel),
-      message(Message.ClickedToggleBackstage()),
-      model(collapsed => {
-        expect(collapsed.backstage).toBe('collapsed')
+      model(start => {
+        expect(start.backstage).toBe('collapsed')
       }),
       message(Message.SelectedTab({ tab: 'network' })),
       model(opened => {
         expect(opened.backstage).toBe('open')
+      }),
+      message(Message.ClickedToggleBackstage()),
+      model(closed => {
+        expect(closed.backstage).toBe('collapsed')
+      }),
+      message(Message.ClickedInspectRun()),
+      model(inspected => {
+        expect(inspected.backstage).toBe('open')
+        expect(inspected.tab).toBe('engine')
       }),
     )
   })
@@ -396,6 +404,115 @@ describe('later-station settings', () => {
       message(Message.ClickedPanMap()),
       model(panned => {
         expect(panned.world.app).toMatchObject({
+          view: 'dock',
+          modelKnows: 'forge',
+        })
+      }),
+    )
+  })
+})
+
+describe('bends reach the engine world', () => {
+  test('the robots policy, the weather and the file-server build all change the world', () => {
+    story(
+      update,
+      given(initialModel),
+      message(Message.SelectedPolicy({ policy: 'first-hop' })),
+      message(Message.SelectedWeather({ weather: 'storm' })),
+      message(Message.SelectedFsBuild({ build: 'confine' })),
+      model(bent => {
+        expect(bent.world.fetchPolicy).toBe('first-hop')
+        expect(bent.world.maxSpan).toBe(2)
+        expect(bent.world.files.build).toBe('confine')
+      }),
+    )
+  })
+})
+
+describe('browsing between stations', () => {
+  test('a finished run and the world survive a visit to another station', () => {
+    const fact = Effect.runSync(
+      runOn(worldFor('calm'), 'remember', {
+        entity: 'Workshop A',
+        observation: 'belongs to Team Blue',
+      }).pipe(Effect.provide(Pace.unpaced)),
+    )
+    story(
+      update,
+      given(initialModel),
+      message(Message.SelectedStation({ station: 'memory' })),
+      message(Message.ClickedExecute()),
+      Command.resolve(
+        RunCapability,
+        Message.CompletedRunCapability({
+          runId: 1,
+          record: fact.record,
+          world: fact.world,
+        }),
+      ),
+      message(Message.SelectedStation({ station: 'fetch' })),
+      model(away => {
+        expect(away.run).toEqual(RunState.Idle())
+        expect(away.world.memory.packageCache).toHaveLength(1)
+      }),
+      message(Message.SelectedStation({ station: 'memory' })),
+      model(back => {
+        expect(back.run._tag).toBe('Succeeded')
+        expect(back.world.memory.packageCache).toHaveLength(1)
+      }),
+      message(Message.ClickedReset()),
+      model(reset => {
+        expect(reset.run).toEqual(RunState.Idle())
+        expect(reset.world.memory.packageCache).toEqual([])
+      }),
+    )
+  })
+
+  test('resetting one station leaves the others alone', () => {
+    story(
+      update,
+      given({
+        ...initialModel,
+        station: 'apps',
+        world: {
+          ...initialModel.world,
+          revision: 4,
+          app: {
+            tools: 'on',
+            shown: 'forge',
+            view: 'dock',
+            modelKnows: 'forge',
+          },
+        },
+      }),
+      message(Message.ClickedReset()),
+      model(reset => {
+        expect(reset.world.app.view).toBe('')
+        expect(reset.world.revision).toBe(4)
+      }),
+    )
+  })
+
+  test('clicking a place on the open map moves the screen only', () => {
+    story(
+      update,
+      given({
+        ...initialModel,
+        station: 'apps',
+        world: {
+          ...initialModel.world,
+          app: {
+            tools: 'on',
+            shown: 'forge',
+            view: 'forge',
+            modelKnows: 'forge',
+          },
+        },
+      }),
+      message(Message.ClickedMapPlace({ place: 'dock' })),
+      model(moved => {
+        expect(moved.world.app).toMatchObject({
+          shown: 'forge',
           view: 'dock',
           modelKnows: 'forge',
         })

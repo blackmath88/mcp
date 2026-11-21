@@ -49,6 +49,7 @@ describe('the learning path', () => {
       Command.resolve(RunCapability, completed('calm')),
       expect(text('Succeeded')).toExist(),
       expect(text('Artifacts in the valley')).toExist(),
+      click(role('button', { name: 'Inspect run' })),
       expect(text('Showing 20 of 20 events')).toExist(),
       expect(
         text('commit path: revision 0 → 1: added mill–kiln (span 2.2)'),
@@ -64,6 +65,7 @@ describe('the learning path', () => {
       click(role('button', { name: 'Connection workshop, program' })),
       click(role('button', { name: 'Execute connect_places' })),
       Command.resolve(RunCapability, completed('calm')),
+      click(role('button', { name: 'Inspect run' })),
       click(role('button', { name: 'From the start' })),
       expect(text('Showing 0 of 20 events')).toExist(),
       click(role('button', { name: 'Step' })),
@@ -96,6 +98,7 @@ describe('the route of specimens', () => {
     scene(
       { update, view },
       given(initialModel),
+      click(role('button', { name: /Follow the work/ })),
       click(role('button', { name: /The network and the repair bench/ })),
       expect(text('Simulated here')).toExist(),
       expect(role('button', { name: 'Execute list_inventory' })).toExist(),
@@ -128,6 +131,7 @@ describe('the route of specimens', () => {
       expect(text('What came back')).toExist(),
       expect(role('button', { name: 'Page fetcher, ask' })).toExist(),
       expect(text('Page fetcher · fetch_page')).toExist(),
+      click(role('button', { name: 'Inspect run' })),
       expect(
         text(
           'robots.txt not consulted for hop 2: policy: check the first URL only',
@@ -219,6 +223,7 @@ describe('cli and gateway stations', () => {
     scene(
       { update, view },
       given(initialModel),
+      click(role('button', { name: /Open the workshop/ })),
       click(role('button', { name: /CLI, reversed/ })),
       expect(text('The generated CLI')).toExist(),
       expect(text('not generated yet')).toExist(),
@@ -231,6 +236,7 @@ describe('cli and gateway stations', () => {
     scene(
       { update, view },
       given(initialModel),
+      click(role('button', { name: /Follow the work/ })),
       click(role('button', { name: /Local and remote/ })),
       expect(text('Server process #1')).toExist(),
       expect(text('shared by every client')).toExist(),
@@ -245,10 +251,12 @@ describe('stations 08 to 11', () => {
     scene(
       { update, view },
       given(initialModel),
+      click(role('button', { name: /Open the workshop/ })),
       click(role('button', { name: /The item becomes an application/ })),
-      expect(text('What the model was last told')).toExist(),
+      expect(text('Model’s last view')).toExist(),
+      expect(text('Read this map as')).toExist(),
       expect(role('button', { name: 'App cannot be asked' })).toExist(),
-      expect(role('button', { name: 'Execute show_map' })).toExist(),
+      expect(role('button', { name: 'Open the map at Forge' })).toExist(),
     )
   })
 
@@ -256,8 +264,10 @@ describe('stations 08 to 11', () => {
     scene(
       { update, view },
       given(initialModel),
+      click(role('button', { name: /Open the workshop/ })),
       click(role('button', { name: /One item contains a language/ })),
       expect(role('button', { name: 'Third write fails' })).toExist(),
+      click(role('button', { name: /Follow the work/ })),
       click(role('button', { name: /Another intelligence/ })),
       expect(role('button', { name: 'Map left out' })).toExist(),
       expect(text('What was handed over')).toExist(),
@@ -268,11 +278,50 @@ describe('stations 08 to 11', () => {
   })
 })
 
+describe('orientation', () => {
+  test('the header says where you are and the three phases are always there', () => {
+    scene(
+      { update, view },
+      given(initialModel),
+      expect(text('The valley')).toExist(),
+      expect(role('button', { name: /Explore the inventory/ })).toExist(),
+      expect(role('button', { name: /Open the workshop/ })).toExist(),
+      expect(role('button', { name: /Follow the work/ })).toExist(),
+      expect(text('Simulation · synthetic data')).toExist(),
+      expect(role('button', { name: 'Reset experiment' })).toExist(),
+    )
+  })
+
+  test('the inspector separates being asked from what changed', () => {
+    scene(
+      { update, view },
+      given({
+        ...initialModel,
+        station: 'apps',
+        run: {
+          _tag: 'Succeeded',
+          runId: 1,
+          record: Effect.runSync(
+            runOn(worldFor('calm'), 'show_map', { place: 'forge' }).pipe(
+              Effect.provide(Pace.unpaced),
+            ),
+          ).record,
+        },
+      }),
+      expect(text('Was anyone asked?')).toExist(),
+      expect(text(/This simulation has no approval prompt/)).toExist(),
+      expect(text('App view: open the interactive map.')).toExist(),
+      expect(text(/nothing could change/)).toBeAbsent(),
+    )
+  })
+})
+
 describe('truthful labelling of evidence', () => {
   test('engine events are labelled in-process, never as MCP traffic', () => {
     scene(
       { update, view },
       given(initialModel),
+      click(role('button', { name: 'Expand' })),
       expect(text('In-process domain execution')).toExist(),
       expect(text('Recorded external execution')).toBeAbsent(),
     )

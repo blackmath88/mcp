@@ -103,6 +103,8 @@ export const Model = Schema.Struct({
   run: RunState,
   nextRunId: Schema.Number,
   replay: Replay,
+  reading: Schema.Literals(['person', 'model', 'server']),
+  savedRuns: Schema.Array(Schema.Struct({ station: Station, run: RunState })),
   tab: BackstageTab,
   backstage: Schema.Literals(['open', 'collapsed']),
   appLog: Schema.Array(AppLogEntry),

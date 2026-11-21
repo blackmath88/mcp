@@ -530,3 +530,65 @@ export const carrySettings = (fresh: World, previous: World): World => ({
   loop: previous.loop,
   net: { ...fresh.net, naming: previous.net.naming },
 })
+
+export type StationSlice =
+  | 'valley'
+  | 'memory'
+  | 'filesystem'
+  | 'perception'
+  | 'cli'
+  | 'local-remote'
+  | 'apps'
+  | 'code-mode'
+  | 'delegation'
+  | 'network'
+
+// NOTE: Puts one station's state back to its starting point and leaves every
+// other station, and every bend, as it is.
+export const resetSlice = (world: World, slice: string): World => {
+  const fresh = carrySettings(seedWorld(world.maxSpan), world)
+  if (slice === 'valley') {
+    return {
+      ...world,
+      revision: fresh.revision,
+      paths: fresh.paths,
+      artifacts: fresh.artifacts,
+    }
+  }
+  if (slice === 'memory') {
+    return { ...world, memory: fresh.memory }
+  }
+  if (slice === 'filesystem') {
+    return { ...world, files: fresh.files }
+  }
+  if (slice === 'perception') {
+    return { ...world, page: fresh.page }
+  }
+  if (slice === 'cli') {
+    return { ...world, cli: fresh.cli }
+  }
+  if (slice === 'local-remote') {
+    return { ...world, gateway: fresh.gateway }
+  }
+  if (slice === 'apps') {
+    return { ...world, app: fresh.app }
+  }
+  if (slice === 'code-mode') {
+    return { ...world, ledger: fresh.ledger }
+  }
+  if (slice === 'delegation') {
+    return { ...world, artifacts: fresh.artifacts }
+  }
+  if (slice === 'network') {
+    return { ...world, net: { ...fresh.net, naming: world.net.naming } }
+  }
+  return world
+}
+
+export const useFetchPolicy = (
+  world: World,
+  fetchPolicy: FetchPolicy,
+): World => ({
+  ...world,
+  fetchPolicy,
+})

@@ -877,3 +877,238 @@ tbody th {
 .text-list {
   list-style: none;
 }
+
+/* Orientation: phases in the header, bend and reset on the bench. */
+.titlebar .location {
+  color: var(--muted);
+}
+.location b {
+  color: var(--ink);
+}
+.simtag {
+  margin-left: auto;
+  font: 600 10.5px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 8px;
+  border-radius: 4px;
+  border: 1px dashed var(--muted);
+  color: var(--muted);
+}
+.phase-map {
+  flex-basis: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+.phase-stop {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  text-align: left;
+  gap: 2px 8px;
+  padding: 7px 12px;
+  border-radius: 7px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  line-height: 1.2;
+}
+.phase-stop:hover {
+  border-color: var(--muted);
+}
+.phase-stop[aria-current='step'] {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+.phase-number {
+  font: 600 11px/1 var(--mono);
+  opacity: 0.7;
+}
+.phase-name {
+  font-weight: 600;
+}
+.phase-stop small {
+  grid-column: 2;
+  font-size: 12px;
+  opacity: 0.75;
+}
+.source-jump {
+  width: 100%;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+}
+.benchtools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.bendrow .bend {
+  margin-left: 0;
+}
+.btn.small {
+  padding: 5px 10px;
+  font-size: 12.5px;
+}
+.afterrun {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px 12px;
+  color: var(--ink);
+}
+.afterrun ul {
+  list-style: disc inside;
+}
+
+/* Station 08: the map is the specimen; three readings of one state. */
+.appbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 12px;
+}
+@media (max-width: 720px) {
+  .appbench {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.appmap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.appsvg {
+  max-width: none;
+  aspect-ratio: 700 / 240;
+}
+.appsvg.closed {
+  opacity: 0.45;
+}
+.appsvg .place {
+  cursor: pointer;
+}
+.appsvg .mark {
+  fill: none;
+  stroke-width: 3;
+  opacity: 0.3;
+}
+.appsvg .mark.screen {
+  stroke: var(--ink);
+}
+.appsvg .mark.model {
+  stroke: var(--back);
+  stroke-dasharray: 5 5;
+}
+.appsvg .mark.shown {
+  stroke: var(--req);
+  stroke-dasharray: 2 6;
+}
+.appsvg.reading-person .mark.screen,
+.appsvg.reading-model .mark.model,
+.appsvg.reading-server .mark.shown {
+  opacity: 1;
+  stroke-width: 5;
+}
+.moverow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-weight: 600;
+  font-size: 13px;
+  background: var(--surface);
+}
+.chip[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+.readout {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.reading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-left-width: 5px;
+  background: var(--surface-2);
+}
+.reading.person {
+  border-left-color: var(--ink);
+}
+.reading.model {
+  border-left-color: var(--back);
+}
+.reading.server {
+  border-left-color: var(--req);
+}
+.reading[aria-pressed='true'] {
+  background: var(--surface);
+  border-color: var(--ink);
+  border-left-width: 5px;
+}
+.reading-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+.reading-note {
+  font-size: 13px;
+  color: var(--muted);
+  min-height: 2.8em;
+}
+@media (max-width: 720px) {
+  .phase-stop {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 8px;
+  }
+  .phase-stop small {
+    display: none;
+  }
+  .simtag {
+    margin-left: 0;
+  }
+}
+
+/* On a phone the specimen comes first; the lists follow it. */
+@media (max-width: 720px) {
+  .workbench {
+    order: 1;
+  }
+  .panel {
+    order: 2;
+  }
+  .sidebar {
+    order: 3;
+    border-top: 1px solid var(--line);
+  }
+  .inspector {
+    order: 4;
+  }
+  .statusbar {
+    order: 5;
+  }
+}

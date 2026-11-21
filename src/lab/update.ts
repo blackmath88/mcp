@@ -10,11 +10,12 @@ import {
   PlaceId,
   World,
   applyRootsUpdate,
-  carrySettings,
   panMap,
   passSessionTimeout,
   reconnectClient,
   reinstallPackage,
+  resetSlice,
+  useFetchPolicy,
   useFsBuild,
   useGatewayBuild,
   usePerception,
@@ -29,7 +30,9 @@ import {
   type Model,
   Replay,
   RunState,
+  type Station,
   type Weather,
+  maxSpanIn,
   worldFor,
 } from './model.ts'
 
@@ -141,8 +144,10 @@ export const initialModel: Model = {
   run: RunState.Idle(),
   nextRunId: 1,
   replay: Replay.Complete(),
+  reading: 'person',
+  savedRuns: [],
   tab: 'engine',
-  backstage: 'open',
+  backstage: 'collapsed',
   appLog: [],
   nextAppLogSeq: 1,
 }
@@ -214,6 +219,33 @@ const logged = (model: Model, message: Message): Model =>
     nextAppLogSeq: seq => seq + 1,
   })
 
+const defaultCapability = (station: Station): Option.Option<CapabilityName> =>
+  station === 'fetch'
+    ? Option.some('fetch_page')
+    : station === 'memory'
+      ? Option.some('remember')
+      : station === 'thinking'
+        ? Option.some('plan_steps')
+        : station === 'filesystem'
+          ? Option.some('read_file')
+          : station === 'perception'
+            ? Option.some('take_snapshot')
+            : station === 'apps'
+              ? Option.some('show_map')
+              : station === 'code-mode'
+                ? Option.some('run_as_calls')
+                : station === 'delegation'
+                  ? Option.some('ask_expert')
+                  : station === 'iteration'
+                    ? Option.some('refine_plan')
+                    : station === 'network'
+                      ? Option.some('list_inventory')
+                      : station === 'cli'
+                        ? Option.some('generate_cli')
+                        : station === 'local-remote'
+                          ? Option.some('go_to')
+                          : Option.none()
+
 const interruptIfRunning = (model: Model) =>
   RunState.isAnyOf(['Running'])(model.run)
     ? [
@@ -226,9 +258,8 @@ const interruptIfRunning = (model: Model) =>
 const freshWorld = (model: Model, weather: Weather): Model =>
   modifyFields(model, {
     weather: () => weather,
-    world: () => carrySettings(worldFor(weather), model.world),
-    conversation: () => [],
-    serverStarts: () => 1,
+    world: world =>
+      resetSlice({ ...world, maxSpan: maxSpanIn(weather) }, 'valley'),
     run: () => RunState.Idle(),
     replay: () => Replay.Complete(),
   })
@@ -318,44 +349,39 @@ export const update = (current: Model, message: Message) => {
   const model = logged(current, message)
   return Message.match<UpdateReturn>(message, {
     SelectedStation: ({ station }) => ({
-      model: modifyFields(freshWorld(model, model.weather), {
+      model: modifyFields(model, {
         station: () => station,
-        maybeSelected: () =>
-          station === 'fetch'
-            ? Option.some('fetch_page')
-            : station === 'memory'
-              ? Option.some('remember')
-              : station === 'thinking'
-                ? Option.some('plan_steps')
-                : station === 'filesystem'
-                  ? Option.some('read_file')
-                  : station === 'perception'
-                    ? Option.some('take_snapshot')
-                    : station === 'apps'
-                      ? Option.some('show_map')
-                      : station === 'code-mode'
-                        ? Option.some('run_as_calls')
-                        : station === 'delegation'
-                          ? Option.some('ask_expert')
-                          : station === 'iteration'
-                            ? Option.some('refine_plan')
-                            : station === 'network'
-                              ? Option.some('list_inventory')
-                              : station === 'cli'
-                                ? Option.some('generate_cli')
-                                : station === 'local-remote'
-                                  ? Option.some('go_to')
-                                  : Option.none(),
-        tab: () => 'engine',
+        maybeSelected: () => defaultCapability(station),
+        savedRuns: saved => [
+          ...Array.filter(saved, entry => entry.station !== model.station),
+          {
+            station: model.station,
+            run: RunState.isAnyOf(['Running'])(model.run)
+              ? RunState.Idle()
+              : model.run,
+          },
+        ],
+        run: () =>
+          pipe(
+            model.savedRuns,
+            Array.findFirst(entry => entry.station === station),
+            Option.match({
+              onNone: () => RunState.Idle(),
+              onSome: entry => entry.run,
+            }),
+          ),
+        replay: () => Replay.Complete(),
+        reading: () => 'person',
       }),
       commands: interruptIfRunning(model),
     }),
 
     SelectedPolicy: ({ policy }) => ({
-      model: freshWorld(
-        modifyFields(model, { fetchPolicy: () => policy }),
-        model.weather,
-      ),
+      model: modifyFields(model, {
+        fetchPolicy: () => policy,
+        world: world => useFetchPolicy(world, policy),
+        run: () => RunState.Idle(),
+      }),
       commands: interruptIfRunning(model),
     }),
 
@@ -386,10 +412,10 @@ export const update = (current: Model, message: Message) => {
     }),
 
     SelectedFsBuild: ({ build }) => ({
-      model: freshWorld(
-        modifyFields(model, { world: world => useFsBuild(world, build) }),
-        model.weather,
-      ),
+      model: modifyFields(model, {
+        world: world => resetSlice(useFsBuild(world, build), 'filesystem'),
+        run: () => RunState.Idle(),
+      }),
       commands: interruptIfRunning(model),
     }),
 
@@ -566,6 +592,8 @@ export const update = (current: Model, message: Message) => {
                         ? RunState.Succeeded({ runId, record })
                         : RunState.Failed({ runId, record }),
                     replay: () => Replay.Complete(),
+                    backstage: backstage =>
+                      record.outcome._tag === 'Failed' ? 'open' : backstage,
                   }),
                   pipe(
                     [
@@ -585,6 +613,57 @@ export const update = (current: Model, message: Message) => {
               },
       }),
 
+    ClickedRun: ({ name }) =>
+      RunState.isAnyOf(['Running'])(model.run)
+        ? { model }
+        : {
+            model: modifyFields(model, {
+              maybeSelected: () => Option.some(name),
+              run: () =>
+                RunState.Running({ runId: model.nextRunId, capability: name }),
+              nextRunId: runId => runId + 1,
+              replay: () => Replay.Complete(),
+            }),
+            commands: [
+              RunCapability({
+                runId: model.nextRunId,
+                world: model.world,
+                capability: name,
+                from: model.from,
+                to: model.to,
+                url: model.url,
+                entity: model.entity,
+                observation: model.observation,
+                path: model.path,
+                target: model.target,
+                client: model.client,
+                place: model.place,
+                toolName: model.toolName,
+              }),
+            ],
+          },
+
+    ClickedMapPlace: ({ place }) => ({
+      model: modifyFields(model, {
+        place: () => place,
+        world: world => (world.app.view === '' ? world : panMap(world, place)),
+      }),
+    }),
+
+    SelectedReading: ({ reading }) => ({
+      model: modifyFields(model, { reading: () => reading }),
+    }),
+
+    ClickedInspectRun: () => ({
+      model: complete(
+        modifyFields(model, {
+          tab: () => 'engine',
+          backstage: () => 'open',
+        }),
+        ['trace'],
+      ),
+    }),
+
     ClickedCancel: () =>
       RunState.match<UpdateReturn>(model.run, {
         Idle: () => ({ model }),
@@ -600,7 +679,13 @@ export const update = (current: Model, message: Message) => {
       }),
 
     ClickedReset: () => ({
-      model: freshWorld(model, model.weather),
+      model: modifyFields(model, {
+        world: world => resetSlice(world, model.station),
+        run: () => RunState.Idle(),
+        replay: () => Replay.Complete(),
+        conversation: lines => (model.station === 'memory' ? [] : lines),
+        serverStarts: starts => (model.station === 'memory' ? 1 : starts),
+      }),
       commands: interruptIfRunning(model),
     }),
 

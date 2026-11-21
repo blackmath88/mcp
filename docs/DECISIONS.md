@@ -104,6 +104,12 @@ Status: agreed direction from owner, 2026-11-21. First pass implemented.
 
 Detail moves behind fold-outs; the workbench shows the question, the control and the result.
 
+## D12 — One station becomes the pattern before more breadth
+
+Status: decided by the assistant at the owner's request ("you decide"), 2026-11-21, after external review. Implemented for station 08.
+
+Station 08 is the reference interaction: the specimen is in the centre and is moved directly; three readings of one state (person, model, tool result) sit beside it; evidence opens on demand. The other eleven stations keep their text-box benches until this pattern has been tried with a person. Navigation follows the three learner phases from docs/concept/LEARNER-JOURNEY.md. Browsing between stations keeps each station's state; reset is explicit and per station.
+
 ## Still undecided
 
 Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.

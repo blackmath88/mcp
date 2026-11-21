@@ -1,4 +1,4 @@
-import { Array, Option, pipe } from 'effect'
+import { Array, Option, Order, pipe } from 'effect'
 import { type Document, type Html, type HtmlBuilder } from 'foldkit/html'
 
 import route from '../../specimens/route.json'
@@ -85,7 +85,7 @@ const chapters: ReadonlyArray<ChapterInfo> = [
   },
   {
     id: 'program',
-    name: 'Open the workshop',
+    name: 'Run a program',
     prompt:
       'This item is a program. Give it a goal, not an instruction, and see what machinery it brings.',
   },
@@ -315,6 +315,57 @@ const stationOf = (id: string): Station =>
     () => 'valley' as const,
   )
 
+type JourneyPhase = 'inventory' | 'workshop' | 'follow'
+
+const phaseNames: Record<JourneyPhase, string> = {
+  inventory: 'Explore the inventory',
+  workshop: 'Open the workshop',
+  follow: 'Follow the work',
+}
+
+const phaseExamples: Record<JourneyPhase, string> = {
+  inventory: 'Maps · fetch · memory · files',
+  workshop: 'Thinking · CLI · apps · code',
+  follow: 'Gateways · delegation · loops',
+}
+
+const phaseOrder: ReadonlyArray<JourneyPhase> = [
+  'inventory',
+  'workshop',
+  'follow',
+]
+
+const phaseOf: Record<Station, JourneyPhase> = {
+  valley: 'inventory',
+  fetch: 'inventory',
+  memory: 'inventory',
+  filesystem: 'inventory',
+  perception: 'inventory',
+  thinking: 'workshop',
+  cli: 'workshop',
+  apps: 'workshop',
+  'code-mode': 'workshop',
+  'local-remote': 'follow',
+  delegation: 'follow',
+  iteration: 'follow',
+  network: 'follow',
+}
+
+const phaseStations = (phase: JourneyPhase): ReadonlyArray<Station> =>
+  Array.filter(stations, station => phaseOf[station] === phase)
+
+const stationTitle = (station: Station): string =>
+  Option.match(findSpecimen(station), {
+    onNone: () => 'The valley',
+    onSome: specimen => specimen.title,
+  })
+
+const stationSource = (station: Station): string =>
+  Option.match(findSpecimen(station), {
+    onNone: () => 'MCP Lab',
+    onSome: specimen => specimen.anchor.repo,
+  })
+
 const findSpecimen = (station: Station): Option.Option<Specimen> =>
   Array.findFirst(route.specimens, specimen => specimen.id === station)
 
@@ -497,20 +548,22 @@ const fiveAnswers = (model: Model): ReadonlyArray<Answer> => {
         ? 'You chose the goal. The planner chose which path to build. No model is involved on this page.'
         : 'You, by pressing Execute. No model is involved on this page.'
     }),
-    ask('Who authorised it?', record =>
-      record.events.some(event => event.component === 'validator')
-        ? 'Nobody was asked. The validator enforced the span limit in code; there is no approval step here.'
-        : record.events.some(event => event.component === 'boundary')
-          ? 'Nobody asked you. The server compared the path with its effective list, which the client’s roots may have rewritten.'
-          : record.events.some(event => event.component === 'browser-tool')
-            ? 'Nobody was asked. The tool acted on whatever it could address.'
-            : record.events.some(event => event.component === 'memory-graph')
-              ? 'Nobody. Whatever the caller says is stored as given; nothing checks whether it is true.'
-              : record.events.some(event => event.component === 'thinking-tool')
-                ? 'Nobody was asked, and nobody checked the plan unless the build did.'
-                : record.events.some(event => event.component === 'fetcher')
-                  ? 'Nobody asked you. The server’s robots policy decided, and only for the hops it was consulted on.'
-                  : 'Nobody was asked, and nothing could change.',
+    ask('Was anyone asked?', record =>
+      pipe(
+        record.events,
+        Array.findFirst(
+          event =>
+            event.component === 'validator' ||
+            event.component === 'robots-policy' ||
+            event.component === 'boundary',
+        ),
+        Option.match({
+          onNone: () =>
+            'No. This simulation has no approval prompt, and no component checked the request.',
+          onSome: event =>
+            `No. This simulation has no approval prompt. The ${componentNames[event.component].toLowerCase()} applied a rule in code.`,
+        }),
+      ),
     ),
     ask(
       'Where did it run?',
@@ -574,7 +627,49 @@ const titlebarView = (model: Model, h: H): Html =>
     [h.Class('titlebar')],
     [
       h.h1([], ['MCP Lab']),
-      h.p([h.Class('tagline')], ['What were you just handed?']),
+      h.p(
+        [h.Class('location'), h.AriaLabel('Current location')],
+        [
+          `${phaseNames[phaseOf[model.station]]} › `,
+          h.b([], [stationTitle(model.station)]),
+        ],
+      ),
+      h.span([h.Class('simtag')], ['Simulation · synthetic data']),
+      phaseMapView(model, h),
+    ],
+  )
+
+const phaseMapView = (model: Model, h: H): Html =>
+  h.nav(
+    [h.Class('phase-map'), h.AriaLabel('Learning path, simple to complex')],
+    Array.map(phaseOrder, (phase, index) =>
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('phase-stop'),
+          h.AriaCurrent(phaseOf[model.station] === phase ? 'step' : 'false'),
+          h.OnClick(
+            Message.SelectedStation({
+              station: Option.getOrElse(
+                Array.head(phaseStations(phase)),
+                () => 'valley' as const,
+              ),
+            }),
+          ),
+        ],
+        [
+          h.span([h.Class('phase-number')], [String(index + 1)]),
+          h.span([h.Class('phase-name')], [phaseNames[phase]]),
+          h.small([], [phaseExamples[phase]]),
+        ],
+      ),
+    ),
+  )
+
+const bendRowView = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('bendrow')],
+    [
       Option.isSome(asLater(model.station))
         ? laterBend(model, h)
         : model.station === 'valley'
@@ -594,7 +689,9 @@ const titlebarView = (model: Model, h: H): Html =>
                     [
                       h.Type('button'),
                       h.AriaPressed(
-                        model.fetchPolicy === policy.id ? 'true' : 'false',
+                        model.world.fetchPolicy === policy.id
+                          ? 'true'
+                          : 'false',
                       ),
                       h.OnClick(Message.SelectedPolicy({ policy: policy.id })),
                     ],
@@ -769,87 +866,62 @@ const journeyView = (model: Model, h: H): Html =>
   h.section(
     [h.Class('side-section')],
     [
-      h.h2([h.Class('side-title')], ['Start here']),
-      h.button(
-        [
-          h.Type('button'),
-          h.Class('rung'),
-          h.AriaCurrent(model.station === 'valley' ? 'page' : 'false'),
-          h.OnClick(Message.SelectedStation({ station: 'valley' })),
-        ],
-        [
-          h.span([h.Class('n')], ['00']),
-          h.span([h.Class('t')], ['The valley']),
-          h.span([h.Class('k')], ['ours']),
-        ],
+      h.label(
+        [h.For('source-jump'), h.Class('side-title')],
+        ['Browse by source'],
       ),
-      model.station === 'valley'
-        ? h.ol(
-            [h.Class('journey steps')],
-            Array.map(chapters, (chapter, index) =>
-              h.keyed('li')(
-                chapter.id,
-                [],
-                [
-                  h.button(
-                    [
-                      h.Type('button'),
-                      h.Class('rung'),
-                      h.AriaCurrent(
-                        model.chapter === chapter.id ? 'step' : 'false',
-                      ),
-                      h.OnClick(
-                        Message.ClickedChapter({ chapter: chapter.id }),
-                      ),
-                    ],
-                    [
-                      h.span([h.Class('n')], [`${index + 1}`]),
-                      h.span([h.Class('t')], [chapter.name]),
-                      h.span(
-                        [h.Class('k')],
-                        [
-                          model.completedChapters.includes(chapter.id)
-                            ? 'done'
-                            : '',
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+      h.select(
+        [
+          h.Id('source-jump'),
+          h.Class('source-jump'),
+          h.Value(model.station),
+          h.OnChange(value =>
+            Message.SelectedStation({ station: stationOf(value) }),
+          ),
+        ],
+        pipe(
+          stations,
+          Array.sort(Order.mapInput(Order.String, stationSource)),
+          Array.map(station =>
+            h.option(
+              [h.Value(station), h.Selected(station === model.station)],
+              [`${stationSource(station)} · ${stationTitle(station)}`],
             ),
-          )
-        : h.empty,
-      h.h2([h.Class('side-title')], ['Route · easy to complex']),
+          ),
+        ),
+      ),
+      h.h2([h.Class('side-title')], [phaseNames[phaseOf[model.station]]]),
       h.ol(
         [h.Class('journey')],
-        Array.map(route.specimens, specimen =>
+        Array.map(phaseStations(phaseOf[model.station]), station =>
           h.keyed('li')(
-            specimen.id,
+            station,
             [],
             [
               h.button(
                 [
                   h.Type('button'),
                   h.Class('rung'),
-                  h.AriaCurrent(
-                    model.station === specimen.id ? 'page' : 'false',
-                  ),
-                  h.OnClick(
-                    Message.SelectedStation({
-                      station: stationOf(specimen.id),
-                    }),
-                  ),
+                  h.AriaCurrent(station === model.station ? 'page' : 'false'),
+                  h.OnClick(Message.SelectedStation({ station })),
                 ],
                 [
                   h.span(
                     [h.Class('n')],
-                    [String(specimen.number).padStart(2, '0')],
+                    [String(stations.indexOf(station)).padStart(2, '0')],
                   ),
-                  h.span([h.Class('t')], [specimen.title]),
+                  h.span([h.Class('t')], [stationTitle(station)]),
                   h.span(
-                    [h.Class(`k ${specimen.status}`)],
-                    [specimen.status === 'simulated' ? 'try it' : 'read'],
+                    [h.Class('k')],
+                    [
+                      model.savedRuns.some(
+                        entry =>
+                          entry.station === station &&
+                          !RunState.isAnyOf(['Idle'])(entry.run),
+                      )
+                        ? 'visited'
+                        : '',
+                    ],
                   ),
                 ],
               ),
@@ -857,6 +929,49 @@ const journeyView = (model: Model, h: H): Html =>
           ),
         ),
       ),
+      model.station === 'valley'
+        ? h.details(
+            [h.Class('fold'), h.Open(true)],
+            [
+              h.summary([], ['Valley walkthrough']),
+              h.ol(
+                [h.Class('journey steps')],
+                Array.map(chapters, (chapter, index) =>
+                  h.keyed('li')(
+                    chapter.id,
+                    [],
+                    [
+                      h.button(
+                        [
+                          h.Type('button'),
+                          h.Class('rung'),
+                          h.AriaCurrent(
+                            model.chapter === chapter.id ? 'step' : 'false',
+                          ),
+                          h.OnClick(
+                            Message.ClickedChapter({ chapter: chapter.id }),
+                          ),
+                        ],
+                        [
+                          h.span([h.Class('n')], [`${index + 1}`]),
+                          h.span([h.Class('t')], [chapter.name]),
+                          h.span(
+                            [h.Class('k')],
+                            [
+                              model.completedChapters.includes(chapter.id)
+                                ? 'done'
+                                : '',
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          )
+        : h.empty,
     ],
   )
 
@@ -999,7 +1114,7 @@ const statusbarView = (model: Model, h: H): Html =>
             : model.station === 'valley'
               ? `${model.weather} valley · map revision ${model.world.revision}`
               : model.station === 'fetch'
-                ? `robots policy: ${model.fetchPolicy}`
+                ? `robots policy: ${model.world.fetchPolicy}`
                 : model.station === 'memory'
                   ? `storage: ${pathLabel[model.world.memory.storagePath]} · server start #${model.serverStarts}`
                   : model.station === 'thinking'
@@ -1853,65 +1968,225 @@ const lastOutput = (model: Model) =>
       : Option.none(),
   )
 
+const APP_PLACES: ReadonlyArray<
+  Readonly<{ id: string; name: string; x: number; y: number }>
+> = [
+  { id: 'forge', name: 'Forge', x: 110, y: 150 },
+  { id: 'mill', name: 'Mill', x: 270, y: 150 },
+  { id: 'kiln', name: 'Kiln', x: 430, y: 90 },
+  { id: 'dock', name: 'Dock', x: 590, y: 150 },
+]
+
+const appPlaceName = (id: string): string =>
+  Option.match(
+    Array.findFirst(APP_PLACES, place => place.id === id),
+    { onNone: () => 'nowhere yet', onSome: place => place.name },
+  )
+
+const appBenchView = (model: Model, h: H): Html => {
+  const app = model.world.app
+  const isOpen = app.view !== ''
+  const isStale = isOpen && app.modelKnows !== app.view
+  const readings: ReadonlyArray<
+    Readonly<{
+      id: 'person' | 'model' | 'server'
+      label: string
+      value: string
+      note: string
+    }>
+  > = [
+    {
+      id: 'person',
+      label: 'On your screen',
+      value: appPlaceName(app.view),
+      note: 'What the app shows right now. You moved it; no tool was called.',
+    },
+    {
+      id: 'model',
+      label: 'Model’s last view',
+      value: `${appPlaceName(app.modelKnows)}${isStale ? ' · out of date' : ''}`,
+      note: isStale
+        ? 'The model still holds what the last tool result told it. Nothing reported your move.'
+        : 'What the model was last told matches the screen.',
+    },
+    {
+      id: 'server',
+      label: 'Tool result',
+      value: appPlaceName(app.shown),
+      note: 'Returned once, when the app opened. It does not update itself.',
+    },
+  ]
+  return h.div(
+    [h.Class('appbench')],
+    [
+      h.div(
+        [h.Class('appmap')],
+        [
+          h.svg(
+            [
+              h.Class(
+                `map appsvg reading-${model.reading} ${isOpen ? '' : 'closed'}`,
+              ),
+              h.ViewBox('0 0 700 240'),
+              h.Role('img'),
+              h.AriaLabel(
+                isOpen
+                  ? `Interactive map. The screen shows ${appPlaceName(app.view)}; the model was last told ${appPlaceName(app.modelKnows)}.`
+                  : 'The map app is not open yet.',
+              ),
+            ],
+            [
+              h.line([
+                h.Class('path'),
+                h.X1('110'),
+                h.Y1('150'),
+                h.X2('270'),
+                h.Y2('150'),
+              ]),
+              h.line([
+                h.Class('path'),
+                h.X1('430'),
+                h.Y1('90'),
+                h.X2('590'),
+                h.Y2('150'),
+              ]),
+              ...Array.flatMap(APP_PLACES, place => [
+                place.id === app.shown
+                  ? h.circle([
+                      h.Class('mark shown'),
+                      h.Cx(String(place.x)),
+                      h.Cy(String(place.y)),
+                      h.R('34'),
+                    ])
+                  : h.empty,
+                place.id === app.modelKnows
+                  ? h.circle([
+                      h.Class('mark model'),
+                      h.Cx(String(place.x)),
+                      h.Cy(String(place.y)),
+                      h.R('27'),
+                    ])
+                  : h.empty,
+                place.id === app.view
+                  ? h.rect([
+                      h.Class('mark screen'),
+                      h.X(String(place.x - 60)),
+                      h.Y(String(place.y - 50)),
+                      h.Width('120'),
+                      h.Height('100'),
+                      h.Rx('8'),
+                    ])
+                  : h.empty,
+                h.circle([
+                  h.Class('place'),
+                  h.Cx(String(place.x)),
+                  h.Cy(String(place.y)),
+                  h.R('12'),
+                  h.OnClick(Message.ClickedMapPlace({ place: place.id })),
+                ]),
+                h.text(
+                  [
+                    h.Class('place-label'),
+                    h.X(String(place.x)),
+                    h.Y(String(place.y + 80)),
+                    h.TextAnchor('middle'),
+                  ],
+                  [place.name],
+                ),
+              ]),
+            ],
+          ),
+          h.div(
+            [
+              h.Class('moverow'),
+              h.Role('group'),
+              h.AriaLabel(isOpen ? 'Move the map to' : 'Open the map at'),
+            ],
+            [
+              h.span(
+                [h.Class('eyebrow')],
+                [isOpen ? 'Move the map to' : 'Choose where to open'],
+              ),
+              ...Array.map(APP_PLACES, place =>
+                h.button(
+                  [
+                    h.Type('button'),
+                    h.Class('chip'),
+                    h.AriaPressed(
+                      (isOpen ? app.view : model.place) === place.id
+                        ? 'true'
+                        : 'false',
+                    ),
+                    h.OnClick(Message.ClickedMapPlace({ place: place.id })),
+                  ],
+                  [place.name],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      h.div(
+        [h.Class('readout')],
+        [
+          h.span([h.Class('eyebrow')], ['Read this map as']),
+          ...Array.map(readings, reading =>
+            h.button(
+              [
+                h.Type('button'),
+                h.Class(`reading ${reading.id}`),
+                h.AriaPressed(model.reading === reading.id ? 'true' : 'false'),
+                h.OnClick(Message.SelectedReading({ reading: reading.id })),
+              ],
+              [
+                h.span([h.Class('reading-label')], [reading.label]),
+                h.b([], [reading.value]),
+              ],
+            ),
+          ),
+          h.p(
+            [h.Class('reading-note'), h.AriaLive('polite')],
+            [
+              pipe(
+                readings,
+                Array.findFirst(reading => reading.id === model.reading),
+                Option.match({
+                  onNone: () => '',
+                  onSome: reading => reading.note,
+                }),
+              ),
+            ],
+          ),
+          isOpen
+            ? h.button(
+                [
+                  h.Type('button'),
+                  h.Class('btn'),
+                  h.Disabled(RunState.isAnyOf(['Running'])(model.run)),
+                  h.OnClick(Message.ClickedRun({ name: 'get_current_view' })),
+                ],
+                ['Ask the app where it is looking'],
+              )
+            : h.button(
+                [
+                  h.Type('button'),
+                  h.Class('btn'),
+                  h.Disabled(RunState.isAnyOf(['Running'])(model.run)),
+                  h.OnClick(Message.ClickedRun({ name: 'show_map' })),
+                ],
+                [`Open the map at ${appPlaceName(model.place)}`],
+              ),
+        ],
+      ),
+    ],
+  )
+}
+
 const laterBench = (model: Model, h: H): ReadonlyArray<Html> => {
   const world = model.world
   const maybeOutput = lastOutput(model)
   if (model.station === 'apps') {
-    const app = world.app
-    return [
-      h.div(
-        [h.Class('ctl')],
-        [
-          optionSelect(
-            'app-place',
-            'Place',
-            model.place,
-            gatewayPlaces,
-            value => Message.SelectedGatewayPlace({ value }),
-            h,
-          ),
-          executeButton(model, selectedLabel(model), h),
-          h.button(
-            [
-              h.Type('button'),
-              h.Class('btn ghost'),
-              h.Disabled(app.view === ''),
-              h.OnClick(Message.ClickedPanMap()),
-            ],
-            ['You drag the map to this place'],
-          ),
-        ],
-      ),
-      resultView(model, h),
-      h.div(
-        [h.Class('places')],
-        [
-          box(
-            'The tool result',
-            'returned once, when the app opened',
-            app.shown === '' ? [] : [`centred on ${app.shown}`],
-            false,
-            h,
-          ),
-          box(
-            'On your screen now',
-            'the app’s live view',
-            app.view === '' ? [] : [`looking at ${app.view}`],
-            true,
-            h,
-          ),
-          box(
-            'What the model was last told',
-            app.modelKnows === app.view
-              ? 'matches the screen'
-              : 'out of date · you moved the map and nothing reported it',
-            app.modelKnows === '' ? [] : [`looking at ${app.modelKnows}`],
-            false,
-            h,
-          ),
-        ],
-      ),
-    ]
+    return [appBenchView(model, h), resultView(model, h)]
   }
   if (model.station === 'code-mode') {
     return [
@@ -2198,6 +2473,22 @@ const planView = (model: Model, h: H): Html =>
 
 // ONSTAGE
 
+const benchToolsView = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('benchtools')],
+    [
+      bendRowView(model, h),
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('btn ghost small'),
+          h.OnClick(Message.ClickedReset()),
+        ],
+        ['Reset experiment'],
+      ),
+    ],
+  )
+
 const workbenchView = (model: Model, h: H): Html =>
   model.station === 'valley'
     ? valleyBenchView(model, h)
@@ -2224,6 +2515,7 @@ const workbenchView = (model: Model, h: H): Html =>
             onNone: () => h.empty,
             onSome: specimen => specimenView(specimen, h),
           }),
+          benchToolsView(model, h),
           ...(Option.isSome(asLater(model.station))
             ? laterBench(model, h)
             : model.station === 'fetch'
@@ -2320,6 +2612,7 @@ const valleyBenchView = (model: Model, h: H): Html => {
             ),
         }),
       ),
+      benchToolsView(model, h),
       mapView(model, h),
       pathListView(model.world, h),
       controlsView(model, h),
@@ -2482,14 +2775,6 @@ const controlsView = (model: Model, h: H): Html => {
                 ['Cancel'],
               )
             : h.empty,
-          h.button(
-            [
-              h.Type('button'),
-              h.Class('btn ghost'),
-              h.OnClick(Message.ClickedReset()),
-            ],
-            ['Reset the valley'],
-          ),
         ],
       ),
   })
@@ -2503,6 +2788,47 @@ const undoneText = (record: RunRecord): string =>
       ? `Nothing was built. The map is still at revision ${record.revisionAfter}.`
       : 'Nothing changed.'
 
+const afterRunView = (record: RunRecord, h: H): Html =>
+  h.div(
+    [h.Class('afterrun')],
+    [
+      h.details(
+        [h.Class('fold')],
+        [
+          h.summary([], ['What changed?']),
+          pipe(
+            record.events,
+            Array.filter(event => event.kind === 'state-changed'),
+            Array.match({
+              onEmpty: () => h.p([], ['Nothing. This run changed no state.']),
+              onNonEmpty: changes =>
+                h.ul(
+                  [],
+                  Array.map(changes, change =>
+                    h.keyed('li')(
+                      String(change.seq),
+                      [],
+                      [
+                        `${componentNames[change.component]}: ${change.operation}. ${change.detail}`,
+                      ],
+                    ),
+                  ),
+                ),
+            }),
+          ),
+        ],
+      ),
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('btn ghost small'),
+          h.OnClick(Message.ClickedInspectRun()),
+        ],
+        ['Inspect run'],
+      ),
+    ],
+  )
+
 const resultView = (model: Model, h: H): Html =>
   RunState.match(model.run, {
     Idle: () => h.empty,
@@ -2514,17 +2840,24 @@ const resultView = (model: Model, h: H): Html =>
         ],
       ),
     Succeeded: ({ record }) =>
-      h.p([h.Class('result ok'), h.AriaLive('polite')], [outcomeText(record)]),
+      h.div(
+        [h.Class('result ok'), h.AriaLive('polite')],
+        [h.p([], [outcomeText(record)]), afterRunView(record, h)],
+      ),
     Failed: ({ record }) =>
       h.div(
         [h.Class('result warn'), h.AriaLive('polite')],
-        [h.p([], [outcomeText(record)]), h.p([], [undoneText(record)])],
+        [
+          h.p([], [outcomeText(record)]),
+          h.p([], [undoneText(record)]),
+          afterRunView(record, h),
+        ],
       ),
     Cancelled: ({ capability }) =>
       h.p(
         [h.Class('result'), h.AriaLive('polite')],
         [
-          `You cancelled ${capability} before the engine reported. On this page the map is only replaced when a run reports back, so nothing changed.`,
+          `You cancelled ${capability} before the engine reported. On this page state is only replaced when a run reports back, so nothing changed.`,
         ],
       ),
   })
