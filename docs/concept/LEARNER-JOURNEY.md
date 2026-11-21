@@ -2,6 +2,10 @@
 
 Proposed learner experience · 21 November 2026. Companion to the [Lens ontology](MCP-LENS-ONTOLOGY.md) and [research dossier](../research/REAL-MCP-SPECIMENS.md). The ontology numbers below index lessons for authors. Learners see three entry points. Each stands on its own; the map and its current revision can travel across them.
 
+## One bridge note through three chapters
+
+Use the same map revision and the note “Bridge moved east.” In **Inventory**, selecting the note reveals the publisher who supplied it. In **Workshop**, preview the proposed edit and the editor whose permission would move the bridge. In **Follow the work**, open the note in another session beside the original grant and resulting map revision. Keep the note selected across chapters so the learner can see the exact point where someone treated a report as permission. Backstage links each decision to the [trust inversion evidence](SECURITY-BOUNDARIES.md#trust-inversion).
+
 ## Recurring aspects
 
 Follow one map from lookup to shared edit to downstream job. Interface, behaviour and architecture recur in every phase. This matrix is an authoring aid. Onstage, show the artifact, action and consequence; Backstage can unfold the underlying ontology and trace.
