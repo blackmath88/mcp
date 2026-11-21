@@ -119,6 +119,27 @@ button.slot.full:hover{background:var(--ink);color:var(--bg)}
 .cell.fog{background:repeating-linear-gradient(45deg,var(--line) 0 4px,transparent 4px 8px)}
 .cell.wn{border-top-color:var(--ink)} .cell.we{border-right-color:var(--ink)} .cell.ws{border-bottom-color:var(--ink)} .cell.ww{border-left-color:var(--ink)}
 
+/* kit: the items the model has been handed */
+.kit{grid-column:1/-1;background:var(--surface-2);border-bottom:1px solid var(--line);padding:14px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.kitrow{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.slots{display:grid;grid-template-columns:repeat(6,48px);gap:5px;padding:5px;border-radius:9px;background:var(--line)}
+.slotb{position:relative;width:48px;height:48px;border-radius:5px;border:2px solid transparent;background:var(--surface);display:grid;place-items:center;padding:0;color:var(--ink)}
+.slotb.none{background:color-mix(in srgb,var(--surface) 55%,transparent);cursor:default}
+.slotb svg{width:28px;height:28px}
+.slotb.resource{color:var(--res)}
+.slotb:not(.none):hover{border-color:var(--muted)}
+.slotb.sel{border-color:var(--ink)}
+.slotb.held{box-shadow:0 0 0 2px var(--req)}
+.slotb.changed{color:var(--bad);border-color:var(--bad)}
+.slotb.play{border-color:var(--back)}
+.slotb em{position:absolute;right:-4px;top:-5px;font:600 9px/1 var(--mono);font-style:normal;padding:2px 3px;border-radius:3px;background:var(--back);color:var(--surface)}
+.slotb.changed em{background:var(--bad)}
+.kitcap{font-size:13px;color:var(--muted);flex:1;min-width:200px}
+.kitcap b{color:var(--ink);font-weight:600}
+.tip{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.tip .card{background:var(--surface)}
+.tip .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+
 /* controls */
 .ctl{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:6px}
 .btn{border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:8px;padding:9px 14px;font-weight:600}
@@ -180,7 +201,7 @@ section{display:flex;flex-direction:column;gap:14px}
       <div class="eyebrow">Concept · 8 working exhibits · simple to strange</div>
       <h1>MCP Lab</h1>
     </div>
-    <p>PDF Lab puts a page next to its bytes. <b>MCP Lab puts an answer next to the conversation that produced it.</b> Pick an exhibit, bend one thing, and watch where it shows up on the wire.</p>
+    <p>Connecting a server is like entering a world and finding items in your hands. <b>The lab asks one question, harder each time: what were you just handed?</b> Pick an exhibit, inspect the kit, bend one thing.</p>
   </header>
 
   <nav class="ladder" aria-label="Exhibits"><ol id="ladder"></ol></nav>
@@ -195,6 +216,7 @@ section{display:flex;flex-direction:column;gap:14px}
     </div>
 
     <div class="bench">
+      <div class="kit" id="kit"></div>
       <div class="stage">
         <div class="panehead"><span class="eyebrow">Onstage · what you see</span><span class="tag">model: scripted</span></div>
         <div class="chat" id="chat"></div>
@@ -220,6 +242,15 @@ section{display:flex;flex-direction:column;gap:14px}
     </div>
 
     <dl class="five" id="five"></dl>
+  </section>
+
+  <section>
+    <h2>How far the item metaphor carries</h2>
+    <div class="grid3">
+      <div class="plain"><div class="eyebrow"><b>Holds</b> exhibits 1–3</div><h3>A server hands over a kit</h3><p>The tool list is the inventory. The description is the tooltip. Tools are items you use; resources are books you read.</p></div>
+      <div class="plain"><div class="eyebrow"><b>Stretches</b> exhibits 4–8</div><h3>Then the items get strange</h3><p>An item with small print only the model reads. One that changes in the hand. One that asks its holder a question, opens its own screen, or is the map.</p></div>
+      <div class="plain"><div class="eyebrow"><b>Stops</b> and that is the lesson</div><h3>You are not the one holding them</h3><p>The model holds the kit. You watch over its shoulder, and the host decides which slots exist and when you are asked. No game has that.</p></div>
+    </div>
   </section>
 
   <section>
@@ -335,8 +366,8 @@ const DIR={n:[0,-1,'north'],e:[1,0,'east'],s:[0,1,'south'],w:[-1,0,'west']};
 /* ---------- exhibits ---------- */
 const EX=[
 {id:'hello',name:'Hello',prim:'initialize · tools/list',track:'explain',
- title:'1 · Before anything happens, they introduce themselves',
- lede:'A connected assistant is no smarter. It has been told what a tool offers. Unplug the server and the same model can only describe.',
+ title:'1 · Enter a world, get a kit',
+ lede:'Connect a server and an item appears in the model’s hands. The model is no smarter than before. Unplug the server and its hands are empty.',
  variants:[['on','Server connected'],['off','Unplugged']],
  server:()=>mkServer('rooms',[roomsTool()]),
  script:v=>v==='off'?[
@@ -504,7 +535,7 @@ const EX=[
 
 {id:'maze',name:'The tool list is the map',prim:'weird machine',track:'weird',
  title:'8 · A maze made of nothing but tool lists',
- lede:'This server never describes the maze. It only offers the exits of the room you are in, and rewrites its tool list after every step. You play the model: the buttons below are the real tools/list result.',
+ lede:'This server never describes the maze. It only offers the exits of the room you are in, and rewrites its tool list after every step. You play the model: the kit above is the real tools/list result.',
  variants:[['fog','Play blind'],['map','Reveal the map']],
  server:()=>{const s=mkServer('maze',[]);s.pos=[0,2];s.seen={'0,2':1};s.won=false;
    s.build=()=>{const k=s.pos.join(',');s.tools=s.won?[]:[...CELLS[k]].map(d=>({name:'go_'+DIR[d][2],description:'Walk '+DIR[d][2]+'.',inputSchema:obj,run:()=>{s.pos=[s.pos[0]+DIR[d][0],s.pos[1]+DIR[d][1]];s.seen[s.pos.join(',')]=1;s.build();return text(s.pos.join(',')==='2,0'?'A room with a door.':'A corridor.')}}));
@@ -515,7 +546,7 @@ const EX=[
    {a:'you',b:'you',kind:'inner',wait:true,free:true,label:''}],
  widget:c=>{const s=c.srv;let g='';for(let y=0;y<3;y++)for(let x=0;x<3;x++){const k=x+','+y,vis=s.seen[k]||c.v==='map',o=CELLS[k];
      g+=`<div class="cell ${vis?['n','e','s','w'].filter(d=>!o.includes(d)).map(d=>'w'+d).join(' '):'fog'}">${k===s.pos.join(',')?(s.won?'🚪':'●'):(vis&&k==='2,0'?'🚪':'')}</div>`}
-   return `<div class="cols"><div class="maze" aria-label="Maze">${g}</div><div class="card"><h3>${s.won?'Out':'tools/list says you can'}</h3><div class="choices">${(c.tools||[]).map(t=>`<button class="choice" data-act="tool" data-v="${t.name}" ${c.waiting?'':'disabled'}>${t.name}</button>`).join('')||'<span style="color:var(--muted)">Nothing. The list is empty.</span>'}</div></div></div>`},
+   return `<div class="cols"><div class="maze" aria-label="Maze">${g}</div><div class="card"><h3>${s.won?'Out':'Your move'}</h3><p style="color:var(--muted)">${s.won?'The server emptied the kit.':'Use the items in the kit above. They are all you know about this place.'}</p></div>`},
  act:(c,name)=>{const tail=c.srv.pos.join(',')==='2,0'&&name==='open_door';
    const ins=[{a:'you',b:'host',kind:'inner',label:'you, as the model: tool_use · '+name,do:x=>x.use={name,input:{}}},call(),res(),
      note('server','host','notifications/tools/list_changed'),req('tools/list'),res({do:(x,j)=>x.tools=j.result.tools})];
@@ -523,11 +554,43 @@ const EX=[
    return {ins,keepWait:!tail}}}
 ];
 
+/* ---------- kit ---------- */
+const rot=b=>b.map((_,r)=>[...b].map((_,c)=>b[7-c][r]).join(''));
+const ARROW=['00001000','00001100','11111110','11111111','11111110','00001100','00001000','00000000'];
+const ICON={e:ARROW,s:rot(ARROW),w:rot(rot(ARROW)),n:rot(rot(rot(ARROW))),
+  pic:['11111111','10000001','10100001','10001001','10011101','10111111','10000001','11111111'],
+  note:['01111110','01000010','01011010','01000010','01011010','01000010','01000110','01111100'],
+  find:['00111000','01000100','10000010','10000010','01000100','00111100','00000110','00000011'],
+  tag:['00000000','11111111','10101011','10000001','10000001','11111111','00000000','00000000'],
+  screen:['11111111','10000001','10110101','10000001','10101101','11111111','00011000','00111100'],
+  door:['01111110','01000010','01000010','01000110','01000010','01000010','01000010','01111110'],
+  book:['01111110','11000010','11011010','11000010','11011010','11000010','11111110','01111110'],
+  dot:['00000000','00111100','01111110','01111110','01111110','01111110','00111100','00000000']};
+const ICONFOR={render_rooms:'pic',add_note:'note',find_file:'find',fit_label:'tag',show_floor:'screen',move_room:'e',go_north:'n',go_east:'e',go_south:'s',go_west:'w',open_door:'door'};
+const icon=k=>{let s='';(ICON[k]||ICON.dot).forEach((row,y)=>[...row].forEach((ch,x)=>{if(ch==='1')s+=`<rect x="${x}" y="${y}" width="1.03" height="1.03"/>`}));return `<svg viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">${s}</svg>`};
+function renderKit(){
+  const items=[...(ctx.tools||[]).map(d=>({name:d.name,kind:'tool',def:d,ic:ICONFOR[d.name]})),...(ctx.resources||[]).map(d=>({name:d.name,kind:'resource',def:d,ic:'book'}))];
+  items.forEach(it=>{const h=hash(it.def);if(!(it.name in ctx.first))ctx.first[it.name]=h;it.changed=ctx.first[it.name]!==h});
+  const playing=ex.id==='maze'&&ctx.waiting;
+  const slots=Array.from({length:6},(_,i)=>{const it=items[i];if(!it)return'<div class="slotb none"></div>';
+    const badge=it.changed?'!':it.def._meta&&it.def._meta.ui?'ui':it.kind==='resource'?'read':'';
+    return `<button class="slotb ${it.kind} ${it.changed?'changed':''} ${ctx.sel===it.name?'sel':''} ${ctx.use&&ctx.use.name===it.name?'held':''} ${playing?'play':''}" data-slot="${esc(it.name)}" title="${esc(it.name)}" aria-label="${esc(it.name)}">${icon(it.ic)}${badge?`<em>${badge}</em>`:''}</button>`}).join('');
+  const cap=!items.length?(ex.id==='maze'?'<b>The kit is empty.</b> Nothing left to do here.':'<b>Empty hands.</b> Nothing has been offered yet.')
+    :playing?'<b>Click an item to use it.</b> These slots are the server’s latest tools/list result.'
+    :`<b>${items.length} ${items.length===1?'item':'items'} from ${ctx.resources?'resources/list':'tools/list'}.</b> Click one to read its tooltip.`;
+  const it=items.find(i=>i.name===ctx.sel);let tip='';
+  if(it){const d=it.def,full=d.description||'',first=full.split('\n')[0];
+    const chips=[it.kind==='tool'?'tool: the model may use it':'resource: you or the host attach it',d.annotations?'readOnlyHint: '+d.annotations.readOnlyHint:'',d._meta&&d._meta.ui?'carries a screen: '+d._meta.ui.resourceUri:'',d.uri||'',d.inputSchema&&Object.keys(d.inputSchema.properties||{}).length?'takes: '+Object.keys(d.inputSchema.properties).join(', '):'','fingerprint '+hash(d)].filter(Boolean);
+    tip=`<div class="tip"><div class="card"><h3>The label you see</h3><div class="desc"><b>${esc(d.name)}</b>\n${esc(first||d.mimeType||'')}</div></div>
+      <div class="card"><h3>What the model reads</h3><div class="desc"><b>${esc(d.name)}</b>\n${esc(first)}${full.length>first.length?'<mark>'+esc(full.slice(first.length))+'</mark>':''}</div>
+      <div class="chips">${it.changed?'<span class="pill warn">changed since you first saw it</span>':''}${chips.map(c=>`<span class="pill">${esc(c)}</span>`).join('')}</div></div></div>`}
+  $('#kit').innerHTML=`<div class="kitrow"><span class="eyebrow">The model’s kit</span><div class="slots">${slots}</div><div class="kitcap">${cap}</div></div>${tip}`}
+
 /* ---------- engine ---------- */
 let ex,ctx,steps,idx,timer=null,openN=null;
 function load(id,v){
   stop();ex=EX.find(e=>e.id===id)||EX[0];v=v||ex.variants[0][0];
-  ctx={v,id:0,sid:0,chat:[],log:[],pre:[],q:{}};ctx.srv=ex.server(v);steps=ex.script(v);idx=0;openN=null;
+  ctx={v,id:0,sid:0,chat:[],log:[],pre:[],q:{},first:{},sel:null};ctx.srv=ex.server(v);steps=ex.script(v);idx=0;openN=null;
   while(steps[idx]&&steps[idx].pre){run1(steps[idx],true);idx++}
   setWait();render();
   try{history.replaceState(null,'','#'+ex.id)}catch(e){}
@@ -557,6 +620,7 @@ function render(){
   $('#ladder').innerHTML=EX.map((e,i)=>`<li><button class="rung" data-ex="${e.id}" aria-current="${e===ex}"><span class="n">${String(i+1).padStart(2,'0')}</span><span class="t">${e.name}</span><span class="p">${e.prim}</span><span class="k ${e.track}">${{explain:'Explain',break:'Break it safely',weird:'Make it weird'}[e.track]}</span></button></li>`).join('');
   $('#ex-title').textContent=ex.title;$('#ex-lede').textContent=ex.lede;
   $('#variants').innerHTML=ex.variants.map(([k,l])=>`<button data-v="${k}" aria-pressed="${k===ctx.v}">${l}</button>`).join('');
+  renderKit();
   $('#chat').innerHTML=ctx.chat.map(b=>`<div class="bub ${b.who}"><small>${b.who==='you'?'You':'Assistant'}</small>${esc(b.text)}</div>`).join('');
   $('#widget').innerHTML=ex.widget(ctx)||'';
   const s=steps[idx],nx=$('#next');
@@ -585,6 +649,7 @@ document.addEventListener('click',ev=>{
   if(t.id==='next')return void advance();
   if(t.id==='play')return play();
   if(t.id==='reset')return load(ex.id,ctx.v);
+  if(t.dataset.slot){if(ex.id==='maze'&&ctx.waiting)return resume(t.dataset.slot);ctx.sel=ctx.sel===t.dataset.slot?null:t.dataset.slot;return render()}
   if(t.dataset.act)return resume(t.dataset.v);
   if(t.dataset.n){const n=t.dataset.n==='·'?null:+t.dataset.n;if(n===null){const e=ctx.pre[[...t.closest('ol').children].indexOf(t.closest('li'))];const host=t.closest('li');const has=host.querySelector('pre');if(has)has.remove();else host.insertAdjacentHTML('beforeend',`<pre>${esc(JSON.stringify(e.json,trunc,2))}</pre>`);return}
     openN=openN===n?null:n;render()}
