@@ -2,6 +2,35 @@
 
 Research snapshot · 21 November 2026. Use this alongside the [specimen-host and MCP Lens addendum](../concept/ADDENDUM-SPECIMENS-LENS-AND-EMBEDDING.md). The first host milestone remains one upstream MCP App with actual discovery, invocation, interaction, trace and failure. The paper-map sequence below is a storyboard candidate. No third-party runtime was installed or exercised in this research.
 
+## Specimens by MCP Lens ontology
+
+Browse by the question you are asking about a capability. The ten facets below use the order and keys from the [ontology](../concept/MCP-LENS-ONTOLOGY.md). The same specimen appears under multiple facets when different operations supply different evidence. These are documented examples; a specific deployment, principal or run needs its own evidence. The [learner route](../concept/LEARNER-JOURNEY.md) selects a few of these views for each chapter.
+
+| Facet | Values illustrated and specimens to open |
+| --- | --- |
+| **surface** · What does the caller encounter? | **Tool:** Context7 library lookup. **Tool with associated app UI:** tldraw canvas and DOOM launch. **Frame-provided action:** WebMCP is an adjacent comparison. The curated shelf still lacks a worked prompt-only example. |
+| **affordance** · What can the caller express? | **Read:** memory graph retrieval. **Query:** Context7 documentation or Seestar’s observing plan. **Mutate:** Zigzag stitch edit or tldraw shape edit. **Execute a caller-supplied program:** Cloudflare Code Mode. **Expose a workspace:** tldraw canvas or the multiplayer RPG world. |
+| **effect** · What changes? | **Information returned:** Playwright snapshot. **Artifact changed:** TouchDesigner operator network. **External design record created:** Figma code-to-canvas. **Hardware actuated:** Plotter Studio dispatch. Plotter camera capture is a separate observation. |
+| **state** · What identifies and retains the target? | **Persistent store:** reference memory graph. **Active document:** Zigzag’s foreground tab. **Shared world:** RPG player state. **Job handle:** Tasks extension contract. Verify retention and restart behaviour independently. |
+| **interaction** · How does the exchange unfold? | **Single lookup:** Context7 query. **Shared UI:** tldraw. **Playable session:** DOOM inline or via browser fallback. **Continuing job:** Tasks contract. **Resumed event stream:** SDK polling demo. |
+| **composition** · What sits behind the call? | **Program composed by caller:** Cloudflare. **Grouped deliberation:** Consilium. **Observation and iteration:** Plotter Studio design, plot and inspect loop. **Aggregation:** ContextForge exposes multiple backends through one endpoint. |
+| **intelligence** · Who chooses the next action? | **Downstream models:** Consilium’s council contributes judgements. **Human:** DOOM’s player supplies game inputs. **Human and caller model:** tldraw’s hand edit followed by the agent’s revision. **Evidence-based recommendation:** Seestar’s suggested horizon change is distinct from applying it. |
+| **placement** · Where is each component? | **Inside the desktop application:** TouchDesigner server. **Inside a compatible chat host:** tldraw’s embedded view. **Browser frame:** WebMCP actions. **Remote execution:** Cloudflare Code Mode. **External device:** Plotter Studio’s pen and camera. |
+| **authority** · Who can affect what, for whom? | **Content author / acting account / public audience:** GitHub research demonstration. **Tenant scope:** Asana incident. **Recipient scope and publisher provenance:** unofficial Postmark package. **Discovery versus invocation:** Hugging Face Spaces catalogue. Effective grants require deployment-specific evidence. |
+| **observability** · What can support the claim? | **Advertised interface:** Inspector listing or an Apps UI declaration. **Host and caller state:** tldraw edit and subsequent caller input. **Independent observation:** Plotter Studio camera versus dispatch receipt. **Downstream record:** delivery evidence in the Postmark teaching case. |
+
+### Example profiles at capability granularity
+
+| Capability | Affordance | Effect | Interaction | Evidence and remaining question |
+| --- | --- | --- | --- | --- |
+| Context7 · query docs | query | returns information | one-shot result | Provider documents the REST mapping. Applicable corpus and access context depend on the request. |
+| tldraw · edit shape | mutate | changes canvas artifact | shared UI | Creator demonstrates a human edit returning to chat context. Persistence across a fresh session needs separate evidence. |
+| Cloudflare · execute program | execute caller-supplied program | depends on the operations and granted scope | tool call | Provider documents execution and possible result truncation. The program and run determine actual effects. |
+| Plotter Studio · dispatch SVG | request physical action | actuates hardware | dispatch | Repository documents the operation. Physical marks require observation. |
+| Plotter Studio · capture paper | read | returns image | observation | Repository documents camera capture. Matching that image to a particular dispatch requires run evidence. |
+
+Primary sources for cases specific to the learner shelf: [reference memory](https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md), [MCP Inspector](https://github.com/modelcontextprotocol/inspector), [SDK reconnect demo](https://github.com/modelcontextprotocol/python-sdk/blob/main/examples/servers/sse-polling-demo/README.md) and [ContextForge](https://github.com/IBM/mcp-context-forge). The case records below link the remaining sources and distinguish demonstrations, provider documentation and reported incidents.
+
 ## Three ways to establish popularity
 
 | Specimen | Published signal | Implementation lesson |

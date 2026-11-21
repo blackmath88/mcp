@@ -30,6 +30,8 @@ Test design: make one change at a time in each interactive exhibit. A classifier
 
 ## Taxonomy: classify each capability on independent axes
 
+Browse the [specimen index by ontology facet](../research/REAL-MCP-SPECIMENS.md#specimens-by-mcp-lens-ontology) for examples and multi-facet capability profiles.
+
 Use stable facet keys. Multiple values can coexist where evidence warrants it. A server overview groups capability profiles and preserves exceptions. A gateway exposing a job tool does not make every backend durable.
 
 | Facet | Initial values or measurements |
