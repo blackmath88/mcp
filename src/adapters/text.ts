@@ -70,6 +70,9 @@ export const outcomeLine = (record: RunRecord): string =>
         if (output._tag === 'ToolCalled') {
           return `OK ${output.name} answered by ${output.answeredBy}: ${output.answer}`
         }
+        if (output._tag === 'EntryWritten') {
+          return `OK wrote ${output.load}; the ledger has ${output.entriesNow} entries`
+        }
         if (output._tag === 'PathBuilt') {
           return `OK ${output.artifact.id}: ${output.artifact.summary}`
         }

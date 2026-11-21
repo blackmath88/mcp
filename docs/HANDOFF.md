@@ -1,5 +1,33 @@
 # Handoff
 
+## Touchable benches on every station, real Python, home screen — 2026-11-21
+
+Owner request: "Do it for all station finish the nice ui with python stuff where it makes sense".
+
+### Changed
+
+- Every station's bench is now direct manipulation instead of a select plus an Execute button: files, page controls, places, tools and contracts are the buttons. All thirteen benches live in `src/lab/benches.ts`; `view.ts` shrank from about 3000 to about 1900 lines.
+- Station 09 holds an editable Python program. It runs in the tab through Pyodide, and each `await ledger.write(...)` is a real `tools/call write_entry` over the in-tab MCP session (`src/adapters/python-runner.ts`). A new capability `write_entry` backs it and is also reachable from the CLI (`--load`) and stdio server.
+- The page opens on a home screen: four stat tiles and the thirteen stations in the three phases. The brand mark returns to it.
+- Station names are friendlier ("A generated CLI", "An interactive map", "A loop that refines"); `specimens/route.json` keeps the research titles.
+- Pyodide is a dev dependency copied to `public/pyodide` by `scripts/copy-pyodide.mjs` before `dev` and `build`; nothing is fetched from a CDN.
+
+### Evidence (observed in this session)
+
+- `npm run typecheck`, `npm run lint`, `npm test` (147 passed), `npm run build`: all pass.
+- Headless Chromium at 1440×900: each of the 13 stations opened and its main action clicked without a page or console error. On station 09 the default program printed "wrote clay / timber / iron / all done", the ledger showed three entries, and the frames tab listed the `tools/call` frames.
+- iPhone 13 emulation: home and the Memory station have no horizontal overflow.
+- Screenshots: `docs/reports/first-slice/home-route.png`, `python-in-tab.png`, `touchable-fetch.png`.
+
+### Limitations
+
+- Python was only added where the program is the subject (station 09). Fetch has no Python "second reader".
+- Not observed in a browser: the Python path with the "third write fails" bend, an edited program, and the production build served from a sub-path. The reducer and view for a Python error are covered by tests only.
+- The Pyodide files add about 12 MB to `dist`. They load only when a program is first run.
+- In `npm run dev`, Foldkit's dev tools restore the previous state on reload, so the home screen does not reappear after a refresh there.
+- "Visited" on the home screen means a run was recorded on that station in this tab; a Python run alone does not count.
+- Still no upstream revision pinned, and nobody other than the author has used the page.
+
 ## Live session, server-listed kit, call console, redesign — 2026-11-21
 
 Changed:

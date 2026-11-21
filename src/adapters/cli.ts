@@ -78,6 +78,7 @@ const { values, positionals } = parseArgs({
     client: { type: 'string' },
     place: { type: 'string' },
     name: { type: 'string' },
+    load: { type: 'string' },
     set: { type: 'string', multiple: true },
     storm: { type: 'boolean', default: false },
     state: { type: 'string' },
@@ -124,25 +125,31 @@ if (command === 'list') {
 }
 
 const input =
-  values.name !== undefined
-    ? { name: values.name }
-    : values.client === undefined && values.place !== undefined
-      ? { place: values.place }
-      : values.client !== undefined
-        ? { client: values.client, place: values.place }
-        : values.path !== undefined
-          ? { path: values.path }
-          : values.target !== undefined
-            ? { target: values.target }
-            : values.entity !== undefined
-              ? { entity: values.entity, observation: values.observation }
-              : values.thought !== undefined
-                ? { from: values.from, to: values.to, thoughts: values.thought }
-                : values.url !== undefined
-                  ? { url: values.url }
-                  : values.from === undefined && values.to === undefined
-                    ? {}
-                    : { from: values.from, to: values.to }
+  values.load !== undefined
+    ? { load: values.load }
+    : values.name !== undefined
+      ? { name: values.name }
+      : values.client === undefined && values.place !== undefined
+        ? { place: values.place }
+        : values.client !== undefined
+          ? { client: values.client, place: values.place }
+          : values.path !== undefined
+            ? { path: values.path }
+            : values.target !== undefined
+              ? { target: values.target }
+              : values.entity !== undefined
+                ? { entity: values.entity, observation: values.observation }
+                : values.thought !== undefined
+                  ? {
+                      from: values.from,
+                      to: values.to,
+                      thoughts: values.thought,
+                    }
+                  : values.url !== undefined
+                    ? { url: values.url }
+                    : values.from === undefined && values.to === undefined
+                      ? {}
+                      : { from: values.from, to: values.to }
 
 const loaded = loadWorld(values.state, values.storm)
 const moved =

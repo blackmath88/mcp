@@ -32,7 +32,7 @@ describe('the learning path', () => {
       expect(
         role('button', { name: 'Connection workshop, program' }),
       ).toExist(),
-      expect(text('Pick an item from the kit to use it.')).toExist(),
+      expect(role('button', { name: 'Connect them, any way' })).toExist(),
       expect(text('Idle')).toExist(),
     )
   })
@@ -44,7 +44,7 @@ describe('the learning path', () => {
       click(role('button', { name: 'Connection workshop, program' })),
       expect(text('What can change?')).toExist(),
       expect(text('It may build a path. It decides which one.')).toExist(),
-      click(role('button', { name: 'Execute connect_places' })),
+      click(role('button', { name: 'Connect them, any way' })),
       expect(text('Running connect_places')).toExist(),
       Command.resolve(RunCapability, completed('calm')),
       expect(text('Succeeded')).toExist(),
@@ -63,7 +63,7 @@ describe('the learning path', () => {
       { update, view },
       given(initialModel),
       click(role('button', { name: 'Connection workshop, program' })),
-      click(role('button', { name: 'Execute connect_places' })),
+      click(role('button', { name: 'Connect them, any way' })),
       Command.resolve(RunCapability, completed('calm')),
       click(role('button', { name: 'Inspect run' })),
       click(role('button', { name: 'From the start' })),
@@ -79,8 +79,8 @@ describe('the learning path', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: /Bend it/ })),
-      click(role('button', { name: 'Execute connect_places' })),
+      click(role('button', { name: /Storm/ })),
+      click(role('button', { name: 'Connect them, any way' })),
       Command.resolve(RunCapability, completed('storm')),
       expect(text('Failed')).toExist(),
       expect(
@@ -98,10 +98,10 @@ describe('the route of specimens', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: /The network and the repair bench/ })),
+      click(role('button', { name: /The network/ })),
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('Simulated here')).toExist(),
-      expect(role('button', { name: 'Execute list_inventory' })).toExist(),
+      expect(role('button', { name: 'List the inventory' })).toExist(),
       expect(text('One entrance')).toExist(),
     )
   })
@@ -119,7 +119,7 @@ describe('the route of specimens', () => {
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('Simulated here')).toExist(),
       click(role('button', { name: 'First URL only' })),
-      click(role('button', { name: 'Execute fetch_page' })),
+      click(role('button', { name: /^Fetch valley\.test/ })),
       Command.resolve(
         RunCapability,
         Message.CompletedRunCapability({
@@ -175,7 +175,7 @@ describe('memory and thinking stations', () => {
       click(role('button', { name: /Thinking/ })),
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       click(role('button', { name: 'Asks another model' })),
-      click(role('button', { name: 'Execute plan_steps' })),
+      click(role('button', { name: 'Ask it to plan Forge to Dock' })),
       Command.resolve(
         RunCapability,
         Message.CompletedRunCapability({
@@ -185,11 +185,8 @@ describe('memory and thinking stations', () => {
         }),
       ),
       expect(text('The plan that came back')).toExist(),
-      expect(
-        text(
-          'written by another model (scripted stand-in) · not checked against the map',
-        ),
-      ).toExist(),
+      expect(text('written by another model (scripted stand-in)')).toExist(),
+      expect(text('not checked against the map')).toExist(),
     )
   })
 })
@@ -203,10 +200,20 @@ describe('filesystem and perception stations', () => {
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('Set at launch')).toExist(),
       expect(text('What the server enforces now')).toExist(),
-      expect(text('no · /valley/mill/ledger.txt')).toExist(),
-      click(role('button', { name: 'Client sends this root' })),
-      expect(text('yes · /valley/mill/ledger.txt')).toExist(),
-      expect(text('no · /valley/forge/orders.txt')).toExist(),
+      expect(
+        role('button', {
+          name: /\/valley\/mill\/ledger\.txt.*outside the boundary/,
+        }),
+      ).toExist(),
+      click(role('button', { name: '/valley/mill' })),
+      expect(
+        role('button', { name: /\/valley\/mill\/ledger\.txt.*readable now/ }),
+      ).toExist(),
+      expect(
+        role('button', {
+          name: /\/valley\/forge\/orders\.txt.*outside the boundary/,
+        }),
+      ).toExist(),
     )
   })
 
@@ -216,7 +223,7 @@ describe('filesystem and perception stations', () => {
       given(initialModel),
       click(role('button', { name: /Browser perception/ })),
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
-      expect(text('The page, as a person sees it')).toExist(),
+      expect(text('The page, as you see it')).toExist(),
       expect(text('no snapshot taken yet')).toExist(),
       expect(text('pixels drawn on a canvas')).toExist(),
     )
@@ -228,12 +235,12 @@ describe('cli and gateway stations', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: /CLI, reversed/ })),
+      click(role('button', { name: /A generated CLI/ })),
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('The generated CLI')).toExist(),
       expect(text('not generated yet')).toExist(),
       expect(role('button', { name: 'v2 adds destination' })).toExist(),
-      expect(role('button', { name: 'Execute generate_cli' })).toExist(),
+      expect(role('button', { name: 'Generate it' })).toExist(),
     )
   })
 
@@ -256,7 +263,7 @@ describe('stations 08 to 11', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: /The item becomes an application/ })),
+      click(role('button', { name: /An interactive map/ })),
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('Model’s last view')).toExist(),
       expect(text('Read this map as')).toExist(),
@@ -269,17 +276,17 @@ describe('stations 08 to 11', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: /One item contains a language/ })),
+      click(role('button', { name: /One item, a language/ })),
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(role('button', { name: 'Third write fails' })).toExist(),
       click(role('button', { name: /Another intelligence/ })),
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(role('button', { name: 'Map left out' })).toExist(),
-      expect(text('What was handed over')).toExist(),
-      click(role('button', { name: /Iteration and durable execution/ })),
+      expect(text('What is handed over')).toExist(),
+      click(role('button', { name: /A loop that refines/ })),
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(role('button', { name: 'Criteria contradict' })).toExist(),
-      expect(text('Return the best-rated draft, not the last one.')).toExist(),
+      expect(text(/hand back the best rated, not the last/)).toExist(),
     )
   })
 })
@@ -412,6 +419,64 @@ describe('truthful labelling of evidence', () => {
       click(role('button', { name: 'App messages' })),
       expect(text('Application state transitions')).toExist(),
       expect(text('SelectedTab')).toExist(),
+    )
+  })
+})
+
+describe('the home screen and touchable benches', () => {
+  test('the home screen shows the whole route and opens a station', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'home' }),
+      expect(text('What were you just handed?')).toExist(),
+      expect(text('Upstream revisions pinned')).toExist(),
+      expect(text('0 of 12')).toExist(),
+      click(role('button', { name: /A loop that refines/ })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
+      expect(role('button', { name: 'Run the loop' })).toExist(),
+      click(role('button', { name: 'MCP Lab, the whole route' })),
+      expect(text('Continue at A loop that refines')).toExist(),
+    )
+  })
+
+  test('a file on the filesystem bench is a button that reads it', () => {
+    const readOrders = Effect.runSync(
+      runOn(worldFor('calm'), 'read_file', {
+        path: '/valley/forge/orders.txt',
+      }).pipe(Effect.provide(Pace.unpaced)),
+    )
+    scene(
+      { update, view },
+      given({ ...initialModel, station: 'filesystem' }),
+      click(role('button', { name: /orders\.txt/ })),
+      expect(text('Running read_file')).toExist(),
+      Command.resolve(
+        RunCapability,
+        Message.CompletedRunCapability({
+          runId: 1,
+          record: readOrders.record,
+          world: readOrders.world,
+        }),
+      ),
+      expect(text('Succeeded')).toExist(),
+    )
+  })
+
+  test('code mode holds an editable Python program and reports what it printed', () => {
+    scene(
+      { update, view },
+      given({
+        ...initialModel,
+        station: 'code-mode',
+        python: 'done',
+        pythonOutput: 'wrote clay',
+        pythonError: 'RuntimeError: write failed',
+      }),
+      expect(text('real Python, in this tab')).toExist(),
+      expect(role('button', { name: 'Run this program' })).toExist(),
+      expect(text('wrote clay')).toExist(),
+      expect(text('stopped with an error')).toExist(),
+      expect(text('RuntimeError: write failed')).toExist(),
     )
   })
 })

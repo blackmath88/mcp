@@ -57,7 +57,7 @@ Agreed 2026-11-21: the lab follows the twelve specimens in specimens/route.json.
 | 06 CLI, reversed | simulated: generated artifact versus live call across a schema change |
 | 07 Local and remote | simulated: shared process versus one per connection; reconnect, vanish, timeout |
 | 08 The item becomes an application | simulated: tool result, screen and model's knowledge drift apart |
-| 09 One item contains a language | simulated: three calls versus one program, with a failing write |
+| 09 One item contains a language | simulated: three calls versus one program, with a failing write; plus an editable Python program run in the tab whose writes are real MCP calls |
 | 10 Another intelligence | simulated with a scripted stand-in: ask, review, deliver; map sent or left out |
 | 11 Iteration and durable execution | simulated with scripted stand-ins: the reference loop rule; crash with and without durability |
 | 12 The network and the repair bench | simulated: name collision, prefixed names, a backend going down. No fuzzing. |

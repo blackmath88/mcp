@@ -12,6 +12,7 @@ import {
   runOverMcp,
   sendRaw,
 } from '../adapters/in-tab-mcp.ts'
+import { DEFAULT_PROGRAM, runProgram } from '../adapters/python-runner.ts'
 import type { CapabilityName, RunRecord } from '../domain/capabilities.ts'
 import { Pace } from '../domain/services.ts'
 import { applySettings } from '../domain/settings.ts'
@@ -140,6 +141,24 @@ export const SendRaw = Command.define('SendRaw', {
     ),
 })
 
+export const RunPython = Command.define('RunPython', {
+  args: { world: World, station: Schema.String, code: Schema.String },
+  messages: [Message.CompletedRunPython, Message.FailedRunPython],
+  execute: ({ world, station, code }) =>
+    runProgram(world, station, code, labPace).pipe(
+      Effect.map(ran =>
+        Message.CompletedRunPython({
+          output: ran.output,
+          error: ran.error,
+          world: ran.world,
+          frames: ran.frames,
+          tools: ran.tools,
+        }),
+      ),
+      Effect.catch(() => Effect.succeed(Message.FailedRunPython())),
+    ),
+})
+
 export const WaitBeforeNextEvent = Command.define('WaitBeforeNextEvent', {
   args: { runId: Schema.Number, cursor: Schema.Number },
   messages: [Message.CompletedWaitBeforeNextEvent],
@@ -209,6 +228,11 @@ export const initialModel: Model = {
   connection: 'connecting',
   consoleText: '',
   consoleNote: '',
+  program: DEFAULT_PROGRAM,
+  pythonOutput: '',
+  pythonError: '',
+  python: 'idle',
+  screen: 'bench',
   transport: 'mcp-in-tab',
   tab: 'engine',
   backstage: 'collapsed',
@@ -217,7 +241,7 @@ export const initialModel: Model = {
 }
 
 export const init: Runtime.ApplicationInit<Model, Message> = () => ({
-  model: initialModel,
+  model: modifyFields(initialModel, { screen: () => 'home' }),
   commands: [EnterDomain({ world: initialModel.world, station: 'valley' })],
 })
 
@@ -348,6 +372,32 @@ const presetText = (preset: string, model: Model): string => {
   return call({ name: tool, arguments: inputFor(tool, model) })
 }
 
+const startRun = (
+  model: Model,
+  name: CapabilityName,
+  inputJson: string,
+): UpdateReturn =>
+  RunState.isAnyOf(['Running'])(model.run)
+    ? { model }
+    : {
+        model: modifyFields(model, {
+          maybeSelected: () => Option.some(name),
+          run: () =>
+            RunState.Running({ runId: model.nextRunId, capability: name }),
+          nextRunId: runId => runId + 1,
+          replay: () => Replay.Complete(),
+        }),
+        commands: [
+          RunCapability({
+            runId: model.nextRunId,
+            world: model.world,
+            station: model.station,
+            capability: name,
+            inputJson,
+          }),
+        ],
+      }
+
 const interruptIfRunning = (model: Model) =>
   RunState.isAnyOf(['Running'])(model.run)
     ? [
@@ -453,6 +503,7 @@ export const update = (current: Model, message: Message) => {
     SelectedStation: ({ station }) => ({
       model: modifyFields(model, {
         station: () => station,
+        screen: () => 'bench',
         maybeSelected: () => defaultCapability(station),
         savedRuns: saved => [
           ...Array.filter(saved, entry => entry.station !== model.station),
@@ -715,26 +766,67 @@ export const update = (current: Model, message: Message) => {
       }),
 
     ClickedRun: ({ name }) =>
-      RunState.isAnyOf(['Running'])(model.run)
+      startRun(model, name, JSON.stringify(inputFor(name, model))),
+
+    ClickedRunWith: ({ name, inputJson }) => startRun(model, name, inputJson),
+
+    ClickedSendRoot: ({ root }) => ({
+      model: modifyFields(model, {
+        rootChoice: () => root,
+        world: world => applyRootsUpdate(world, [root]),
+      }),
+    }),
+
+    ClickedClientEvent: ({ client, event }) => ({
+      model: modifyFields(model, {
+        world: world =>
+          event === 'reconnect'
+            ? reconnectClient(world, client)
+            : vanishClient(world, client),
+      }),
+    }),
+
+    UpdatedProgram: ({ value }) => ({
+      model: modifyFields(model, { program: () => value }),
+    }),
+
+    ClickedRunPython: () =>
+      model.python === 'running'
         ? { model }
         : {
             model: modifyFields(model, {
-              maybeSelected: () => Option.some(name),
-              run: () =>
-                RunState.Running({ runId: model.nextRunId, capability: name }),
-              nextRunId: runId => runId + 1,
-              replay: () => Replay.Complete(),
+              python: () => 'running',
+              pythonOutput: () => '',
+              pythonError: () => '',
             }),
             commands: [
-              RunCapability({
-                runId: model.nextRunId,
+              RunPython({
                 world: model.world,
                 station: model.station,
-                capability: name,
-                inputJson: JSON.stringify(inputFor(name, model)),
+                code: model.program,
               }),
             ],
           },
+
+    CompletedRunPython: ({ output, error, world, frames, tools }) => ({
+      model: modifyFields(model, {
+        python: () => 'done',
+        pythonOutput: () => output,
+        pythonError: () => error,
+        world: () => world,
+        frames: previous => keepFrames(previous, frames),
+        tools: previous =>
+          Array.isReadonlyArrayEmpty(tools) ? previous : tools,
+      }),
+    }),
+
+    FailedRunPython: () => ({
+      model: modifyFields(model, { python: () => 'unavailable' }),
+    }),
+
+    ClickedHome: () => ({
+      model: modifyFields(model, { screen: () => 'home' }),
+    }),
 
     ClickedMapPlace: ({ place }) => ({
       model: modifyFields(model, {

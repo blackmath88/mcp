@@ -16,14 +16,16 @@
     "lint": "oxlint src && effect-tsgo patch --no-typescript --oxlint && oxlint --config .oxlintrc.effect.json --deny-warnings src",
     "lab": "node src/adapters/cli.ts",
     "mcp:server": "node src/adapters/mcp-server.ts",
-    "record": "node scripts/record-entrances.ts"
+    "record": "node scripts/record-entrances.ts",
+    "predev": "node scripts/copy-pyodide.mjs",
+    "prebuild": "node scripts/copy-pyodide.mjs"
   },
   "dependencies": {
     "@effect/platform-browser": "4.1.4",
     "@foldkit/ui": "0.170.0",
+    "@modelcontextprotocol/sdk": "1.32.2",
     "effect": "4.1.4",
-    "foldkit": "0.170.0",
-    "@modelcontextprotocol/sdk": "1.32.2"
+    "foldkit": "0.170.0"
   },
   "devDependencies": {
     "@alchemy.run/cloudflare": "2.0.0-beta.87",
@@ -41,6 +43,7 @@
     "oxfmt": "^0.66.0",
     "oxlint": "1.85.0",
     "oxlint-tsgolint": "7.0.2003",
+    "pyodide": "314.0.8",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",

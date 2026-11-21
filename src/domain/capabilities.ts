@@ -35,6 +35,7 @@ import {
 } from './gateway.ts'
 import {
   BatchDone,
+  EntryWritten,
   ExpertReplied,
   InventoryListed,
   LoopFinished,
@@ -53,6 +54,7 @@ import {
   runAsCalls,
   runAsProgram,
   showMap,
+  writeLoad,
 } from './later.ts'
 import {
   Recalled,
@@ -109,6 +111,7 @@ export const CapabilityName = Schema.Literals([
   'crash_and_resume',
   'list_inventory',
   'call_tool',
+  'write_entry',
 ])
 export type CapabilityName = typeof CapabilityName.Type
 
@@ -148,6 +151,7 @@ export type Capability = Readonly<{
     | 'client'
     | 'place'
     | 'tool-name'
+    | 'load'
   observe: string
   request: string
   produces: string
@@ -552,6 +556,20 @@ export const catalogue: ReadonlyArray<Capability> = [
     finishes: 'Immediately, or not at all.',
     dependsOn: ['federation', 'forge-backend', 'dock-backend'],
   },
+  {
+    name: 'write_entry',
+    specimen: 'code-mode',
+    title: 'Write one entry',
+    affordance: 'operable',
+    description: 'Append one load to the ledger.',
+    input: 'load',
+    observe: 'Nothing beyond a confirmation.',
+    request: 'The name of one load.',
+    produces: 'A confirmation with the new length.',
+    changes: 'The ledger gains one entry. There is no undo.',
+    finishes: 'Immediately, or not at all.',
+    dependsOn: ['ledger'],
+  },
 ]
 
 export const Endpoints = Schema.Struct({ from: PlaceId, to: PlaceId })
@@ -653,30 +671,39 @@ const toolNameJsonSchema = {
   additionalProperties: false,
 } as const
 
+const loadJsonSchema = {
+  type: 'object',
+  properties: { load: { type: 'string' } },
+  required: ['load'],
+  additionalProperties: false,
+} as const
+
 export const inputJsonSchema = (capability: Capability) =>
-  capability.input === 'place'
-    ? placeJsonSchema
-    : capability.input === 'tool-name'
-      ? toolNameJsonSchema
-      : capability.input === 'client'
-        ? clientJsonSchema
-        : capability.input === 'client-place'
-          ? clientPlaceJsonSchema
-          : capability.input === 'path'
-            ? pathJsonSchema
-            : capability.input === 'target'
-              ? targetJsonSchema
-              : capability.input === 'fact'
-                ? factJsonSchema
-                : capability.input === 'entity'
-                  ? entityJsonSchema
-                  : capability.input === 'thoughts'
-                    ? thoughtsJsonSchema
-                    : capability.input === 'endpoints'
-                      ? endpointsJsonSchema
-                      : capability.input === 'url'
-                        ? urlJsonSchema
-                        : emptyInputJsonSchema
+  capability.input === 'load'
+    ? loadJsonSchema
+    : capability.input === 'place'
+      ? placeJsonSchema
+      : capability.input === 'tool-name'
+        ? toolNameJsonSchema
+        : capability.input === 'client'
+          ? clientJsonSchema
+          : capability.input === 'client-place'
+            ? clientPlaceJsonSchema
+            : capability.input === 'path'
+              ? pathJsonSchema
+              : capability.input === 'target'
+                ? targetJsonSchema
+                : capability.input === 'fact'
+                  ? factJsonSchema
+                  : capability.input === 'entity'
+                    ? entityJsonSchema
+                    : capability.input === 'thoughts'
+                      ? thoughtsJsonSchema
+                      : capability.input === 'endpoints'
+                        ? endpointsJsonSchema
+                        : capability.input === 'url'
+                          ? urlJsonSchema
+                          : emptyInputJsonSchema
 
 // EXECUTION
 
@@ -704,6 +731,7 @@ export const CapabilityOutput = Schema.Union([
   LoopResumed,
   InventoryListed,
   ToolCalled,
+  EntryWritten,
 ])
 export type CapabilityOutput = typeof CapabilityOutput.Type
 
@@ -760,15 +788,16 @@ const decodeThoughts = (input: unknown) =>
     Effect.mapError(invalid('thoughts must be a list of strings')),
   )
 
-const decodeField = (field: 'path' | 'target' | 'name') => (input: unknown) =>
-  Schema.decodeUnknownEffect(Schema.Record(Schema.String, Schema.Unknown))(
-    input,
-  ).pipe(
-    Effect.flatMap(decoded =>
-      Schema.decodeUnknownEffect(Schema.String)(decoded[field]),
-    ),
-    Effect.mapError(invalid(`expected { ${field} } with a string`)),
-  )
+const decodeField =
+  (field: 'path' | 'target' | 'name' | 'load') => (input: unknown) =>
+    Schema.decodeUnknownEffect(Schema.Record(Schema.String, Schema.Unknown))(
+      input,
+    ).pipe(
+      Effect.flatMap(decoded =>
+        Schema.decodeUnknownEffect(Schema.String)(decoded[field]),
+      ),
+      Effect.mapError(invalid(`expected { ${field} } with a string`)),
+    )
 
 const decodeClient = (input: unknown) =>
   Schema.decodeUnknownEffect(
@@ -826,6 +855,8 @@ const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
         : 'forge'
     const toolName =
       capability === 'call_tool' ? yield* decodeField('name')(input) : ''
+    const load =
+      capability === 'write_entry' ? yield* decodeField('load')(input) : ''
     return {
       capability,
       endpoints,
@@ -838,6 +869,7 @@ const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
       client,
       place,
       toolName,
+      load,
     }
   }).pipe(
     Effect.tapError(error =>
@@ -868,6 +900,7 @@ export const execute = Effect.fnUntraced(function* (
     client,
     place,
     toolName,
+    load,
   } = yield* resolve(name, input)
   const { from, to } = endpoints
   const handlers = {
@@ -901,6 +934,7 @@ export const execute = Effect.fnUntraced(function* (
     crash_and_resume: () => crashAndResume('catalogue'),
     list_inventory: () => listInventory('catalogue'),
     call_tool: () => callTool('catalogue', toolName),
+    write_entry: () => writeLoad('catalogue', load),
   } satisfies Record<
     CapabilityName,
     () => Effect.Effect<

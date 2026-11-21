@@ -122,6 +122,12 @@ Status: agreed direction from owner ("do it all"), 2026-11-21. Implemented.
 
 The page keeps one MCP session open. The kit in the sidebar is the server's answer to `tools/list`; entering a station is a real `enter_domain` call, after which the server announces a changed tool list and the client lists again. A call console sends whatever JSON the person writes straight onto the wire. The look follows the approved design canvas: one neutral family, one accent, hairlines, the question as the headline, an evidence rail, and a light Backstage drawer.
 
+## D15 — Every bench is touched directly; real Python where the program is the subject
+
+Status: agreed direction from owner ("do it for all stations ... python stuff where it makes sense"), 2026-11-21. Implemented.
+
+No station asks the person to pick a tool from a list and press Execute. The things on the bench are the controls. Station 09 runs real Python in the tab through a locally served Pyodide, and its writes are real MCP tool calls. Python is not added to stations where it would only decorate. The page opens on a home screen that shows the whole route.
+
 ## Still undecided
 
 Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.

@@ -9,6 +9,7 @@ import { type Model, Replay, RunState, worldFor } from './model.ts'
 import {
   EnterDomain,
   RunCapability,
+  RunPython,
   WaitBeforeNextEvent,
   initialModel,
   update,
@@ -611,6 +612,65 @@ describe('the live session', () => {
         expect(after.world.revision).toBe(1)
         expect(after.run._tag).toBe('Succeeded')
         expect(after.consoleNote).toBe('Sent.')
+      }),
+    )
+  })
+})
+
+describe('the Python program and the home screen', () => {
+  test('running the program marks it running, then keeps what it printed', () => {
+    const world = worldFor('calm')
+    story(
+      update,
+      given({ ...initialModel, station: 'code-mode' }),
+      message(Message.UpdatedProgram({ value: 'print(1)' })),
+      message(Message.ClickedRunPython()),
+      model(current => {
+        expect(current.python).toBe('running')
+        expect(current.program).toBe('print(1)')
+      }),
+      Command.resolve(
+        RunPython,
+        Message.CompletedRunPython({
+          output: '1',
+          error: '',
+          world,
+          frames: [],
+          tools: [],
+        }),
+      ),
+      model(current => {
+        expect(current.python).toBe('done')
+        expect(current.pythonOutput).toBe('1')
+      }),
+    )
+  })
+
+  test('a runtime that cannot load is reported, not hidden', () => {
+    story(
+      update,
+      given({ ...initialModel, station: 'code-mode' }),
+      message(Message.ClickedRunPython()),
+      Command.resolve(RunPython, Message.FailedRunPython()),
+      model(current => {
+        expect(current.python).toBe('unavailable')
+      }),
+    )
+  })
+
+  test('home and a station are two screens over the same state', () => {
+    story(
+      update,
+      given(initialModel),
+      message(Message.ClickedHome()),
+      model(current => {
+        expect(current.screen).toBe('home')
+      }),
+      message(Message.SelectedStation({ station: 'memory' })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
+      model(current => {
+        expect(current.screen).toBe('bench')
+        expect(current.station).toBe('memory')
       }),
     )
   })

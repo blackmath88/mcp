@@ -158,6 +158,40 @@ const writeEntry = (calledBy: ComponentId, index: number) =>
     return true
   })
 
+export const EntryWritten = Schema.TaggedStruct('EntryWritten', {
+  load: Schema.String,
+  entriesNow: Schema.Number,
+})
+
+// NOTE: One ledger write as a tool of its own, so a caller-written program
+// can compose it. The fault is the same one the fixed sequences meet.
+export const writeLoad = (calledBy: ComponentId, load: string) =>
+  bracket(
+    { component: 'ledger', calledBy, operation: `write "${load}"` },
+    written => `${written.entriesNow} entries now. There is no undo.`,
+    Effect.gen(function* () {
+      const world = yield* readWorld
+      if (
+        world.ledger.fault === 'after-second' &&
+        world.ledger.entries.length >= 2
+      ) {
+        return yield* new PartialFailure({
+          detail: `The ledger refused to write "${load}". It already holds ${world.ledger.entries.join(' and ')}.`,
+        })
+      }
+      const entries = [...world.ledger.entries, load]
+      yield* commit({ ...world, ledger: { ...world.ledger, entries } })
+      yield* emit(
+        'ledger',
+        'ledger',
+        'state-changed',
+        `append "${load}"`,
+        `${entries.length} entries now`,
+      )
+      return EntryWritten.make({ load, entriesNow: entries.length })
+    }),
+  )
+
 export const runAsCalls = (calledBy: ComponentId) =>
   bracket(
     {

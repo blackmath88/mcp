@@ -161,3 +161,25 @@ describe('12 the network', () => {
     })
   })
 })
+
+describe('09 a single write, as a program in the page would call it', () => {
+  test('each write appends one entry and reports the count', () => {
+    const first = run(fresh, 'write_entry', { load: 'clay' })
+    expect(first.record.outcome).toMatchObject({
+      output: { _tag: 'EntryWritten', load: 'clay', entriesNow: 1 },
+    })
+    const second = run(first.world, 'write_entry', { load: 'timber' })
+    expect(second.world.ledger.entries).toEqual(['clay', 'timber'])
+  })
+
+  test('the fault fails the third write and keeps the first two', () => {
+    const two = run(
+      run(bent('fault=after-second'), 'write_entry', { load: 'a' }).world,
+      'write_entry',
+      { load: 'b' },
+    )
+    const third = run(two.world, 'write_entry', { load: 'c' })
+    expect(third.record.outcome).toMatchObject({ _tag: 'Failed' })
+    expect(third.world.ledger.entries).toEqual(['a', 'b'])
+  })
+})

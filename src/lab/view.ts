@@ -9,32 +9,11 @@ import {
   type RunRecord,
   catalogue,
 } from '../domain/capabilities.ts'
-import { fieldsOf, helpText } from '../domain/cli-snapshot.ts'
-import { siteUrls } from '../domain/fetch.ts'
-import { filePaths, rootChoices } from '../domain/files.ts'
-import { clients, gatewayPlaces } from '../domain/gateway.ts'
-import { inventoryOf } from '../domain/later.ts'
-import { entities, observations, pathLabel } from '../domain/memory.ts'
-import { controls } from '../domain/perception.ts'
+import { pathLabel } from '../domain/memory.ts'
 import type { ComponentId, EngineEvent } from '../domain/services.ts'
-import { callerThoughts } from '../domain/thinking.ts'
-import {
-  type FetchPolicy,
-  type FsBuild,
-  type GatewayBuild,
-  LAUNCH_DIRECTORIES,
-  NO_ARTIFACT,
-  NO_SNAPSHOT,
-  type Path,
-  type Perception,
-  type PlaceId,
-  type StoragePath,
-  type ThinkingMode,
-  type World,
-  isAllowed,
-  joins,
-} from '../domain/world.ts'
+import { NO_ARTIFACT } from '../domain/world.ts'
 import recording from '../recordings/entrances.json'
+import { benchView, bendLabel, bendView } from './benches.ts'
 import { Message } from './message.ts'
 import {
   type BackstageTab,
@@ -43,8 +22,6 @@ import {
   Replay,
   RunState,
   type Station,
-  type Weather,
-  maxSpanIn,
 } from './model.ts'
 import { finishedRecord } from './update.ts'
 
@@ -75,7 +52,7 @@ const chapters: ReadonlyArray<ChapterInfo> = [
     id: 'use',
     name: 'Use it',
     prompt:
-      'The path builder changes the map. Execute it and watch the revision and the artifact.',
+      'The path builder changes the map. Use it and watch the revision and the artifact.',
   },
   {
     id: 'trace',
@@ -342,59 +319,35 @@ const phaseOf: Record<Station, JourneyPhase> = {
 const phaseStations = (phase: JourneyPhase): ReadonlyArray<Station> =>
   Array.filter(stations, station => phaseOf[station] === phase)
 
-const stationTitle = (station: Station): string =>
-  Option.match(findSpecimen(station), {
-    onNone: () => 'The valley',
-    onSome: specimen => specimen.title,
-  })
+const stationNames: Record<Station, string> = {
+  valley: 'The valley',
+  fetch: 'Fetch a page',
+  memory: 'Memory',
+  thinking: 'Thinking as a tool',
+  filesystem: 'Filesystem',
+  perception: 'Browser perception',
+  cli: 'A generated CLI',
+  'local-remote': 'Local and remote',
+  apps: 'An interactive map',
+  'code-mode': 'One item, a language',
+  delegation: 'Another intelligence',
+  iteration: 'A loop that refines',
+  network: 'The network',
+}
+
+const stationTitle = (station: Station): string => stationNames[station]
+
+const stationNumber = (station: Station): string =>
+  String(stations.indexOf(station)).padStart(2, '0')
+
+const phaseHints: Record<JourneyPhase, string> = {
+  inventory: 'what is on offer',
+  workshop: 'what is inside an item',
+  follow: 'where it goes afterwards',
+}
 
 const findSpecimen = (station: Station): Option.Option<Specimen> =>
   Array.findFirst(route.specimens, specimen => specimen.id === station)
-
-const storagePaths: ReadonlyArray<
-  Readonly<{ id: StoragePath; label: string }>
-> = [
-  { id: 'package-cache', label: 'Package cache (default)' },
-  { id: 'home', label: 'Home folder' },
-]
-
-const thinkingModes: ReadonlyArray<
-  Readonly<{ id: ThinkingMode; label: string }>
-> = [
-  { id: 'record', label: 'Records your thoughts' },
-  { id: 'compute', label: 'Computes from the map' },
-  { id: 'consult', label: 'Asks another model' },
-]
-
-const fsBuilds: ReadonlyArray<Readonly<{ id: FsBuild; label: string }>> = [
-  { id: 'default', label: 'Roots replace' },
-  { id: 'confine', label: 'Roots only narrow' },
-  { id: 'pre-fix', label: 'Before the fix' },
-]
-
-const perceptions: ReadonlyArray<Readonly<{ id: Perception; label: string }>> =
-  [
-    { id: 'snapshot', label: 'Snapshot only' },
-    { id: 'vision', label: 'Coordinates on' },
-  ]
-
-const serverSchemas: ReadonlyArray<Readonly<{ id: number; label: string }>> = [
-  { id: 1, label: 'Server schema v1' },
-  { id: 2, label: 'v2 adds destination' },
-]
-
-const gatewayBuilds: ReadonlyArray<
-  Readonly<{ id: GatewayBuild; label: string }>
-> = [
-  { id: 'shared', label: 'One shared process' },
-  { id: 'per-connection', label: 'A process per connection' },
-]
-
-const policies: ReadonlyArray<Readonly<{ id: FetchPolicy; label: string }>> = [
-  { id: 'every-hop', label: 'Check every hop' },
-  { id: 'first-hop', label: 'First URL only' },
-  { id: 'none', label: 'Never check' },
-]
 
 // DERIVED
 
@@ -411,22 +364,6 @@ const visibleEvents = (model: Model): ReadonlyArray<EngineEvent> =>
         Playing: ({ cursor }) => Array.take(record.events, cursor),
       }),
   })
-
-const routeOf = (record: RunRecord): ReadonlyArray<PlaceId> => {
-  if (record.outcome._tag === 'Failed') {
-    return []
-  }
-  const output = record.outcome.output
-  return output._tag === 'RouteFound' || output._tag === 'PlacesConnected'
-    ? output.route.places
-    : []
-}
-
-const isOnRoute = (path: Path, route: ReadonlyArray<PlaceId>): boolean =>
-  pipe(
-    Array.zip(route, route.slice(1)),
-    Array.some(([a, b]) => joins(path, a, b)),
-  )
 
 const outcomeText = (record: RunRecord): string => {
   if (record.outcome._tag === 'Failed') {
@@ -502,6 +439,9 @@ const outcomeText = (record: RunRecord): string => {
   if (output._tag === 'PageFetched') {
     return `Returned “${output.title}” from ${output.finalUrl} after ${output.hops.length} hop(s) and ${output.robotsChecks} robots check(s).`
   }
+  if (output._tag === 'EntryWritten') {
+    return `Wrote “${output.load}”. The ledger now has ${output.entriesNow} entr${output.entriesNow === 1 ? 'y' : 'ies'}.`
+  }
   return output.artifact.summary
 }
 
@@ -528,7 +468,7 @@ const fiveAnswers = (model: Model): ReadonlyArray<Answer> => {
       )
       return Option.isSome(planned)
         ? 'You chose the goal. The planner chose which path to build. No model is involved on this page.'
-        : 'You, by pressing Execute. No model is involved on this page.'
+        : 'You, by pressing a button on the bench. No model is involved on this page.'
     }),
     ask('Was anyone asked?', record =>
       pipe(
@@ -588,32 +528,55 @@ const fiveAnswers = (model: Model): ReadonlyArray<Answer> => {
 
 export const view = (model: Model, h: H): Document => ({
   title: 'MCP Lab',
-  body: h.div(
-    [h.Class(`ide backstage-${model.backstage}`)],
-    [
-      titlebarView(model, h),
-      h.nav(
-        [h.Class('sidebar'), h.AriaLabel('Journey and kit')],
-        [journeyView(model, h), kitView(model, h)],
-      ),
-      workbenchView(model, h),
-      inspectorView(model, h),
-      backstageView(model, h),
-      statusbarView(model, h),
-    ],
-  ),
+  body:
+    model.screen === 'home'
+      ? h.div(
+          [h.Class('ide home')],
+          [titlebarView(model, h), homeView(model, h), statusbarView(model, h)],
+        )
+      : h.div(
+          [h.Class(`ide backstage-${model.backstage}`)],
+          [
+            titlebarView(model, h),
+            h.nav(
+              [h.Class('sidebar'), h.AriaLabel('Journey and kit')],
+              [journeyView(model, h), kitView(model, h)],
+            ),
+            workbenchView(model, h),
+            inspectorView(model, h),
+            backstageView(model, h),
+            statusbarView(model, h),
+          ],
+        ),
 })
+
+const brandView = (h: H): Html =>
+  h.button(
+    [
+      h.Type('button'),
+      h.Class('brand'),
+      h.AriaLabel('MCP Lab, the whole route'),
+      h.OnClick(Message.ClickedHome()),
+    ],
+    [
+      h.span([h.Class('brandmark'), h.AriaHidden(true)], []),
+      h.span([h.Class('brandname')], ['MCP Lab']),
+    ],
+  )
 
 const titlebarView = (model: Model, h: H): Html =>
   h.header(
     [h.Class('titlebar')],
     [
+      model.screen === 'home' ? brandView(h) : h.empty,
       h.p(
         [h.Class('location'), h.AriaLabel('Current location')],
-        [
-          `${phaseNames[phaseOf[model.station]]} / `,
-          h.b([], [stationTitle(model.station)]),
-        ],
+        model.screen === 'home'
+          ? [h.b([], ['The route'])]
+          : [
+              `${phaseNames[phaseOf[model.station]]} / `,
+              h.b([], [stationTitle(model.station)]),
+            ],
       ),
       h.span(
         [h.Class('simtag')],
@@ -626,200 +589,6 @@ const titlebarView = (model: Model, h: H): Html =>
         ],
       ),
     ],
-  )
-
-const bendRowView = (model: Model, h: H): Html =>
-  h.div(
-    [h.Class('bendrow')],
-    [
-      Option.isSome(asLater(model.station))
-        ? laterBend(model, h)
-        : model.station === 'valley'
-          ? bendView(
-              'Weather',
-              [
-                weatherButton(model, 'calm', 'Calm', h),
-                weatherButton(model, 'storm', 'Storm', h),
-              ],
-              h,
-            )
-          : model.station === 'fetch'
-            ? bendView(
-                'Robots policy',
-                Array.map(policies, policy =>
-                  h.button(
-                    [
-                      h.Type('button'),
-                      h.AriaPressed(
-                        model.world.fetchPolicy === policy.id
-                          ? 'true'
-                          : 'false',
-                      ),
-                      h.OnClick(Message.SelectedPolicy({ policy: policy.id })),
-                    ],
-                    [policy.label],
-                  ),
-                ),
-                h,
-              )
-            : model.station === 'memory'
-              ? bendView(
-                  'Storage path',
-                  Array.map(storagePaths, path =>
-                    h.button(
-                      [
-                        h.Type('button'),
-                        h.AriaPressed(
-                          model.world.memory.storagePath === path.id
-                            ? 'true'
-                            : 'false',
-                        ),
-                        h.OnClick(
-                          Message.SelectedStoragePath({ storagePath: path.id }),
-                        ),
-                      ],
-                      [path.label],
-                    ),
-                  ),
-                  h,
-                )
-              : model.station === 'filesystem'
-                ? bendView(
-                    'Server build',
-                    Array.map(fsBuilds, build =>
-                      h.button(
-                        [
-                          h.Type('button'),
-                          h.AriaPressed(
-                            model.world.files.build === build.id
-                              ? 'true'
-                              : 'false',
-                          ),
-                          h.OnClick(
-                            Message.SelectedFsBuild({ build: build.id }),
-                          ),
-                        ],
-                        [build.label],
-                      ),
-                    ),
-                    h,
-                  )
-                : model.station === 'cli'
-                  ? bendView(
-                      'Server schema',
-                      Array.map(serverSchemas, schema =>
-                        h.button(
-                          [
-                            h.Type('button'),
-                            h.AriaPressed(
-                              model.world.cli.serverSchema === schema.id
-                                ? 'true'
-                                : 'false',
-                            ),
-                            h.OnClick(
-                              Message.SelectedServerSchema({
-                                version: schema.id,
-                              }),
-                            ),
-                          ],
-                          [schema.label],
-                        ),
-                      ),
-                      h,
-                    )
-                  : model.station === 'local-remote'
-                    ? bendView(
-                        'Gateway build',
-                        Array.map(gatewayBuilds, build =>
-                          h.button(
-                            [
-                              h.Type('button'),
-                              h.AriaPressed(
-                                model.world.gateway.build === build.id
-                                  ? 'true'
-                                  : 'false',
-                              ),
-                              h.OnClick(
-                                Message.SelectedGatewayBuild({
-                                  build: build.id,
-                                }),
-                              ),
-                            ],
-                            [build.label],
-                          ),
-                        ),
-                        h,
-                      )
-                    : model.station === 'perception'
-                      ? bendView(
-                          'Perception',
-                          Array.map(perceptions, mode =>
-                            h.button(
-                              [
-                                h.Type('button'),
-                                h.AriaPressed(
-                                  model.world.page.mode === mode.id
-                                    ? 'true'
-                                    : 'false',
-                                ),
-                                h.OnClick(
-                                  Message.SelectedPerception({ mode: mode.id }),
-                                ),
-                              ],
-                              [mode.label],
-                            ),
-                          ),
-                          h,
-                        )
-                      : model.station === 'thinking'
-                        ? bendView(
-                            'What is inside',
-                            Array.map(thinkingModes, mode =>
-                              h.button(
-                                [
-                                  h.Type('button'),
-                                  h.AriaPressed(
-                                    model.world.thinkingMode === mode.id
-                                      ? 'true'
-                                      : 'false',
-                                  ),
-                                  h.OnClick(
-                                    Message.SelectedThinkingMode({
-                                      mode: mode.id,
-                                    }),
-                                  ),
-                                ],
-                                [mode.label],
-                              ),
-                            ),
-                            h,
-                          )
-                        : h.empty,
-    ],
-  )
-
-const bendView = (label: string, buttons: ReadonlyArray<Html>, h: H): Html =>
-  h.div(
-    [h.Class('bend')],
-    [
-      h.span([h.Class('bendlabel')], ['Bend it']),
-      h.div([h.Class('seg'), h.Role('group'), h.AriaLabel(label)], buttons),
-    ],
-  )
-
-const weatherButton = (
-  model: Model,
-  weather: Weather,
-  label: string,
-  h: H,
-): Html =>
-  h.button(
-    [
-      h.Type('button'),
-      h.AriaPressed(model.weather === weather ? 'true' : 'false'),
-      h.OnClick(Message.SelectedWeather({ weather })),
-    ],
-    [`${label} · span limit ${maxSpanIn(weather)}`],
   )
 
 // SIDEBAR
@@ -848,10 +617,7 @@ const stationButton = (model: Model, station: Station, h: H): Html =>
         [],
       ),
       h.span([h.Class('t')], [stationTitle(station)]),
-      h.span(
-        [h.Class('n')],
-        [String(stations.indexOf(station)).padStart(2, '0')],
-      ),
+      h.span([h.Class('n')], [stationNumber(station)]),
     ],
   )
 
@@ -859,13 +625,7 @@ const journeyView = (model: Model, h: H): Html =>
   h.div(
     [h.Class('journey-groups')],
     [
-      h.div(
-        [h.Class('brand')],
-        [
-          h.span([h.Class('brandmark'), h.AriaHidden(true)], []),
-          h.h1([], ['MCP Lab']),
-        ],
-      ),
+      brandView(h),
       ...Array.map(phaseOrder, phase =>
         h.keyed('section')(
           phase,
@@ -1143,7 +903,7 @@ const statusbarView = (model: Model, h: H): Html =>
 
 // SPECIMEN
 
-const specimenView = (specimen: Specimen, h: H): Html =>
+const specimenView = (specimen: Specimen, title: string, h: H): Html =>
   h.div(
     [h.Class('specimen')],
     [
@@ -1156,7 +916,7 @@ const specimenView = (specimen: Specimen, h: H): Html =>
               h.p(
                 [h.Class('kicker')],
                 [
-                  `Station ${String(specimen.number).padStart(2, '0')} · ${specimen.title} · after ${specimen.anchor.repo}`,
+                  `Station ${String(specimen.number).padStart(2, '0')} · ${title} · after ${specimen.anchor.repo}`,
                 ],
               ),
               h.h2([h.Class('question')], [specimen.question]),
@@ -1223,1269 +983,23 @@ const specimenView = (specimen: Specimen, h: H): Html =>
     ],
   )
 
-const fetchBenchView = (model: Model, h: H): Html =>
-  h.div(
-    [h.Class('ctl')],
-    [
-      h.label(
-        [h.For('url'), h.Class('field')],
-        [
-          h.span([], ['URL on the synthetic site']),
-          h.select(
-            [
-              h.Id('url'),
-              h.Value(model.url),
-              h.OnChange(value => Message.SelectedUrl({ value })),
-            ],
-            Array.map(siteUrls, url =>
-              h.option([h.Value(url), h.Selected(url === model.url)], [url]),
-            ),
-          ),
-        ],
-      ),
-      h.button(
-        [
-          h.Type('button'),
-          h.Class('btn'),
-          h.Disabled(RunState.isAnyOf(['Running'])(model.run)),
-          h.OnClick(Message.ClickedExecute()),
-        ],
-        ['Execute fetch_page'],
-      ),
-    ],
-  )
-
-const fetchedPageView = (model: Model, h: H): Html =>
-  Option.match(finishedRecord(model.run), {
-    onNone: () => h.empty,
-    onSome: record =>
-      record.outcome._tag === 'Succeeded' &&
-      record.outcome.output._tag === 'PageFetched'
-        ? h.div(
-            [h.Class('card')],
-            [
-              h.h3([], ['What came back']),
-              h.p(
-                [h.Class('pathlist')],
-                [record.outcome.output.hops.join(' → ')],
-              ),
-              h.pre([h.Class('page')], [record.outcome.output.markdown]),
-            ],
-          )
-        : h.empty,
-  })
-
-// MEMORY
-
-const optionSelect = (
-  id: string,
-  label: string,
-  selected: string,
-  options: ReadonlyArray<string>,
-  toMessage: (value: string) => Message,
-  h: H,
-): Html =>
-  h.label(
-    [h.For(id), h.Class('field')],
-    [
-      h.span([], [label]),
-      h.select(
-        [h.Id(id), h.Value(selected), h.OnChange(toMessage)],
-        Array.map(options, option =>
-          h.option(
-            [h.Value(option), h.Selected(option === selected)],
-            [option],
-          ),
-        ),
-      ),
-    ],
-  )
-
-const memoryBenchView = (model: Model, h: H): Html => {
-  const isRemember = Option.contains(model.maybeSelected, 'remember')
-  return h.div(
-    [h.Class('ctl')],
-    [
-      optionSelect(
-        'entity',
-        'Entity',
-        model.entity,
-        entities,
-        value => Message.SelectedEntity({ value }),
-        h,
-      ),
-      isRemember
-        ? optionSelect(
-            'observation',
-            'Statement',
-            model.observation,
-            observations,
-            value => Message.SelectedObservation({ value }),
-            h,
-          )
-        : h.empty,
-      h.button(
-        [
-          h.Type('button'),
-          h.Class('btn'),
-          h.Disabled(RunState.isAnyOf(['Running'])(model.run)),
-          h.OnClick(Message.ClickedExecute()),
-        ],
-        [isRemember ? 'Execute remember' : 'Execute recall'],
-      ),
-      h.button(
-        [
-          h.Type('button'),
-          h.Class('btn ghost'),
-          h.OnClick(Message.ClickedRestartClient()),
-        ],
-        ['Restart the client'],
-      ),
-      h.button(
-        [
-          h.Type('button'),
-          h.Class('btn ghost'),
-          h.OnClick(Message.ClickedRestartServer()),
-        ],
-        ['Restart the server'],
-      ),
-      h.button(
-        [
-          h.Type('button'),
-          h.Class('btn ghost'),
-          h.OnClick(Message.ClickedReinstallPackage()),
-        ],
-        ['Reinstall the package'],
-      ),
-    ],
-  )
-}
-
-const factLines = (
-  facts: ReadonlyArray<Readonly<{ entity: string; observation: string }>>,
-  h: H,
-): Html =>
-  Array.match(facts, {
-    onEmpty: () => h.p([h.Class('none')], ['empty']),
-    onNonEmpty: lines =>
-      h.ol(
-        [h.Class('lines')],
-        Array.map(lines, (fact, index) =>
-          h.keyed('li')(`${index}`, [], [`${fact.entity} ${fact.observation}`]),
-        ),
-      ),
-  })
-
-const memoryPlacesView = (model: Model, h: H): Html => {
-  const memory = model.world.memory
-  return h.div(
-    [h.Class('places')],
-    [
-      h.div(
-        [h.Class('placebox')],
-        [
-          h.h3([], ['The conversation']),
-          h.p([h.Class('where')], ['in the client · gone on client restart']),
-          Array.match(model.conversation, {
-            onEmpty: () => h.p([h.Class('none')], ['empty']),
-            onNonEmpty: lines =>
-              h.ol(
-                [h.Class('lines')],
-                Array.map(lines, (line, index) =>
-                  h.keyed('li')(`${index}`, [], [line]),
-                ),
-              ),
-          }),
-        ],
-      ),
-      h.div(
-        [h.Class('placebox')],
-        [
-          h.h3([], ['The server process']),
-          h.p(
-            [h.Class('where')],
-            [`start #${model.serverStarts} · reads the file on every call`],
-          ),
-          h.p([h.Class('none')], ['holds nothing between calls']),
-        ],
-      ),
-      h.div(
-        [
-          h.Class(
-            `placebox ${memory.storagePath === 'package-cache' ? 'active' : ''}`,
-          ),
-        ],
-        [
-          h.h3([], ['Package cache']),
-          h.p(
-            [h.Class('where')],
-            [
-              `${pathLabel['package-cache']} · wiped on reinstall${memory.storagePath === 'package-cache' ? ' · in use' : ''}`,
-            ],
-          ),
-          factLines(memory.packageCache, h),
-        ],
-      ),
-      h.div(
-        [h.Class(`placebox ${memory.storagePath === 'home' ? 'active' : ''}`)],
-        [
-          h.h3([], ['Home folder']),
-          h.p(
-            [h.Class('where')],
-            [
-              `${pathLabel.home} · survives reinstall${memory.storagePath === 'home' ? ' · in use' : ''}`,
-            ],
-          ),
-          factLines(memory.home, h),
-        ],
-      ),
-    ],
-  )
-}
-
-// FILESYSTEM
-
-const executeButton = (model: Model, label: string, h: H): Html =>
-  h.button(
-    [
-      h.Type('button'),
-      h.Class('btn'),
-      h.Disabled(RunState.isAnyOf(['Running'])(model.run)),
-      h.OnClick(Message.ClickedExecute()),
-    ],
-    [label],
-  )
-
-const filesBenchView = (model: Model, h: H): Html =>
-  h.div(
-    [h.Class('ctl')],
-    [
-      optionSelect(
-        'path',
-        'File',
-        model.path,
-        filePaths,
-        value => Message.SelectedPath({ value }),
-        h,
-      ),
-      executeButton(model, 'Execute read_file', h),
-      optionSelect(
-        'root',
-        'Client root',
-        model.rootChoice,
-        rootChoices,
-        value => Message.SelectedRootChoice({ value }),
-        h,
-      ),
-      h.button(
-        [
-          h.Type('button'),
-          h.Class('btn ghost'),
-          h.OnClick(Message.ClickedSendRoots()),
-        ],
-        ['Client sends this root'],
-      ),
-      h.button(
-        [
-          h.Type('button'),
-          h.Class('btn ghost'),
-          h.OnClick(Message.ClickedRevokeRoots()),
-        ],
-        ['Client revokes its roots'],
-      ),
-    ],
-  )
-
-const pathLines = (paths: ReadonlyArray<string>, h: H): Html =>
-  Array.match(paths, {
-    onEmpty: () => h.p([h.Class('none')], ['nothing']),
-    onNonEmpty: lines =>
-      h.ul(
-        [h.Class('lines plain-list')],
-        Array.map(lines, line => h.keyed('li')(line, [], [line])),
-      ),
-  })
-
-const boundaryView = (model: Model, h: H): Html => {
-  const files = model.world.files
-  return h.div(
-    [h.Class('places')],
-    [
-      h.div(
-        [h.Class('placebox')],
-        [
-          h.h3([], ['Set at launch']),
-          h.p([h.Class('where')], ['command line · never changes']),
-          pathLines(LAUNCH_DIRECTORIES, h),
-        ],
-      ),
-      h.div(
-        [h.Class('placebox')],
-        [
-          h.h3([], ['Sent by the client']),
-          h.p([h.Class('where')], ['roots · last update']),
-          pathLines(files.clientRoots, h),
-        ],
-      ),
-      h.div(
-        [h.Class('placebox active')],
-        [
-          h.h3([], ['What the server enforces now']),
-          h.p([h.Class('where')], [files.note]),
-          pathLines(files.allowed, h),
-        ],
-      ),
-      h.div(
-        [h.Class('placebox')],
-        [
-          h.h3([], ['Files']),
-          h.p([h.Class('where')], ['readable right now?']),
-          h.ul(
-            [h.Class('lines plain-list')],
-            Array.map(filePaths, path =>
-              h.keyed('li')(
-                path,
-                [],
-                [`${isAllowed(files, path) ? 'yes' : 'no'} · ${path}`],
-              ),
-            ),
-          ),
-        ],
-      ),
-    ],
-  )
-}
-
-// PERCEPTION
-
-const perceptionBenchView = (model: Model, h: H): Html => {
-  const isClick = Option.contains(model.maybeSelected, 'click')
-  return h.div(
-    [h.Class('ctl')],
-    [
-      isClick
-        ? optionSelect(
-            'target',
-            'Control',
-            model.target,
-            Array.map(controls, control => control.id),
-            value => Message.SelectedTarget({ value }),
-            h,
-          )
-        : h.empty,
-      executeButton(
-        model,
-        isClick ? 'Execute click' : 'Execute take_snapshot',
-        h,
-      ),
-    ],
-  )
-}
-
-const controlState = (model: Model, id: string): string => {
-  const page = model.world.page
-  if (id === 'gate') {
-    return page.gate ? 'open' : 'closed'
-  }
-  if (id === 'lever') {
-    return page.lever ? 'pulled' : 'up'
-  }
-  if (id === 'valve') {
-    return page.valve ? 'open' : 'shut'
-  }
-  return `rung ${page.bell} time(s)`
-}
-
-const pageView = (model: Model, h: H): Html => {
-  const page = model.world.page
-  const hasSnapshot = page.snapshotRevision !== NO_SNAPSHOT
-  const isFresh = page.snapshotRevision === page.revision
-  return h.div(
-    [h.Class('places')],
-    [
-      h.div(
-        [h.Class('placebox')],
-        [
-          h.h3([], ['The page, as a person sees it']),
-          h.p(
-            [h.Class('where')],
-            [`revision ${page.revision} · four controls`],
-          ),
-          h.ul(
-            [h.Class('tiles')],
-            Array.map(controls, control =>
-              h.keyed('li')(
-                control.id,
-                [],
-                [
-                  h.b([], [control.label]),
-                  h.span([], [controlState(model, control.id)]),
-                  h.small([], [control.madeOf]),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      h.div(
-        [h.Class('placebox active')],
-        [
-          h.h3([], ['The page, as the tool perceives it']),
-          h.p(
-            [h.Class('where')],
-            [
-              !hasSnapshot
-                ? 'no snapshot taken yet'
-                : isFresh
-                  ? `snapshot of revision ${page.snapshotRevision} · current`
-                  : `snapshot of revision ${page.snapshotRevision} · stale, the page is at ${page.revision}`,
-            ],
-          ),
-          hasSnapshot
-            ? h.ul(
-                [h.Class('lines plain-list')],
-                Array.flatMap(controls, (control, index) =>
-                  control.inSnapshot
-                    ? [
-                        h.keyed('li')(
-                          control.id,
-                          [],
-                          [
-                            `r${page.snapshotRevision}e${index + 1} · button · “${control.label}”`,
-                          ],
-                        ),
-                      ]
-                    : [],
-                ),
-              )
-            : h.p([h.Class('none')], ['nothing']),
-          h.p(
-            [h.Class('where')],
-            [
-              page.mode === 'vision'
-                ? 'Coordinates are on: the tool can click any point, without knowing what is there.'
-                : 'The Lever and the Valve have no role or name, so they never appear here.',
-            ],
-          ),
-        ],
-      ),
-    ],
-  )
-}
-
-// CLI SNAPSHOT
-
-const cliBenchView = (model: Model, h: H): Html =>
-  h.div(
-    [h.Class('ctl')],
-    [
-      h.p([h.Class('goal')], ['You want to ship 3 crates to the dock.']),
-      executeButton(
-        model,
-        Option.match(model.maybeSelected, {
-          onNone: () => 'Execute',
-          onSome: name => `Execute ${name}`,
-        }),
-        h,
-      ),
-    ],
-  )
-
-const cliPlacesView = (model: Model, h: H): Html => {
-  const cli = model.world.cli
-  const hasArtifact = cli.artifactSchema !== NO_ARTIFACT
-  const isStale = hasArtifact && cli.artifactSchema !== cli.serverSchema
-  return h.div(
-    [h.Class('places')],
-    [
-      h.div(
-        [h.Class('placebox')],
-        [
-          h.h3([], ['The server, right now']),
-          h.p([h.Class('where')], [`schema v${cli.serverSchema}`]),
-          pathLines(
-            [`ship_crates(${fieldsOf(cli.serverSchema).join(', ')})`],
-            h,
-          ),
-        ],
-      ),
-      h.div(
-        [h.Class('placebox active')],
-        [
-          h.h3([], ['The generated CLI']),
-          h.p(
-            [h.Class('where')],
-            [
-              !hasArtifact
-                ? 'not generated yet'
-                : isStale
-                  ? `embeds schema v${cli.artifactSchema} · stale, and it cannot know`
-                  : `embeds schema v${cli.artifactSchema} · matches the server`,
-            ],
-          ),
-          hasArtifact
-            ? pathLines([helpText(cli.artifactSchema)], h)
-            : h.p([h.Class('none')], ['nothing']),
-        ],
-      ),
-      h.div(
-        [h.Class('placebox')],
-        [
-          h.h3([], ['A live call']),
-          h.p([h.Class('where')], ['embeds nothing · asks every time']),
-          h.p([h.Class('none')], ['lists the tools, then calls']),
-        ],
-      ),
-    ],
-  )
-}
-
-// GATEWAY
-
-const gatewayBenchView = (model: Model, h: H): Html => {
-  const isGoTo = Option.contains(model.maybeSelected, 'go_to')
-  return h.div(
-    [h.Class('ctl')],
-    [
-      optionSelect(
-        'client',
-        'Client',
-        model.client,
-        clients,
-        value => Message.SelectedClient({ value }),
-        h,
-      ),
-      isGoTo
-        ? optionSelect(
-            'gateway-place',
-            'Place',
-            model.place,
-            gatewayPlaces,
-            value => Message.SelectedGatewayPlace({ value }),
-            h,
-          )
-        : h.empty,
-      executeButton(model, isGoTo ? 'Execute go_to' : 'Execute where_am_i', h),
-      h.button(
-        [
-          h.Type('button'),
-          h.Class('btn ghost'),
-          h.OnClick(Message.ClickedReconnectClient()),
-        ],
-        ['This client reconnects'],
-      ),
-      h.button(
-        [
-          h.Type('button'),
-          h.Class('btn ghost'),
-          h.OnClick(Message.ClickedVanishClient()),
-        ],
-        ['This client vanishes'],
-      ),
-      h.button(
-        [
-          h.Type('button'),
-          h.Class('btn ghost'),
-          h.OnClick(Message.ClickedPassTimeout()),
-        ],
-        ['Session timeout passes'],
-      ),
-    ],
-  )
-}
-
-const processesView = (model: Model, h: H): Html =>
-  h.div(
-    [h.Class('places')],
-    Array.match(model.world.gateway.children, {
-      onEmpty: () => [
-        h.div(
-          [h.Class('placebox')],
-          [
-            h.h3([], ['No server process yet']),
-            h.p(
-              [h.Class('where')],
-              ['one is spawned when a client first connects'],
-            ),
-          ],
-        ),
-      ],
-      onNonEmpty: children =>
-        Array.map(children, child =>
-          h.div(
-            [h.Class(`placebox ${child.orphaned ? '' : 'active'}`)],
-            [
-              h.h3([], [`Server process #${child.id}`]),
-              h.p(
-                [h.Class('where')],
-                [
-                  child.orphaned
-                    ? `orphaned · was client ${child.owner}’s · still running`
-                    : child.owner === 'shared'
-                      ? 'shared by every client'
-                      : `owned by client ${child.owner}’s connection`,
-                ],
-              ),
-              h.p(
-                [],
-                [
-                  child.place === ''
-                    ? 'current place: none'
-                    : `current place: ${child.place}`,
-                ],
-              ),
-            ],
-          ),
-        ),
-    }),
-  )
-
-// STATIONS 08 TO 12
-
-const settingButtons = (
-  current: string,
-  key: string,
-  options: ReadonlyArray<Readonly<{ value: string; label: string }>>,
-  h: H,
-): ReadonlyArray<Html> =>
-  Array.map(options, option =>
-    h.button(
-      [
-        h.Type('button'),
-        h.AriaPressed(current === option.value ? 'true' : 'false'),
-        h.OnClick(
-          Message.SelectedSetting({ setting: `${key}=${option.value}` }),
-        ),
-      ],
-      [option.label],
-    ),
-  )
-
-const laterBend = (model: Model, h: H): Html => {
-  const world = model.world
-  if (model.station === 'apps') {
-    return bendView(
-      'App tools',
-      settingButtons(
-        world.app.tools,
-        'app',
-        [
-          { value: 'on', label: 'App can be asked' },
-          { value: 'off', label: 'App cannot be asked' },
-        ],
-        h,
-      ),
-      h,
-    )
-  }
-  if (model.station === 'code-mode') {
-    return bendView(
-      'Fault',
-      settingButtons(
-        world.ledger.fault,
-        'fault',
-        [
-          { value: 'none', label: 'All writes succeed' },
-          { value: 'after-second', label: 'Third write fails' },
-        ],
-        h,
-      ),
-      h,
-    )
-  }
-  if (model.station === 'delegation') {
-    return bendView(
-      'Handoff',
-      settingButtons(
-        world.handoff.context,
-        'context',
-        [
-          { value: 'full', label: 'Map sent along' },
-          { value: 'none', label: 'Map left out' },
-        ],
-        h,
-      ),
-      h,
-    )
-  }
-  if (model.station === 'iteration') {
-    return bendView(
-      'Criteria',
-      settingButtons(
-        world.loop.criteria,
-        'criteria',
-        [
-          { value: 'satisfiable', label: 'Criteria can be met' },
-          { value: 'contradictory', label: 'Criteria contradict' },
-        ],
-        h,
-      ),
-      h,
-    )
-  }
-  return bendView(
-    'Naming',
-    settingButtons(
-      world.net.naming,
-      'naming',
-      [
-        { value: 'first-wins', label: 'First name wins' },
-        { value: 'prefixed', label: 'Names carry the backend' },
-      ],
-      h,
-    ),
-    h,
-  )
-}
-
-const box = (
-  title: string,
-  where: string,
-  lines: ReadonlyArray<string>,
-  isActive: boolean,
-  h: H,
-): Html =>
-  h.div(
-    [h.Class(`placebox ${isActive ? 'active' : ''}`)],
-    [
-      h.h3([], [title]),
-      h.p([h.Class('where')], [where]),
-      Array.match(lines, {
-        onEmpty: () => h.p([h.Class('none')], ['nothing yet']),
-        onNonEmpty: shown =>
-          h.ul(
-            [h.Class('lines text-list')],
-            Array.map(shown, (line, index) =>
-              h.keyed('li')(`${index}`, [], [line]),
-            ),
-          ),
-      }),
-    ],
-  )
-
-const selectedLabel = (model: Model): string =>
-  Option.match(model.maybeSelected, {
-    onNone: () => 'Execute',
-    onSome: name => `Execute ${name}`,
-  })
-
-const lastOutput = (model: Model) =>
-  Option.flatMap(finishedRecord(model.run), record =>
-    record.outcome._tag === 'Succeeded'
-      ? Option.some(record.outcome.output)
-      : Option.none(),
-  )
-
-const APP_PLACES: ReadonlyArray<
-  Readonly<{ id: string; name: string; x: number; y: number }>
-> = [
-  { id: 'forge', name: 'Forge', x: 110, y: 150 },
-  { id: 'mill', name: 'Mill', x: 270, y: 150 },
-  { id: 'kiln', name: 'Kiln', x: 430, y: 90 },
-  { id: 'dock', name: 'Dock', x: 590, y: 150 },
-]
-
-const appPlaceName = (id: string): string =>
-  Option.match(
-    Array.findFirst(APP_PLACES, place => place.id === id),
-    { onNone: () => 'nowhere yet', onSome: place => place.name },
-  )
-
-const appBenchView = (model: Model, h: H): Html => {
-  const app = model.world.app
-  const isOpen = app.view !== ''
-  const isStale = isOpen && app.modelKnows !== app.view
-  const readings: ReadonlyArray<
-    Readonly<{
-      id: 'person' | 'model' | 'server'
-      label: string
-      value: string
-      note: string
-    }>
-  > = [
-    {
-      id: 'person',
-      label: 'On your screen',
-      value: appPlaceName(app.view),
-      note: 'What the app shows right now. You moved it; no tool was called.',
-    },
-    {
-      id: 'model',
-      label: 'Model’s last view',
-      value: `${appPlaceName(app.modelKnows)}${isStale ? ' · out of date' : ''}`,
-      note: isStale
-        ? 'The model still holds what the last tool result told it. Nothing reported your move.'
-        : 'What the model was last told matches the screen.',
-    },
-    {
-      id: 'server',
-      label: 'Tool result',
-      value: appPlaceName(app.shown),
-      note: 'Returned once, when the app opened. It does not update itself.',
-    },
-  ]
-  return h.div(
-    [h.Class('appbench')],
-    [
-      h.div(
-        [h.Class('appmap')],
-        [
-          h.svg(
-            [
-              h.Class(
-                `map appsvg reading-${model.reading} ${isOpen ? '' : 'closed'}`,
-              ),
-              h.ViewBox('0 0 700 240'),
-              h.Role('img'),
-              h.AriaLabel(
-                isOpen
-                  ? `Interactive map. The screen shows ${appPlaceName(app.view)}; the model was last told ${appPlaceName(app.modelKnows)}.`
-                  : 'The map app is not open yet.',
-              ),
-            ],
-            [
-              h.line([
-                h.Class('path'),
-                h.X1('110'),
-                h.Y1('150'),
-                h.X2('270'),
-                h.Y2('150'),
-              ]),
-              h.line([
-                h.Class('path'),
-                h.X1('430'),
-                h.Y1('90'),
-                h.X2('590'),
-                h.Y2('150'),
-              ]),
-              ...Array.flatMap(APP_PLACES, place => [
-                place.id === app.shown
-                  ? h.circle([
-                      h.Class('mark shown'),
-                      h.Cx(String(place.x)),
-                      h.Cy(String(place.y)),
-                      h.R('34'),
-                    ])
-                  : h.empty,
-                place.id === app.modelKnows
-                  ? h.circle([
-                      h.Class('mark model'),
-                      h.Cx(String(place.x)),
-                      h.Cy(String(place.y)),
-                      h.R('27'),
-                    ])
-                  : h.empty,
-                place.id === app.view
-                  ? h.rect([
-                      h.Class('mark screen'),
-                      h.X(String(place.x - 60)),
-                      h.Y(String(place.y - 50)),
-                      h.Width('120'),
-                      h.Height('100'),
-                      h.Rx('8'),
-                    ])
-                  : h.empty,
-                h.circle([
-                  h.Class('place'),
-                  h.Cx(String(place.x)),
-                  h.Cy(String(place.y)),
-                  h.R('12'),
-                  h.OnClick(Message.ClickedMapPlace({ place: place.id })),
-                ]),
-                h.text(
-                  [
-                    h.Class('place-label'),
-                    h.X(String(place.x)),
-                    h.Y(String(place.y + 80)),
-                    h.TextAnchor('middle'),
-                  ],
-                  [place.name],
-                ),
-              ]),
-            ],
-          ),
-          h.div(
-            [
-              h.Class('moverow'),
-              h.Role('group'),
-              h.AriaLabel(isOpen ? 'Move the map to' : 'Open the map at'),
-            ],
-            [
-              h.span(
-                [h.Class('eyebrow')],
-                [isOpen ? 'Move the map to' : 'Choose where to open'],
-              ),
-              ...Array.map(APP_PLACES, place =>
-                h.button(
-                  [
-                    h.Type('button'),
-                    h.Class('chip'),
-                    h.AriaPressed(
-                      (isOpen ? app.view : model.place) === place.id
-                        ? 'true'
-                        : 'false',
-                    ),
-                    h.OnClick(Message.ClickedMapPlace({ place: place.id })),
-                  ],
-                  [place.name],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      h.div(
-        [h.Class('readout')],
-        [
-          h.span([h.Class('eyebrow')], ['Read this map as']),
-          ...Array.map(readings, reading =>
-            h.button(
-              [
-                h.Type('button'),
-                h.Class(`reading ${reading.id}`),
-                h.AriaPressed(model.reading === reading.id ? 'true' : 'false'),
-                h.OnClick(Message.SelectedReading({ reading: reading.id })),
-              ],
-              [
-                h.span([h.Class('reading-label')], [reading.label]),
-                h.b([], [reading.value]),
-              ],
-            ),
-          ),
-          h.p(
-            [h.Class('reading-note'), h.AriaLive('polite')],
-            [
-              pipe(
-                readings,
-                Array.findFirst(reading => reading.id === model.reading),
-                Option.match({
-                  onNone: () => '',
-                  onSome: reading => reading.note,
-                }),
-              ),
-            ],
-          ),
-          isOpen
-            ? h.button(
-                [
-                  h.Type('button'),
-                  h.Class('btn'),
-                  h.Disabled(RunState.isAnyOf(['Running'])(model.run)),
-                  h.OnClick(Message.ClickedRun({ name: 'get_current_view' })),
-                ],
-                ['Ask the app where it is looking'],
-              )
-            : h.button(
-                [
-                  h.Type('button'),
-                  h.Class('btn'),
-                  h.Disabled(RunState.isAnyOf(['Running'])(model.run)),
-                  h.OnClick(Message.ClickedRun({ name: 'show_map' })),
-                ],
-                [`Open the map at ${appPlaceName(model.place)}`],
-              ),
-        ],
-      ),
-    ],
-  )
-}
-
-const laterBench = (model: Model, h: H): ReadonlyArray<Html> => {
-  const world = model.world
-  const maybeOutput = lastOutput(model)
-  if (model.station === 'apps') {
-    return [appBenchView(model, h), resultView(model, h)]
-  }
-  if (model.station === 'code-mode') {
-    return [
-      h.div(
-        [h.Class('ctl')],
-        [
-          h.p(
-            [h.Class('goal')],
-            ['You want three entries in the ledger: clay, timber, iron.'],
-          ),
-          executeButton(model, selectedLabel(model), h),
-        ],
-      ),
-      resultView(model, h),
-      h.div(
-        [h.Class('places')],
-        [
-          box(
-            'The ledger',
-            'append only · no undo',
-            world.ledger.entries,
-            true,
-            h,
-          ),
-          box(
-            'The program inside the sandbox',
-            'written by the caller, not by the server',
-            ['for (const load of loads) await ledger.write(load)'],
-            false,
-            h,
-          ),
-        ],
-      ),
-    ]
-  }
-  if (model.station === 'delegation') {
-    const reply = Option.flatMap(maybeOutput, output =>
-      output._tag === 'ExpertReplied' ? Option.some(output) : Option.none(),
-    )
-    return [
-      h.div([h.Class('ctl')], [executeButton(model, selectedLabel(model), h)]),
-      resultView(model, h),
-      h.div(
-        [h.Class('places')],
-        [
-          box(
-            'What was handed over',
-            'the expert sees only this',
-            world.handoff.context === 'full'
-              ? ['the goal', 'the map of the valley']
-              : ['the goal'],
-            false,
-            h,
-          ),
-          box(
-            'What came back',
-            Option.match(reply, {
-              onNone: () => 'nothing yet',
-              onSome: output =>
-                `contract: ${output.contract} · ${output.grounded ? 'based on the map' : 'the expert never saw the map'}`,
-            }),
-            Option.match(reply, {
-              onNone: () => [],
-              onSome: output => [
-                output.reply,
-                `Next step is owned by: ${output.nextStepOwner}.`,
-              ],
-            }),
-            true,
-            h,
-          ),
-          box(
-            'Stored artifacts',
-            'only "deliver" writes here',
-            Array.map(world.artifacts, artifact => artifact.summary),
-            false,
-            h,
-          ),
-        ],
-      ),
-    ]
-  }
-  if (model.station === 'iteration') {
-    return [
-      h.div(
-        [h.Class('ctl')],
-        [
-          optionSelect(
-            'engine',
-            'Engine',
-            world.loop.engine,
-            ['in-memory', 'durable'],
-            value => Message.SelectedSetting({ setting: `engine=${value}` }),
-            h,
-          ),
-          executeButton(model, selectedLabel(model), h),
-        ],
-      ),
-      resultView(model, h),
-      h.div(
-        [h.Class('places')],
-        [
-          box(
-            'The rule of the loop',
-            'as read in the reference code',
-            [
-              'Stop when a draft is rated GOOD or better.',
-              'Refine at most 3 times.',
-              'Return the best-rated draft, not the last one.',
-            ],
-            false,
-            h,
-          ),
-          box(
-            'What happened',
-            'ratings come from a scripted evaluator',
-            Option.match(maybeOutput, {
-              onNone: () => [],
-              onSome: output =>
-                output._tag === 'LoopFinished'
-                  ? [
-                      ...Array.map(
-                        output.ratings,
-                        (rating, index) => `Draft ${index + 1}: ${rating}`,
-                      ),
-                      ...(output.draftsWritten > output.ratings.length
-                        ? [`Draft ${output.draftsWritten}: never rated`]
-                        : []),
-                      `Returned: draft ${output.returnedDraft}`,
-                    ]
-                  : output._tag === 'LoopResumed'
-                    ? [
-                        `Engine: ${output.engine}`,
-                        `Drafts written before the crash: ${output.generationsBeforeCrash}`,
-                        `Drafts written again afterwards: ${output.generationsRedone}`,
-                      ]
-                    : [],
-            }),
-            true,
-            h,
-          ),
-        ],
-      ),
-    ]
-  }
-  const inventory = inventoryOf(world)
-  return [
-    h.div(
-      [h.Class('ctl')],
-      [
-        Option.contains(model.maybeSelected, 'call_tool')
-          ? optionSelect(
-              'tool-name',
-              'Tool',
-              model.toolName,
-              Array.map(inventory, entry => entry.name),
-              value => Message.SelectedToolName({ value }),
-              h,
-            )
-          : h.empty,
-        executeButton(model, selectedLabel(model), h),
-        h.button(
-          [
-            h.Type('button'),
-            h.Class('btn ghost'),
-            h.OnClick(
-              Message.SelectedSetting({
-                setting: world.net.dock === 'up' ? 'dock=down' : 'dock=up',
-              }),
-            ),
-          ],
-          [
-            world.net.dock === 'up'
-              ? 'Dock backend goes down'
-              : 'Dock backend comes back',
-          ],
-        ),
-      ],
-    ),
-    resultView(model, h),
-    h.div(
-      [h.Class('places')],
-      [
-        box(
-          'One entrance',
-          `${inventory.length} of 4 backend tools are visible`,
-          Array.map(inventory, entry => `${entry.name} → ${entry.backend}`),
-          true,
-          h,
-        ),
-        box('Forge backend', 'up', ['inspect', 'ship'], false, h),
-        box(
-          'Dock backend',
-          world.net.dock === 'up'
-            ? 'up'
-            : 'down · its tools are still listed at the entrance',
-          ['inspect', 'weigh'],
-          false,
-          h,
-        ),
-      ],
-    ),
-  ]
-}
-
-// THINKING
-
-const thinkingBenchView = (model: Model, h: H): Html =>
-  h.div(
-    [h.Class('ctl')],
-    [
-      placeSelect(
-        'from',
-        'From',
-        model.from,
-        model.world,
-        value => Message.SelectedFrom({ value }),
-        h,
-      ),
-      placeSelect(
-        'to',
-        'To',
-        model.to,
-        model.world,
-        value => Message.SelectedTo({ value }),
-        h,
-      ),
-      h.button(
-        [
-          h.Type('button'),
-          h.Class('btn'),
-          h.Disabled(RunState.isAnyOf(['Running'])(model.run)),
-          h.OnClick(Message.ClickedExecute()),
-        ],
-        ['Execute plan_steps'],
-      ),
-    ],
-  )
-
-const planView = (model: Model, h: H): Html =>
-  h.div(
-    [h.Class('places')],
-    [
-      h.div(
-        [h.Class('placebox')],
-        [
-          h.h3([], ['Your thoughts, sent with the call']),
-          h.p([h.Class('where')], ['from the caller']),
-          h.ol(
-            [h.Class('lines')],
-            Array.map(callerThoughts, thought =>
-              h.keyed('li')(thought, [], [thought]),
-            ),
-          ),
-        ],
-      ),
-      Option.match(finishedRecord(model.run), {
-        onNone: () => h.empty,
-        onSome: record =>
-          record.outcome._tag === 'Succeeded' &&
-          record.outcome.output._tag === 'PlanMade'
-            ? h.div(
-                [h.Class('placebox active')],
-                [
-                  h.h3([], ['The plan that came back']),
-                  h.p(
-                    [h.Class('where')],
-                    [
-                      `written by ${record.outcome.output.madeBy} · ${record.outcome.output.checkedAgainstMap ? 'derived from the map' : 'not checked against the map'}`,
-                    ],
-                  ),
-                  h.ol(
-                    [h.Class('lines')],
-                    Array.map(record.outcome.output.steps, step =>
-                      h.keyed('li')(step, [], [step]),
-                    ),
-                  ),
-                ],
-              )
-            : h.empty,
-      }),
-    ],
-  )
-
 // ONSTAGE
 
 const benchToolsView = (model: Model, h: H): Html =>
   h.div(
     [h.Class('benchtools')],
     [
-      bendRowView(model, h),
+      bendView(model, h),
+      RunState.isAnyOf(['Running'])(model.run)
+        ? h.button(
+            [
+              h.Type('button'),
+              h.Class('btn ghost small'),
+              h.OnClick(Message.ClickedCancel()),
+            ],
+            ['Cancel'],
+          )
+        : h.empty,
       h.button(
         [
           h.Type('button'),
@@ -2497,92 +1011,47 @@ const benchToolsView = (model: Model, h: H): Html =>
     ],
   )
 
-const workbenchView = (model: Model, h: H): Html =>
-  model.station === 'valley'
-    ? valleyBenchView(model, h)
-    : h.main(
-        [h.Class('workbench'), h.AriaLabel('Workbench')],
-        [
-          h.div(
-            [h.Class('panehead')],
-            [
-              h.span([h.Class('eyebrow')], ['Onstage · what you see']),
-              Option.isSome(asLater(model.station)) ||
-              model.station === 'fetch' ||
-              model.station === 'memory' ||
-              model.station === 'filesystem' ||
-              model.station === 'perception' ||
-              model.station === 'cli' ||
-              model.station === 'local-remote' ||
-              model.station === 'thinking'
-                ? runPill(model.run, h)
-                : h.empty,
-            ],
-          ),
-          Option.match(findSpecimen(model.station), {
-            onNone: () => h.empty,
-            onSome: specimen => specimenView(specimen, h),
-          }),
-          benchToolsView(model, h),
-          ...(Option.isSome(asLater(model.station))
-            ? laterBench(model, h)
-            : model.station === 'fetch'
-              ? [
-                  fetchBenchView(model, h),
-                  resultView(model, h),
-                  fetchedPageView(model, h),
-                ]
-              : model.station === 'memory'
-                ? [
-                    memoryBenchView(model, h),
-                    resultView(model, h),
-                    memoryPlacesView(model, h),
-                  ]
-                : model.station === 'filesystem'
-                  ? [
-                      filesBenchView(model, h),
-                      resultView(model, h),
-                      boundaryView(model, h),
-                    ]
-                  : model.station === 'cli'
-                    ? [
-                        cliBenchView(model, h),
-                        resultView(model, h),
-                        cliPlacesView(model, h),
-                      ]
-                    : model.station === 'local-remote'
-                      ? [
-                          gatewayBenchView(model, h),
-                          resultView(model, h),
-                          processesView(model, h),
-                        ]
-                      : model.station === 'perception'
-                        ? [
-                            perceptionBenchView(model, h),
-                            resultView(model, h),
-                            pageView(model, h),
-                          ]
-                        : model.station === 'thinking'
-                          ? [
-                              thinkingBenchView(model, h),
-                              resultView(model, h),
-                              planView(model, h),
-                            ]
-                          : [
-                              h.p(
-                                [h.Class('empty')],
-                                [
-                                  'Nothing to run yet. This station is a research lead waiting for its simulation.',
-                                ],
-                              ),
-                            ]),
-        ],
-      )
-
-const valleyBenchView = (model: Model, h: H): Html => {
+const valleyHeadView = (model: Model, h: H): Html => {
   const index = chapters.findIndex(chapter => chapter.id === model.chapter)
   const maybeNext = Option.fromNullishOr(chapters[index + 1])
-  return h.main(
+  return pipe(
+    Option.fromNullishOr(chapters[index]),
+    Option.match({
+      onNone: () => h.empty,
+      onSome: chapter =>
+        h.div(
+          [h.Class('prompt')],
+          [
+            h.div(
+              [],
+              [
+                h.p(
+                  [h.Class('kicker')],
+                  [`Station 00 · The valley · ${chapter.name}`],
+                ),
+                h.h2([h.Class('question')], [chapter.prompt]),
+              ],
+            ),
+            Option.match(maybeNext, {
+              onNone: () => h.empty,
+              onSome: next =>
+                h.button(
+                  [
+                    h.Type('button'),
+                    h.Class('btn ghost'),
+                    h.OnClick(Message.ClickedChapter({ chapter: next.id })),
+                  ],
+                  [`Next: ${next.name}`],
+                ),
+            }),
+          ],
+        ),
+    }),
+  )
+}
+
+const workbenchView = (model: Model, h: H): Html =>
+  h.main(
     [h.Class('workbench'), h.AriaLabel('Workbench')],
     [
       h.div(
@@ -2592,49 +1061,193 @@ const valleyBenchView = (model: Model, h: H): Html => {
           runPill(model.run, h),
         ],
       ),
-      pipe(
-        Option.fromNullishOr(chapters[index]),
-        Option.match({
-          onNone: () => h.empty,
-          onSome: chapter =>
-            h.div(
-              [h.Class('prompt')],
-              [
-                h.div(
-                  [],
-                  [
-                    h.p(
-                      [h.Class('kicker')],
-                      [`Station 00 · The valley · ${chapter.name}`],
-                    ),
-                    h.h2([h.Class('question')], [chapter.prompt]),
-                  ],
-                ),
-                Option.match(maybeNext, {
-                  onNone: () => h.empty,
-                  onSome: next =>
-                    h.button(
-                      [
-                        h.Type('button'),
-                        h.Class('btn ghost'),
-                        h.OnClick(Message.ClickedChapter({ chapter: next.id })),
-                      ],
-                      [`Next: ${next.name}`],
-                    ),
-                }),
-              ],
-            ),
-        }),
-      ),
+      Option.match(findSpecimen(model.station), {
+        onNone: () => valleyHeadView(model, h),
+        onSome: specimen =>
+          specimenView(specimen, stationTitle(model.station), h),
+      }),
       benchToolsView(model, h),
-      mapView(model, h),
-      pathListView(model.world, h),
-      controlsView(model, h),
+      ...benchView(model, h),
       resultView(model, h),
-      artifactsView(model.world, h),
+    ],
+  )
+
+// HOME
+
+const valleyQuestion = 'A map you can read, ask, change and hand a goal to.'
+
+const hasVisited = (model: Model, station: Station): boolean =>
+  model.savedRuns.some(
+    entry =>
+      entry.station === station && !RunState.isAnyOf(['Idle'])(entry.run),
+  )
+
+const statView = (
+  label: string,
+  value: string,
+  note: string,
+  h: H,
+  tone: 'plain' | 'warn' = 'plain',
+): Html =>
+  h.div(
+    [h.Class(`stat ${tone}`)],
+    [
+      h.span([h.Class('stat-label')], [label]),
+      h.b([h.Class('stat-value')], [value]),
+      h.span([h.Class('stat-note')], [note]),
+    ],
+  )
+
+const stationCardView = (model: Model, station: Station, h: H): Html => {
+  const maybeSpecimen = findSpecimen(station)
+  const isHere = station === model.station
+  return h.button(
+    [
+      h.Type('button'),
+      h.Class(`stationcard ${isHere ? 'here' : ''}`),
+      h.OnClick(Message.SelectedStation({ station })),
+    ],
+    [
+      h.span(
+        [h.Class('stationcard-head')],
+        [
+          h.span([h.Class('n')], [stationNumber(station)]),
+          h.b([], [stationTitle(station)]),
+          h.span(
+            [
+              h.Class(
+                `tag ${isHere ? 'here' : hasVisited(model, station) ? 'ok' : 'quiet'}`,
+              ),
+            ],
+            [
+              isHere
+                ? 'you are here'
+                : hasVisited(model, station)
+                  ? 'visited'
+                  : 'not yet',
+            ],
+          ),
+        ],
+      ),
+      h.span(
+        [h.Class('stationcard-q')],
+        [
+          Option.match(maybeSpecimen, {
+            onNone: () => valleyQuestion,
+            onSome: specimen => specimen.question,
+          }),
+        ],
+      ),
+      h.span(
+        [h.Class('stationcard-foot')],
+        [
+          h.span(
+            [h.Class('src')],
+            [
+              Option.match(maybeSpecimen, {
+                onNone: () => 'this lab',
+                onSome: specimen => specimen.anchor.repo,
+              }),
+            ],
+          ),
+          h.span([], [`bend: ${bendLabel(station).toLowerCase()}`]),
+        ],
+      ),
     ],
   )
 }
+
+const homeView = (model: Model, h: H): Html =>
+  h.main(
+    [h.Class('home-main'), h.AriaLabel('The route')],
+    [
+      h.div(
+        [h.Class('home-head')],
+        [
+          h.div(
+            [],
+            [
+              h.p([h.Class('kicker')], ['The route, easy to strange']),
+              h.h1([h.Class('home-title')], ['What were you just handed?']),
+              h.p(
+                [h.Class('home-lede')],
+                [
+                  'Thirteen small machines. Each hands you a tool, lets you use it, then lets you bend it until it shows what it really is.',
+                ],
+              ),
+            ],
+          ),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('btn'),
+              h.OnClick(Message.SelectedStation({ station: model.station })),
+            ],
+            [
+              model.station === 'valley' && !hasVisited(model, 'valley')
+                ? 'Start in the valley'
+                : `Continue at ${stationTitle(model.station)}`,
+            ],
+          ),
+        ],
+      ),
+      h.div(
+        [h.Class('stats')],
+        [
+          statView(
+            'Stations you can run',
+            String(stations.length),
+            'the valley plus twelve specimens',
+            h,
+          ),
+          statView(
+            'Tools in the kits',
+            String(catalogue.length),
+            'one engine behind browser, CLI and MCP',
+            h,
+          ),
+          statView(
+            'Live connections',
+            '0',
+            'every model is a scripted stand-in',
+            h,
+          ),
+          statView(
+            'Upstream revisions pinned',
+            `0 of ${route.specimens.length}`,
+            'sources read, none pinned to a commit',
+            h,
+            'warn',
+          ),
+        ],
+      ),
+      h.div(
+        [h.Class('phases')],
+        Array.map(phaseOrder, phase =>
+          h.keyed('section')(
+            phase,
+            [h.Class('phase')],
+            [
+              h.div(
+                [h.Class('phase-head')],
+                [
+                  h.h2([], [phaseNames[phase]]),
+                  h.span([], [phaseHints[phase]]),
+                  h.span(
+                    [h.Class('count')],
+                    [String(phaseStations(phase).length)],
+                  ),
+                ],
+              ),
+              ...Array.map(phaseStations(phase), station =>
+                stationCardView(model, station, h),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  )
 
 const runPill = (run: RunState, h: H): Html =>
   RunState.match(run, {
@@ -2645,154 +1258,6 @@ const runPill = (run: RunState, h: H): Html =>
     Failed: () => h.span([h.Class('pill warn')], ['Failed']),
     Cancelled: () => h.span([h.Class('pill')], ['Cancelled']),
   })
-
-const SCALE = 100
-
-const mapView = (model: Model, h: H): Html => {
-  const route = Option.match(finishedRecord(model.run), {
-    onNone: () => [],
-    onSome: routeOf,
-  })
-  const at = (id: PlaceId) =>
-    Array.findFirst(model.world.places, place => place.id === id)
-  return h.svg(
-    [
-      h.Class('map'),
-      h.ViewBox('0 0 800 420'),
-      h.Role('img'),
-      h.AriaLabel(
-        `Map of the valley at revision ${model.world.revision}. The list below names every path.`,
-      ),
-    ],
-    [
-      ...Array.flatMap(model.world.paths, path =>
-        Option.match(Option.all([at(path.from), at(path.to)]), {
-          onNone: () => [],
-          onSome: ([from, to]) => [
-            h.line([
-              h.Class(
-                `path ${path.builtInRevision > 0 ? 'built' : ''} ${isOnRoute(path, route) ? 'route' : ''}`,
-              ),
-              h.X1(String(from.x * SCALE)),
-              h.Y1(String(from.y * SCALE)),
-              h.X2(String(to.x * SCALE)),
-              h.Y2(String(to.y * SCALE)),
-            ]),
-          ],
-        }),
-      ),
-      ...Array.flatMap(model.world.places, place => [
-        h.circle([
-          h.Class(
-            `place ${place.id === model.from || place.id === model.to ? 'chosen' : ''}`,
-          ),
-          h.Cx(String(place.x * SCALE)),
-          h.Cy(String(place.y * SCALE)),
-          h.R('13'),
-        ]),
-        h.text(
-          [
-            h.Class('place-label'),
-            h.X(String(place.x * SCALE)),
-            h.Y(String(place.y * SCALE + 42)),
-            h.TextAnchor('middle'),
-          ],
-          [place.name],
-        ),
-      ]),
-    ],
-  )
-}
-
-const pathListView = (world: World, h: H): Html =>
-  h.p(
-    [h.Class('pathlist')],
-    [
-      `Revision ${world.revision} · span limit ${world.maxSpan} · paths: `,
-      Array.map(
-        world.paths,
-        path =>
-          `${path.from}–${path.to} (${path.span}${path.builtInRevision > 0 ? ', built' : ''})`,
-      ).join(', '),
-    ],
-  )
-
-const placeSelect = (
-  id: string,
-  label: string,
-  selected: PlaceId,
-  world: World,
-  toMessage: (value: string) => Message,
-  h: H,
-): Html =>
-  h.label(
-    [h.For(id), h.Class('field')],
-    [
-      h.span([], [label]),
-      h.select(
-        [h.Id(id), h.Value(selected), h.OnChange(toMessage)],
-        Array.map(world.places, place =>
-          h.option(
-            [h.Value(place.id), h.Selected(place.id === selected)],
-            [place.name],
-          ),
-        ),
-      ),
-    ],
-  )
-
-const controlsView = (model: Model, h: H): Html => {
-  const isRunning = RunState.isAnyOf(['Running'])(model.run)
-  return Option.match(Option.flatMap(model.maybeSelected, findCapability), {
-    onNone: () =>
-      h.p([h.Class('empty')], ['Pick an item from the kit to use it.']),
-    onSome: capability =>
-      h.div(
-        [h.Class('ctl')],
-        [
-          capability.input === 'endpoints'
-            ? placeSelect(
-                'from',
-                'From',
-                model.from,
-                model.world,
-                value => Message.SelectedFrom({ value }),
-                h,
-              )
-            : h.empty,
-          capability.input === 'endpoints'
-            ? placeSelect(
-                'to',
-                'To',
-                model.to,
-                model.world,
-                value => Message.SelectedTo({ value }),
-                h,
-              )
-            : h.empty,
-          h.button(
-            [
-              h.Type('button'),
-              h.Class('btn'),
-              h.Disabled(isRunning),
-              h.OnClick(Message.ClickedExecute()),
-            ],
-            [`Execute ${capability.name}`],
-          ),
-          isRunning
-            ? h.button(
-                [
-                  h.Type('button'),
-                  h.Class('btn ghost'),
-                  h.OnClick(Message.ClickedCancel()),
-                ],
-                ['Cancel'],
-              )
-            : h.empty,
-        ],
-      ),
-  })
-}
 
 const undoneText = (record: RunRecord): string =>
   record.events.some(event => event.kind === 'state-changed')
@@ -2872,28 +1337,6 @@ const resultView = (model: Model, h: H): Html =>
         [h.Class('result'), h.AriaLive('polite')],
         [
           `You cancelled ${capability} before the engine reported. On this page state is only replaced when a run reports back, so nothing changed.`,
-        ],
-      ),
-  })
-
-const artifactsView = (world: World, h: H): Html =>
-  Array.match(world.artifacts, {
-    onEmpty: () => h.empty,
-    onNonEmpty: artifacts =>
-      h.div(
-        [h.Class('card')],
-        [
-          h.h3([], ['Artifacts in the valley']),
-          h.ul(
-            [h.Class('artifacts')],
-            Array.map(artifacts, artifact =>
-              h.keyed('li')(
-                artifact.id,
-                [],
-                [h.b([], [artifact.id]), ` ${artifact.summary}`],
-              ),
-            ),
-          ),
         ],
       ),
   })
@@ -3111,7 +1554,7 @@ const engineTabView = (model: Model, h: H): Html => {
             [
               RunState.isAnyOf(['Running'])(model.run)
                 ? 'Running. Events appear when the engine reports back.'
-                : 'No run yet. Execute an item to see what the engine does.',
+                : 'No run yet. Use something on the bench to see what the engine does.',
             ],
           )
         : h.div(
@@ -3379,7 +1822,7 @@ const networkView = (model: Model, h: H): Html => {
                 [
                   networkRow(
                     'You',
-                    'Choose an item and press Execute.',
+                    'Use something on the bench first.',
                     'At the keyboard',
                     lastRun(() => 'Started it.'),
                     h,
