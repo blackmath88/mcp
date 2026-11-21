@@ -4,7 +4,14 @@ import { modifyFields } from 'foldkit/struct'
 
 import { runInProcess } from '../adapters/in-process.ts'
 import type { CapabilityName, RunRecord } from '../domain/capabilities.ts'
-import { PlaceId, World } from '../domain/world.ts'
+import { callerThoughts } from '../domain/thinking.ts'
+import {
+  PlaceId,
+  World,
+  reinstallPackage,
+  useStoragePath,
+  useThinkingMode,
+} from '../domain/world.ts'
 import { Message } from './message.ts'
 import {
   type Chapter,
@@ -28,14 +35,24 @@ export const RunCapability = Command.define('RunCapability', {
     from: PlaceId,
     to: PlaceId,
     url: Schema.String,
+    entity: Schema.String,
+    observation: Schema.String,
   },
   messages: [Message.CompletedRunCapability],
   interrupt: true,
-  execute: ({ runId, world, capability, from, to, url }) =>
+  execute: ({ runId, world, capability, from, to, url, entity, observation }) =>
     runInProcess(
       world,
       capability,
-      capability === 'fetch_page' ? { url } : { from, to },
+      capability === 'fetch_page'
+        ? { url }
+        : capability === 'remember'
+          ? { entity, observation }
+          : capability === 'recall'
+            ? { entity }
+            : capability === 'plan_steps'
+              ? { from, to, thoughts: callerThoughts }
+              : { from, to },
     ).pipe(
       Effect.map(result =>
         Message.CompletedRunCapability({
@@ -65,6 +82,10 @@ export const initialModel: Model = {
   weather: 'calm',
   fetchPolicy: 'every-hop',
   url: 'https://valley.test/notice',
+  entity: 'Workshop A',
+  observation: 'belongs to Team Blue',
+  conversation: [],
+  serverStarts: 1,
   world: worldFor('calm'),
   maybeSelected: Option.none(),
   from: 'forge',
@@ -73,6 +94,7 @@ export const initialModel: Model = {
   nextRunId: 1,
   replay: Replay.Complete(),
   tab: 'engine',
+  backstage: 'open',
   appLog: [],
   nextAppLogSeq: 1,
 }
@@ -102,6 +124,26 @@ export const finishedRunId = (run: RunState): Option.Option<number> =>
     Failed: ({ runId }) => Option.some(runId),
     Cancelled: () => Option.none(),
   })
+
+const spoken = (record: RunRecord): ReadonlyArray<string> => {
+  if (record.outcome._tag === 'Failed') {
+    return []
+  }
+  const output = record.outcome.output
+  if (output._tag === 'Remembered') {
+    return [`You said: ${output.entity} ${output.observation}.`]
+  }
+  if (output._tag === 'Recalled') {
+    return [
+      `Recall said: ${output.entity} ${
+        Array.isReadonlyArrayEmpty(output.observations)
+          ? 'has nothing stored'
+          : output.observations.join('; ')
+      }.`,
+    ]
+  }
+  return []
+}
 
 const eventCount = (run: RunState): number =>
   Option.match(finishedRecord(run), {
@@ -136,7 +178,15 @@ const interruptIfRunning = (model: Model) =>
 const freshWorld = (model: Model, weather: Weather): Model =>
   modifyFields(model, {
     weather: () => weather,
-    world: () => worldFor(weather, model.fetchPolicy),
+    world: () =>
+      worldFor(
+        weather,
+        model.fetchPolicy,
+        model.world.memory.storagePath,
+        model.world.thinkingMode,
+      ),
+    conversation: () => [],
+    serverStarts: () => 1,
     run: () => RunState.Idle(),
     replay: () => Replay.Complete(),
   })
@@ -229,7 +279,13 @@ export const update = (current: Model, message: Message) => {
       model: modifyFields(freshWorld(model, model.weather), {
         station: () => station,
         maybeSelected: () =>
-          station === 'fetch' ? Option.some('fetch_page') : Option.none(),
+          station === 'fetch'
+            ? Option.some('fetch_page')
+            : station === 'memory'
+              ? Option.some('remember')
+              : station === 'thinking'
+                ? Option.some('plan_steps')
+                : Option.none(),
         tab: () => 'engine',
       }),
       commands: interruptIfRunning(model),
@@ -245,6 +301,43 @@ export const update = (current: Model, message: Message) => {
 
     SelectedUrl: ({ value }) => ({
       model: modifyFields(model, { url: () => value }),
+    }),
+
+    SelectedStoragePath: ({ storagePath }) => ({
+      model: modifyFields(model, {
+        world: world => useStoragePath(world, storagePath),
+      }),
+    }),
+
+    SelectedThinkingMode: ({ mode }) => ({
+      model: modifyFields(model, {
+        world: world => useThinkingMode(world, mode),
+        run: () => RunState.Idle(),
+      }),
+      commands: interruptIfRunning(model),
+    }),
+
+    SelectedEntity: ({ value }) => ({
+      model: modifyFields(model, { entity: () => value }),
+    }),
+
+    SelectedObservation: ({ value }) => ({
+      model: modifyFields(model, { observation: () => value }),
+    }),
+
+    ClickedRestartClient: () => ({
+      model: modifyFields(model, { conversation: () => [] }),
+    }),
+
+    ClickedRestartServer: () => ({
+      model: modifyFields(model, { serverStarts: starts => starts + 1 }),
+    }),
+
+    ClickedReinstallPackage: () => ({
+      model: modifyFields(model, {
+        world: world => reinstallPackage(world),
+        serverStarts: starts => starts + 1,
+      }),
     }),
 
     ClickedChapter: ({ chapter }) => openChapter(model, chapter),
@@ -288,6 +381,8 @@ export const update = (current: Model, message: Message) => {
                   from: model.from,
                   to: model.to,
                   url: model.url,
+                  entity: model.entity,
+                  observation: model.observation,
                 }),
               ],
             }),
@@ -306,6 +401,7 @@ export const update = (current: Model, message: Message) => {
                 model: complete(
                   modifyFields(model, {
                     world: () => world,
+                    conversation: lines => [...lines, ...spoken(record)],
                     run: () =>
                       record.outcome._tag === 'Succeeded'
                         ? RunState.Succeeded({ runId, record })
@@ -436,9 +532,15 @@ export const update = (current: Model, message: Message) => {
         },
       }),
 
+    ClickedToggleBackstage: () => ({
+      model: modifyFields(model, {
+        backstage: backstage => (backstage === 'open' ? 'collapsed' : 'open'),
+      }),
+    }),
+
     SelectedTab: ({ tab }) => ({
       model: complete(
-        modifyFields(model, { tab: () => tab }),
+        modifyFields(model, { tab: () => tab, backstage: () => 'open' }),
         tab === 'recording' ? ['entrances'] : [],
       ),
     }),

@@ -44,9 +44,10 @@ Agreed 2026-11-21: the lab follows the twelve specimens in specimens/route.json.
 | --- | --- |
 | 00 The valley (the lab's own specimen) | working, seven steps |
 | 01 Fetch a page | simulated: three robots policies, redirect, loop |
-| 02 Memory | next: storage path, restart, conflicting observation |
-| 03 "Thinking" as a tool | then: record, compute, consult behind one icon |
-| 04 to 12 | reference cards only |
+| 02 Memory | simulated: storage path, client and server restart, reinstall, conflicting statements |
+| 03 "Thinking" as a tool | simulated: record, compute, consult (scripted stand-in) behind one tool name |
+| 04 Filesystem | next |
+| 05 to 12 | reference cards only |
 
 Per station, before calling it done: pin the upstream revision, check the documented behaviour against the source, and fill the evidence record in its README. None of that has been done for any station.
 
@@ -54,7 +55,7 @@ Protocol facts (revision, feature status, client support) still need a check aga
 
 ## Immediate next action
 
-Build station 02 (Memory) as a simulation, then 03. In parallel, verify the Fetch claims against the upstream README and advisory and pin the revisions.
+Build station 04 (Filesystem: who defines the boundary) and 05 (Browser perception). Both touch protocol features (Roots, snapshots), so check the specification and the cited issues first. In parallel, verify the claims behind stations 01 to 03 against their upstream sources and pin revisions.
 
 ## Explicit exclusions for this change
 

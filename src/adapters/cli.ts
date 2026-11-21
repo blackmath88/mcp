@@ -9,8 +9,12 @@ import {
   CALM_MAX_SPAN,
   FetchPolicy,
   STORM_MAX_SPAN,
+  StoragePath,
+  ThinkingMode,
   World,
+  reinstallPackage,
   seedWorld,
+  useStoragePath,
 } from '../domain/world.ts'
 import { catalogueText, recordText } from './text.ts'
 
@@ -20,6 +24,11 @@ const usage = `Usage: lab <capability> [--from <place>] [--to <place>] [options]
 Options:
   --url <url>     the page for fetch_page, e.g. https://valley.test/notice
   --policy <p>    robots policy for fetch_page: every-hop (default), first-hop, none
+  --entity <e> --observation <o>   input for remember; --entity alone for recall
+  --memory-path <p>  package-cache (default) or home
+  --reinstall     simulate reinstalling the package: wipes the package cache first
+  --thinking <m>  plan_steps build: record (default), compute, consult
+  --thought <t>   a caller thought for plan_steps; repeatable
   --storm         start from the storm world (span limit ${STORM_MAX_SPAN} instead of ${CALM_MAX_SPAN})
   --state <file>  keep the world in this file between runs (default: a fresh world each run)
   --json          print the full run record as JSON
@@ -34,6 +43,12 @@ const { values, positionals } = parseArgs({
     to: { type: 'string' },
     url: { type: 'string' },
     policy: { type: 'string' },
+    entity: { type: 'string' },
+    observation: { type: 'string' },
+    thought: { type: 'string', multiple: true },
+    'memory-path': { type: 'string' },
+    thinking: { type: 'string' },
+    reinstall: { type: 'boolean', default: false },
     storm: { type: 'boolean', default: false },
     state: { type: 'string' },
     json: { type: 'boolean', default: false },
@@ -49,6 +64,10 @@ const loadWorld = (statePath: string | undefined, storm: boolean): World =>
     : seedWorld(
         storm ? STORM_MAX_SPAN : CALM_MAX_SPAN,
         Schema.decodeUnknownSync(FetchPolicy)(values.policy ?? 'every-hop'),
+        Schema.decodeUnknownSync(StoragePath)(
+          values['memory-path'] ?? 'package-cache',
+        ),
+        Schema.decodeUnknownSync(ThinkingMode)(values.thinking ?? 'record'),
       )
 
 const saveWorld = (statePath: string | undefined, world: World): void => {
@@ -73,16 +92,28 @@ if (command === 'list') {
 }
 
 const input =
-  values.url !== undefined
-    ? { url: values.url }
-    : values.from === undefined && values.to === undefined
-      ? {}
-      : { from: values.from, to: values.to }
+  values.entity !== undefined
+    ? { entity: values.entity, observation: values.observation }
+    : values.thought !== undefined
+      ? { from: values.from, to: values.to, thoughts: values.thought }
+      : values.url !== undefined
+        ? { url: values.url }
+        : values.from === undefined && values.to === undefined
+          ? {}
+          : { from: values.from, to: values.to }
+
+const loaded = loadWorld(values.state, values.storm)
+const moved =
+  values['memory-path'] === undefined
+    ? loaded
+    : useStoragePath(
+        loaded,
+        Schema.decodeUnknownSync(StoragePath)(values['memory-path']),
+      )
+const startWorld = values.reinstall ? reinstallPackage(moved) : moved
 
 const result = await Effect.runPromise(
-  runOn(loadWorld(values.state, values.storm), command, input).pipe(
-    Effect.provide(Pace.unpaced),
-  ),
+  runOn(startWorld, command, input).pipe(Effect.provide(Pace.unpaced)),
 )
 
 saveWorld(values.state, result.world)

@@ -36,10 +36,31 @@ export type Artifact = typeof Artifact.Type
 export const FetchPolicy = Schema.Literals(['every-hop', 'first-hop', 'none'])
 export type FetchPolicy = typeof FetchPolicy.Type
 
+export const StoragePath = Schema.Literals(['package-cache', 'home'])
+export type StoragePath = typeof StoragePath.Type
+
+export const ThinkingMode = Schema.Literals(['record', 'compute', 'consult'])
+export type ThinkingMode = typeof ThinkingMode.Type
+
+export const Fact = Schema.Struct({
+  entity: Schema.String,
+  observation: Schema.String,
+})
+export type Fact = typeof Fact.Type
+
+export const Memory = Schema.Struct({
+  storagePath: StoragePath,
+  packageCache: Schema.Array(Fact),
+  home: Schema.Array(Fact),
+})
+export type Memory = typeof Memory.Type
+
 export const World = Schema.Struct({
   revision: Schema.Number,
   maxSpan: Schema.Number,
   fetchPolicy: FetchPolicy,
+  memory: Memory,
+  thinkingMode: ThinkingMode,
   places: Schema.Array(Place),
   paths: Schema.Array(Path),
   artifacts: Schema.Array(Artifact),
@@ -86,10 +107,14 @@ const seedPath = (from: PlaceId, to: PlaceId): Path => {
 export const seedWorld = (
   maxSpan: number,
   fetchPolicy: FetchPolicy = 'every-hop',
+  storagePath: StoragePath = 'package-cache',
+  thinkingMode: ThinkingMode = 'record',
 ): World => ({
   revision: 0,
   maxSpan,
   fetchPolicy,
+  memory: { storagePath, packageCache: [], home: [] },
+  thinkingMode,
   places: seedPlaces,
   paths: [seedPath('forge', 'mill'), seedPath('kiln', 'dock')],
   artifacts: [],
@@ -178,3 +203,24 @@ export const routeSpan = (
       Array.reduce(0, (total, span) => total + span),
     ),
   )
+
+export const factsAt = (memory: Memory): ReadonlyArray<Fact> =>
+  memory.storagePath === 'home' ? memory.home : memory.packageCache
+
+export const reinstallPackage = (world: World): World => ({
+  ...world,
+  memory: { ...world.memory, packageCache: [] },
+})
+
+export const useStoragePath = (
+  world: World,
+  storagePath: StoragePath,
+): World => ({
+  ...world,
+  memory: { ...world.memory, storagePath },
+})
+
+export const useThinkingMode = (
+  world: World,
+  thinkingMode: ThinkingMode,
+): World => ({ ...world, thinkingMode })

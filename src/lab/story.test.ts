@@ -256,3 +256,76 @@ describe('replaying the trace', () => {
     )
   })
 })
+
+describe('memory lifecycle', () => {
+  const remembered = (runId: number, world = worldFor('calm')) => {
+    const result = Effect.runSync(
+      runOn(world, 'remember', {
+        entity: 'Workshop A',
+        observation: 'belongs to Team Blue',
+      }).pipe(Effect.provide(Pace.unpaced)),
+    )
+    return Message.CompletedRunCapability({
+      runId,
+      record: result.record,
+      world: result.world,
+    })
+  }
+
+  test('client restart clears the conversation but not the file', () => {
+    story(
+      update,
+      given(initialModel),
+      message(Message.SelectedStation({ station: 'memory' })),
+      message(Message.ClickedExecute()),
+      Command.resolve(RunCapability, remembered(1)),
+      model(stored => {
+        expect(stored.conversation).toHaveLength(1)
+        expect(stored.world.memory.packageCache).toHaveLength(1)
+      }),
+      message(Message.ClickedRestartClient()),
+      message(Message.ClickedRestartServer()),
+      model(restarted => {
+        expect(restarted.conversation).toEqual([])
+        expect(restarted.serverStarts).toBe(2)
+        expect(restarted.world.memory.packageCache).toHaveLength(1)
+      }),
+    )
+  })
+
+  test('reinstall wipes the package cache; a path change only hides it', () => {
+    story(
+      update,
+      given(initialModel),
+      message(Message.SelectedStation({ station: 'memory' })),
+      message(Message.ClickedExecute()),
+      Command.resolve(RunCapability, remembered(1)),
+      message(Message.SelectedStoragePath({ storagePath: 'home' })),
+      model(moved => {
+        expect(moved.world.memory.storagePath).toBe('home')
+        expect(moved.world.memory.packageCache).toHaveLength(1)
+      }),
+      message(Message.ClickedReinstallPackage()),
+      model(reinstalled => {
+        expect(reinstalled.world.memory.packageCache).toEqual([])
+      }),
+    )
+  })
+})
+
+describe('backstage panel', () => {
+  test('collapses, and choosing a tab opens it again', () => {
+    story(
+      update,
+      given(initialModel),
+      message(Message.ClickedToggleBackstage()),
+      model(collapsed => {
+        expect(collapsed.backstage).toBe('collapsed')
+      }),
+      message(Message.SelectedTab({ tab: 'network' })),
+      model(opened => {
+        expect(opened.backstage).toBe('open')
+      }),
+    )
+  })
+})

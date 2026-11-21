@@ -29,7 +29,7 @@
     {
       "id": "memory",
       "title": "Memory",
-      "status": "reference",
+      "status": "simulated",
       "question": "What actually remembers, and what decides which stored statement is true?",
       "anchor": {
         "repo": "modelcontextprotocol/servers",
@@ -63,7 +63,7 @@
     {
       "id": "thinking",
       "title": "\"Thinking\" as a tool",
-      "status": "reference",
+      "status": "simulated",
       "question": "Is this item recording thought, computing a plan, or consulting another intelligence?",
       "anchor": {
         "repo": "modelcontextprotocol/servers",

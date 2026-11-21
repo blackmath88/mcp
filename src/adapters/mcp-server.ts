@@ -27,6 +27,12 @@ const held = {
       : process.argv.includes('--policy=none')
         ? 'none'
         : 'every-hop',
+    process.argv.includes('--memory-path=home') ? 'home' : 'package-cache',
+    process.argv.includes('--thinking=compute')
+      ? 'compute'
+      : process.argv.includes('--thinking=consult')
+        ? 'consult'
+        : 'record',
   ),
 }
 

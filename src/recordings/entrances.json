@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-11-21T15:10:38.407Z",
+  "recordedAt": "2026-11-21T15:31:53.990Z",
   "node": "v22.23.5",
   "mcpSdk": "1.32.2",
   "calm": {
@@ -361,6 +361,81 @@
                 },
                 "annotations": {
                   "readOnlyHint": true
+                }
+              },
+              {
+                "name": "remember",
+                "title": "Remember",
+                "description": "Store one observation about an entity in the knowledge graph.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "type": "string",
+                      "enum": ["Workshop A", "Workshop B"]
+                    },
+                    "observation": {
+                      "type": "string",
+                      "enum": [
+                        "belongs to Team Blue",
+                        "belongs to Team Red",
+                        "contains a renderer"
+                      ]
+                    }
+                  },
+                  "required": ["entity", "observation"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "recall",
+                "title": "Recall",
+                "description": "Return everything stored about an entity.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "type": "string",
+                      "enum": ["Workshop A", "Workshop B"]
+                    }
+                  },
+                  "required": ["entity"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "plan_steps",
+                "title": "Step planner",
+                "description": "Think step by step about a goal and return an ordered plan.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    },
+                    "to": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    },
+                    "thoughts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": ["from", "to"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
                 }
               }
             ]
@@ -884,6 +959,81 @@
                 },
                 "annotations": {
                   "readOnlyHint": true
+                }
+              },
+              {
+                "name": "remember",
+                "title": "Remember",
+                "description": "Store one observation about an entity in the knowledge graph.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "type": "string",
+                      "enum": ["Workshop A", "Workshop B"]
+                    },
+                    "observation": {
+                      "type": "string",
+                      "enum": [
+                        "belongs to Team Blue",
+                        "belongs to Team Red",
+                        "contains a renderer"
+                      ]
+                    }
+                  },
+                  "required": ["entity", "observation"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "recall",
+                "title": "Recall",
+                "description": "Return everything stored about an entity.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "type": "string",
+                      "enum": ["Workshop A", "Workshop B"]
+                    }
+                  },
+                  "required": ["entity"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "plan_steps",
+                "title": "Step planner",
+                "description": "Think step by step about a goal and return an ordered plan.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    },
+                    "to": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    },
+                    "thoughts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": ["from", "to"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
                 }
               }
             ]

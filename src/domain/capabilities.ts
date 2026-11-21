@@ -18,12 +18,21 @@ import {
 } from './errors.ts'
 import { PageFetched, fetchPage, siteUrls } from './fetch.ts'
 import {
+  Recalled,
+  Remembered,
+  entities,
+  observations,
+  recall,
+  remember,
+} from './memory.ts'
+import {
   type ComponentId,
   EngineEvent,
   Pace,
   Trace,
   WorldStore,
 } from './services.ts'
+import { PlanMade, planSteps } from './thinking.ts'
 import { PlaceId, type World, placeIds } from './world.ts'
 
 // CATALOGUE
@@ -34,12 +43,15 @@ export const CapabilityName = Schema.Literals([
   'build_path',
   'connect_places',
   'fetch_page',
+  'remember',
+  'recall',
+  'plan_steps',
 ])
 export type CapabilityName = typeof CapabilityName.Type
 
 export type Affordance = 'readable' | 'queryable' | 'operable' | 'program'
 
-export type Specimen = 'valley' | 'fetch'
+export type Specimen = 'valley' | 'fetch' | 'memory' | 'thinking'
 
 export type Capability = Readonly<{
   name: CapabilityName
@@ -47,7 +59,7 @@ export type Capability = Readonly<{
   title: string
   affordance: Affordance
   description: string
-  input: 'none' | 'endpoints' | 'url'
+  input: 'none' | 'endpoints' | 'url' | 'fact' | 'entity' | 'thoughts'
   observe: string
   request: string
   produces: string
@@ -132,6 +144,49 @@ export const catalogue: ReadonlyArray<Capability> = [
     finishes: 'After at most three redirects.',
     dependsOn: ['fetcher', 'robots-policy', 'synthetic-web'],
   },
+  {
+    name: 'remember',
+    specimen: 'memory',
+    title: 'Remember',
+    affordance: 'operable',
+    description:
+      'Store one observation about an entity in the knowledge graph.',
+    input: 'fact',
+    observe: 'Nothing beyond a confirmation.',
+    request: 'An entity and one statement about it.',
+    produces: 'A line in a file.',
+    changes: 'The file at the configured storage path grows by one line.',
+    finishes: 'Immediately.',
+    dependsOn: ['memory-graph', 'disk'],
+  },
+  {
+    name: 'recall',
+    specimen: 'memory',
+    title: 'Recall',
+    affordance: 'queryable',
+    description: 'Return everything stored about an entity.',
+    input: 'entity',
+    observe: 'Every stored statement about one entity, in storage order.',
+    request: 'An entity name.',
+    produces: 'A list. It may be empty or contradict itself.',
+    changes: 'Nothing.',
+    finishes: 'Immediately.',
+    dependsOn: ['memory-graph', 'disk'],
+  },
+  {
+    name: 'plan_steps',
+    specimen: 'thinking',
+    title: 'Step planner',
+    affordance: 'program',
+    description: 'Think step by step about a goal and return an ordered plan.',
+    input: 'thoughts',
+    observe: 'A numbered plan.',
+    request: 'A goal, and optionally your own thoughts so far.',
+    produces: 'Steps. Who wrote them depends on the build.',
+    changes: 'Nothing.',
+    finishes: 'Immediately.',
+    dependsOn: ['thinking-tool', 'map', 'expert-model'],
+  },
 ]
 
 export const Endpoints = Schema.Struct({ from: PlaceId, to: PlaceId })
@@ -160,12 +215,46 @@ const urlJsonSchema = {
   additionalProperties: false,
 } as const
 
+const factJsonSchema = {
+  type: 'object',
+  properties: {
+    entity: { type: 'string', enum: entities },
+    observation: { type: 'string', enum: observations },
+  },
+  required: ['entity', 'observation'],
+  additionalProperties: false,
+} as const
+
+const entityJsonSchema = {
+  type: 'object',
+  properties: { entity: { type: 'string', enum: entities } },
+  required: ['entity'],
+  additionalProperties: false,
+} as const
+
+const thoughtsJsonSchema = {
+  type: 'object',
+  properties: {
+    from: { type: 'string', enum: placeIds },
+    to: { type: 'string', enum: placeIds },
+    thoughts: { type: 'array', items: { type: 'string' } },
+  },
+  required: ['from', 'to'],
+  additionalProperties: false,
+} as const
+
 export const inputJsonSchema = (capability: Capability) =>
-  capability.input === 'endpoints'
-    ? endpointsJsonSchema
-    : capability.input === 'url'
-      ? urlJsonSchema
-      : emptyInputJsonSchema
+  capability.input === 'fact'
+    ? factJsonSchema
+    : capability.input === 'entity'
+      ? entityJsonSchema
+      : capability.input === 'thoughts'
+        ? thoughtsJsonSchema
+        : capability.input === 'endpoints'
+          ? endpointsJsonSchema
+          : capability.input === 'url'
+            ? urlJsonSchema
+            : emptyInputJsonSchema
 
 // EXECUTION
 
@@ -175,6 +264,9 @@ export const CapabilityOutput = Schema.Union([
   PathBuilt,
   PlacesConnected,
   PageFetched,
+  Remembered,
+  Recalled,
+  PlanMade,
 ])
 export type CapabilityOutput = typeof CapabilityOutput.Type
 
@@ -201,6 +293,36 @@ const decodeUrl = (input: unknown) =>
     ),
   )
 
+const invalid = (message: string) => () => new InvalidInput({ message })
+
+const decodeFact = (input: unknown) =>
+  Schema.decodeUnknownEffect(
+    Schema.Struct({
+      entity: Schema.Literals(entities),
+      observation: Schema.Literals(observations),
+    }),
+  )(input).pipe(
+    Effect.mapError(
+      invalid('expected { entity, observation } from the lab’s fixed lists'),
+    ),
+  )
+
+const decodeEntity = (input: unknown) =>
+  Schema.decodeUnknownEffect(
+    Schema.Struct({ entity: Schema.Literals(entities) }),
+  )(input).pipe(
+    Effect.map(decoded => decoded.entity),
+    Effect.mapError(invalid('expected { entity } from the lab’s fixed list')),
+  )
+
+const decodeThoughts = (input: unknown) =>
+  Schema.decodeUnknownEffect(
+    Schema.Struct({ thoughts: Schema.optional(Schema.Array(Schema.String)) }),
+  )(input).pipe(
+    Effect.map(decoded => decoded.thoughts ?? []),
+    Effect.mapError(invalid('thoughts must be a list of strings')),
+  )
+
 const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
   const trace = yield* Trace
   const step = {
@@ -211,12 +333,23 @@ const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
   yield* trace.emit({ ...step, kind: 'started', detail: '' })
   const resolved = yield* Effect.gen(function* () {
     const capability = yield* decodeName(name)
-    const endpoints =
-      capability === 'read_map' || capability === 'fetch_page'
-        ? { from: 'forge' as const, to: 'forge' as const }
-        : yield* decodeEndpoints(input)
+    const needsEndpoints =
+      capability === 'find_route' ||
+      capability === 'build_path' ||
+      capability === 'connect_places' ||
+      capability === 'plan_steps'
+    const endpoints = needsEndpoints
+      ? yield* decodeEndpoints(input)
+      : { from: 'forge' as const, to: 'forge' as const }
     const url = capability === 'fetch_page' ? yield* decodeUrl(input) : ''
-    return { capability, endpoints, url }
+    const fact =
+      capability === 'remember'
+        ? yield* decodeFact(input)
+        : { entity: '', observation: '' }
+    const entity = capability === 'recall' ? yield* decodeEntity(input) : ''
+    const thoughts =
+      capability === 'plan_steps' ? yield* decodeThoughts(input) : []
+    return { capability, endpoints, url, fact, entity, thoughts }
   }).pipe(
     Effect.tapError(error =>
       trace.emit({ ...step, kind: 'failed', detail: describeError(error) }),
@@ -234,7 +367,10 @@ export const execute = Effect.fnUntraced(function* (
   name: string,
   input: unknown,
 ): Effect.fn.Return<CapabilityOutput, DomainError, Trace | WorldStore | Pace> {
-  const { capability, endpoints, url } = yield* resolve(name, input)
+  const { capability, endpoints, url, fact, entity, thoughts } = yield* resolve(
+    name,
+    input,
+  )
   const { from, to } = endpoints
   return yield* Match.value(capability).pipe(
     Match.when('read_map', () => readMap('catalogue')),
@@ -246,6 +382,11 @@ export const execute = Effect.fnUntraced(function* (
     Match.when('build_path', () => buildPath('catalogue', from, to)),
     Match.when('connect_places', () => connectPlaces('catalogue', from, to)),
     Match.when('fetch_page', () => fetchPage('catalogue', url)),
+    Match.when('remember', () =>
+      remember('catalogue', fact.entity, fact.observation),
+    ),
+    Match.when('recall', () => recall('catalogue', entity)),
+    Match.when('plan_steps', () => planSteps('catalogue', from, to, thoughts)),
     Match.exhaustive,
   )
 })

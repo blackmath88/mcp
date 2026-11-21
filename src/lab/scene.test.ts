@@ -53,7 +53,7 @@ describe('the learning path', () => {
       expect(
         text('commit path: revision 0 → 1: added mill–kiln (span 2.2)'),
       ).toExist(),
-      expect(text('The map went from revision 0 to 1.')).toExist(),
+      expect(text(/World store: commit path\./)).toExist(),
     )
   })
 
@@ -84,7 +84,7 @@ describe('the learning path', () => {
       expect(
         text('Nothing was built. The map is still at revision 0.'),
       ).toExist(),
-      expect(text('Nothing. The map stayed at revision 0.')).toExist(),
+      expect(text('Nothing.')).toExist(),
       click(role('button', { name: 'Network' })),
       expect(text('Failed here. Called by Planner · 2 events.')).toExist(),
     )
@@ -96,10 +96,10 @@ describe('the route of specimens', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: /Memory/ })),
+      click(role('button', { name: /Filesystem/ })),
       expect(
         text(
-          'What actually remembers, and what decides which stored statement is true?',
+          "Is the boundary defined at launch, by the client, or by the server's effective state?",
         ),
       ).toExist(),
       expect(text('Reference only · not built')).toExist(),
@@ -135,6 +135,56 @@ describe('the route of specimens', () => {
       expect(
         text(
           'robots.txt not consulted for hop 2: policy: check the first URL only',
+        ),
+      ).toExist(),
+    )
+  })
+})
+
+describe('memory and thinking stations', () => {
+  test('memory shows where each thing lives', () => {
+    scene(
+      { update, view },
+      given(initialModel),
+      click(role('button', { name: /Memory/ })),
+      expect(text('Simulated here')).toExist(),
+      expect(text('The conversation')).toExist(),
+      expect(text('holds nothing between calls')).toExist(),
+      expect(role('button', { name: 'Reinstall the package' })).toExist(),
+      expect(role('button', { name: 'Home folder' })).toExist(),
+    )
+  })
+
+  test('thinking says who wrote the plan', () => {
+    const planned = Effect.runSync(
+      runOn(
+        worldFor('calm', 'every-hop', 'package-cache', 'consult'),
+        'plan_steps',
+        {
+          from: 'forge',
+          to: 'dock',
+          thoughts: [],
+        },
+      ).pipe(Effect.provide(Pace.unpaced)),
+    )
+    scene(
+      { update, view },
+      given(initialModel),
+      click(role('button', { name: /Thinking/ })),
+      click(role('button', { name: 'Asks another model' })),
+      click(role('button', { name: 'Execute plan_steps' })),
+      Command.resolve(
+        RunCapability,
+        Message.CompletedRunCapability({
+          runId: 1,
+          record: planned.record,
+          world: planned.world,
+        }),
+      ),
+      expect(text('The plan that came back')).toExist(),
+      expect(
+        text(
+          'written by another model (scripted stand-in) · not checked against the map',
         ),
       ).toExist(),
     )

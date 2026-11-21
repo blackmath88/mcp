@@ -9,8 +9,8 @@ Source: owner-supplied research, 2026-11-21, summarised in [docs/research/2026-1
 | # | Specimen | Question | Status |
 | --- | --- | --- | --- |
 | 01 | [Fetch a page](01-fetch/README.md) | Does "fetch this URL" describe one operation, or a chain of decisions? | simulated |
-| 02 | [Memory](02-memory/README.md) | What actually remembers, and what decides which stored statement is true? | reference |
-| 03 | ["Thinking" as a tool](03-thinking/README.md) | Is this item recording thought, computing a plan, or consulting another intelligence? | reference |
+| 02 | [Memory](02-memory/README.md) | What actually remembers, and what decides which stored statement is true? | simulated |
+| 03 | ["Thinking" as a tool](03-thinking/README.md) | Is this item recording thought, computing a plan, or consulting another intelligence? | simulated |
 | 04 | [Filesystem](04-filesystem/README.md) | Is the boundary defined at launch, by the client, or by the server's effective state? | reference |
 | 05 | [Browser perception](05-perception/README.md) | Can the assistant not perform the action, or can it not perceive the target through this interface? | reference |
 | 06 | [CLI, reversed](06-cli/README.md) | Which parts discover a change dynamically, and which are generated artifacts that go stale? | reference |

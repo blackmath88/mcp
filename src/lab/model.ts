@@ -7,6 +7,8 @@ import {
   FetchPolicy,
   PlaceId,
   STORM_MAX_SPAN,
+  type StoragePath,
+  type ThinkingMode,
   World,
   seedWorld,
 } from '../domain/world.ts'
@@ -82,6 +84,10 @@ export const Model = Schema.Struct({
   weather: Weather,
   fetchPolicy: FetchPolicy,
   url: Schema.String,
+  entity: Schema.String,
+  observation: Schema.String,
+  conversation: Schema.Array(Schema.String),
+  serverStarts: Schema.Number,
   world: World,
   maybeSelected: Schema.Option(CapabilityName),
   from: PlaceId,
@@ -90,6 +96,7 @@ export const Model = Schema.Struct({
   nextRunId: Schema.Number,
   replay: Replay,
   tab: BackstageTab,
+  backstage: Schema.Literals(['open', 'collapsed']),
   appLog: Schema.Array(AppLogEntry),
   nextAppLogSeq: Schema.Number,
 })
@@ -98,4 +105,7 @@ export type Model = typeof Model.Type
 export const worldFor = (
   weather: Weather,
   fetchPolicy: FetchPolicy = 'every-hop',
-): World => seedWorld(maxSpanIn(weather), fetchPolicy)
+  storagePath: StoragePath = 'package-cache',
+  thinkingMode: ThinkingMode = 'record',
+): World =>
+  seedWorld(maxSpanIn(weather), fetchPolicy, storagePath, thinkingMode)

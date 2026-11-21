@@ -2,7 +2,7 @@
 
 > Is this item recording thought, computing a plan, or consulting another intelligence?
 
-Status: reference only; not built. Claims below are unverified research leads.
+Status: simulated in the lab on synthetic data; upstream not executed. Claims below are unverified research leads.
 
 ## Anchor
 
@@ -24,9 +24,9 @@ Put three implementations behind similar icons: store caller-supplied steps, run
 | --- | --- |
 | Pinned upstream revision | not pinned |
 | Documented behaviour checked against source | no |
-| Controlled mutation | not defined |
-| Actual evidence | none |
-| What this does not prove | not applicable yet |
+| Controlled mutation | what is inside the tool: record, compute, consult (scripted stand-in) |
+| Actual evidence | lab simulation only: `npm run lab -- plan_steps --from forge --to dock --thinking consult` |
+| What this does not prove | anything about the upstream server or its current revision |
 
 ## Sources
 

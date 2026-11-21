@@ -2,7 +2,7 @@
 
 > What actually remembers, and what decides which stored statement is true?
 
-Status: reference only; not built. Claims below are unverified research leads.
+Status: simulated in the lab on synthetic data; upstream not executed. Claims below are unverified research leads.
 
 ## Anchor
 
@@ -30,9 +30,9 @@ Store two facts about a fictional workshop. Restart the client, restart the serv
 | --- | --- |
 | Pinned upstream revision | not pinned |
 | Documented behaviour checked against source | no |
-| Controlled mutation | not defined |
-| Actual evidence | none |
-| What this does not prove | not applicable yet |
+| Controlled mutation | storage path (package cache or home), client restart, server restart, reinstall, conflicting statement |
+| Actual evidence | lab simulation only: `npm run lab -- remember --entity "Workshop A" --observation "belongs to Team Blue" --state .lab/w.json` |
+| What this does not prove | anything about the upstream server or its current revision |
 
 ## Sources
 

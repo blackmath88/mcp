@@ -10,11 +10,15 @@ import {
   catalogue,
 } from '../domain/capabilities.ts'
 import { siteUrls } from '../domain/fetch.ts'
+import { entities, observations, pathLabel } from '../domain/memory.ts'
 import type { ComponentId, EngineEvent } from '../domain/services.ts'
+import { callerThoughts } from '../domain/thinking.ts'
 import {
   type FetchPolicy,
   type Path,
   type PlaceId,
+  type StoragePath,
+  type ThinkingMode,
   type World,
   joins,
 } from '../domain/world.ts'
@@ -105,6 +109,10 @@ const componentNames: Record<ComponentId, string> = {
   fetcher: 'Fetcher',
   'robots-policy': 'Robots policy',
   'synthetic-web': 'Synthetic web',
+  'memory-graph': 'Memory server',
+  disk: 'Disk',
+  'thinking-tool': 'Thinking tool',
+  'expert-model': 'Expert model (stand-in)',
 }
 
 const componentRoles: Record<ComponentId, string> = {
@@ -122,20 +130,29 @@ const componentRoles: Record<ComponentId, string> = {
   'robots-policy':
     'Says whether one URL may be fetched. It only answers when asked.',
   'synthetic-web': 'Four made-up pages on valley.test. No real network.',
+  'memory-graph': 'Reads and appends facts. Holds nothing between calls.',
+  disk: 'Two made-up folders. Only one is read at a time.',
+  'thinking-tool':
+    'Returns a plan. Where the plan comes from depends on the build.',
+  'expert-model': 'A scripted stand-in for another model. No inference runs.',
 }
 
 const componentsOf = (station: Station): ReadonlyArray<ComponentId> =>
   station === 'fetch'
     ? ['adapter', 'catalogue', 'fetcher', 'robots-policy', 'synthetic-web']
-    : [
-        'adapter',
-        'catalogue',
-        'planner',
-        'map',
-        'validator',
-        'world-store',
-        'artifact-store',
-      ]
+    : station === 'memory'
+      ? ['adapter', 'catalogue', 'memory-graph', 'disk']
+      : station === 'thinking'
+        ? ['adapter', 'catalogue', 'thinking-tool', 'map', 'expert-model']
+        : [
+            'adapter',
+            'catalogue',
+            'planner',
+            'map',
+            'validator',
+            'world-store',
+            'artifact-store',
+          ]
 
 type Specimen = (typeof route.specimens)[number]
 
@@ -163,6 +180,21 @@ const stationOf = (id: string): Station =>
 
 const findSpecimen = (station: Station): Option.Option<Specimen> =>
   Array.findFirst(route.specimens, specimen => specimen.id === station)
+
+const storagePaths: ReadonlyArray<
+  Readonly<{ id: StoragePath; label: string }>
+> = [
+  { id: 'package-cache', label: 'Package cache (default)' },
+  { id: 'home', label: 'Home folder' },
+]
+
+const thinkingModes: ReadonlyArray<
+  Readonly<{ id: ThinkingMode; label: string }>
+> = [
+  { id: 'record', label: 'Records your thoughts' },
+  { id: 'compute', label: 'Computes from the map' },
+  { id: 'consult', label: 'Asks another model' },
+]
 
 const policies: ReadonlyArray<Readonly<{ id: FetchPolicy; label: string }>> = [
   { id: 'every-hop', label: 'Check every hop' },
@@ -213,6 +245,17 @@ const outcomeText = (record: RunRecord): string => {
   if (output._tag === 'RouteFound') {
     return `Route: ${output.route.places.join(' → ')} (span ${output.route.span}).`
   }
+  if (output._tag === 'Remembered') {
+    return `Stored in ${output.storedAt}. The file now has ${output.factsInFile} line(s).`
+  }
+  if (output._tag === 'Recalled') {
+    return Array.isReadonlyArrayEmpty(output.observations)
+      ? `Nothing is stored about ${output.entity} at ${output.readFrom}.`
+      : `${output.entity}: ${output.observations.join('; ')}.`
+  }
+  if (output._tag === 'PlanMade') {
+    return `A plan written by ${output.madeBy}. ${output.checkedAgainstMap ? 'Derived from the map.' : 'Not checked against the map.'}`
+  }
   if (output._tag === 'PageFetched') {
     return `Returned “${output.title}” from ${output.finalUrl} after ${output.hops.length} hop(s) and ${output.robotsChecks} robots check(s).`
   }
@@ -247,9 +290,13 @@ const fiveAnswers = (model: Model): ReadonlyArray<Answer> => {
     ask('Who authorised it?', record =>
       record.events.some(event => event.component === 'validator')
         ? 'Nobody was asked. The validator enforced the span limit in code; there is no approval step here.'
-        : record.events.some(event => event.component === 'fetcher')
-          ? 'Nobody asked you. The server’s robots policy decided, and only for the hops it was consulted on.'
-          : 'Nobody was asked, and nothing could change.',
+        : record.events.some(event => event.component === 'memory-graph')
+          ? 'Nobody. Whatever the caller says is stored as given; nothing checks whether it is true.'
+          : record.events.some(event => event.component === 'thinking-tool')
+            ? 'Nobody was asked, and nobody checked the plan unless the build did.'
+            : record.events.some(event => event.component === 'fetcher')
+              ? 'Nobody asked you. The server’s robots policy decided, and only for the hops it was consulted on.'
+              : 'Nobody was asked, and nothing could change.',
     ),
     ask(
       'Where did it run?',
@@ -263,9 +310,19 @@ const fiveAnswers = (model: Model): ReadonlyArray<Answer> => {
         } engine components.`,
     ),
     ask('What state changed?', record =>
-      record.revisionAfter === record.revisionBefore
-        ? `Nothing. The map stayed at revision ${record.revisionAfter}.`
-        : `The map went from revision ${record.revisionBefore} to ${record.revisionAfter}.`,
+      pipe(
+        record.events,
+        Array.filter(event => event.kind === 'state-changed'),
+        Array.match({
+          onEmpty: () => 'Nothing.',
+          onNonEmpty: changes =>
+            Array.map(
+              changes,
+              change =>
+                `${componentNames[change.component]}: ${change.operation}.`,
+            ).join(' '),
+        }),
+      ),
     ),
     ask('What evidence reached you?', record =>
       Option.match(failureOrigin(record), {
@@ -283,7 +340,7 @@ const fiveAnswers = (model: Model): ReadonlyArray<Answer> => {
 export const view = (model: Model, h: H): Document => ({
   title: 'MCP Lab',
   body: h.div(
-    [h.Class('ide')],
+    [h.Class(`ide backstage-${model.backstage}`)],
     [
       titlebarView(model, h),
       h.nav(
@@ -330,7 +387,49 @@ const titlebarView = (model: Model, h: H): Html =>
               ),
               h,
             )
-          : h.empty,
+          : model.station === 'memory'
+            ? bendView(
+                'Storage path',
+                Array.map(storagePaths, path =>
+                  h.button(
+                    [
+                      h.Type('button'),
+                      h.AriaPressed(
+                        model.world.memory.storagePath === path.id
+                          ? 'true'
+                          : 'false',
+                      ),
+                      h.OnClick(
+                        Message.SelectedStoragePath({ storagePath: path.id }),
+                      ),
+                    ],
+                    [path.label],
+                  ),
+                ),
+                h,
+              )
+            : model.station === 'thinking'
+              ? bendView(
+                  'What is inside',
+                  Array.map(thinkingModes, mode =>
+                    h.button(
+                      [
+                        h.Type('button'),
+                        h.AriaPressed(
+                          model.world.thinkingMode === mode.id
+                            ? 'true'
+                            : 'false',
+                        ),
+                        h.OnClick(
+                          Message.SelectedThinkingMode({ mode: mode.id }),
+                        ),
+                      ],
+                      [mode.label],
+                    ),
+                  ),
+                  h,
+                )
+              : h.empty,
     ],
   )
 
@@ -593,7 +692,11 @@ const statusbarView = (model: Model, h: H): Html =>
             ? `${model.weather} valley · map revision ${model.world.revision}`
             : model.station === 'fetch'
               ? `robots policy: ${model.fetchPolicy}`
-              : 'reference only · unverified',
+              : model.station === 'memory'
+                ? `storage: ${pathLabel[model.world.memory.storagePath]} · server start #${model.serverStarts}`
+                : model.station === 'thinking'
+                  ? `build: ${model.world.thinkingMode}`
+                  : 'reference only · unverified',
         ],
       ),
     ],
@@ -727,6 +830,253 @@ const fetchedPageView = (model: Model, h: H): Html =>
         : h.empty,
   })
 
+// MEMORY
+
+const optionSelect = (
+  id: string,
+  label: string,
+  selected: string,
+  options: ReadonlyArray<string>,
+  toMessage: (value: string) => Message,
+  h: H,
+): Html =>
+  h.label(
+    [h.For(id), h.Class('field')],
+    [
+      h.span([], [label]),
+      h.select(
+        [h.Id(id), h.Value(selected), h.OnChange(toMessage)],
+        Array.map(options, option =>
+          h.option(
+            [h.Value(option), h.Selected(option === selected)],
+            [option],
+          ),
+        ),
+      ),
+    ],
+  )
+
+const memoryBenchView = (model: Model, h: H): Html => {
+  const isRemember = Option.contains(model.maybeSelected, 'remember')
+  return h.div(
+    [h.Class('ctl')],
+    [
+      optionSelect(
+        'entity',
+        'Entity',
+        model.entity,
+        entities,
+        value => Message.SelectedEntity({ value }),
+        h,
+      ),
+      isRemember
+        ? optionSelect(
+            'observation',
+            'Statement',
+            model.observation,
+            observations,
+            value => Message.SelectedObservation({ value }),
+            h,
+          )
+        : h.empty,
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('btn'),
+          h.Disabled(RunState.isAnyOf(['Running'])(model.run)),
+          h.OnClick(Message.ClickedExecute()),
+        ],
+        [isRemember ? 'Execute remember' : 'Execute recall'],
+      ),
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('btn ghost'),
+          h.OnClick(Message.ClickedRestartClient()),
+        ],
+        ['Restart the client'],
+      ),
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('btn ghost'),
+          h.OnClick(Message.ClickedRestartServer()),
+        ],
+        ['Restart the server'],
+      ),
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('btn ghost'),
+          h.OnClick(Message.ClickedReinstallPackage()),
+        ],
+        ['Reinstall the package'],
+      ),
+    ],
+  )
+}
+
+const factLines = (
+  facts: ReadonlyArray<Readonly<{ entity: string; observation: string }>>,
+  h: H,
+): Html =>
+  Array.match(facts, {
+    onEmpty: () => h.p([h.Class('none')], ['empty']),
+    onNonEmpty: lines =>
+      h.ol(
+        [h.Class('lines')],
+        Array.map(lines, (fact, index) =>
+          h.keyed('li')(`${index}`, [], [`${fact.entity} ${fact.observation}`]),
+        ),
+      ),
+  })
+
+const memoryPlacesView = (model: Model, h: H): Html => {
+  const memory = model.world.memory
+  return h.div(
+    [h.Class('places')],
+    [
+      h.div(
+        [h.Class('placebox')],
+        [
+          h.h3([], ['The conversation']),
+          h.p([h.Class('where')], ['in the client · gone on client restart']),
+          Array.match(model.conversation, {
+            onEmpty: () => h.p([h.Class('none')], ['empty']),
+            onNonEmpty: lines =>
+              h.ol(
+                [h.Class('lines')],
+                Array.map(lines, (line, index) =>
+                  h.keyed('li')(`${index}`, [], [line]),
+                ),
+              ),
+          }),
+        ],
+      ),
+      h.div(
+        [h.Class('placebox')],
+        [
+          h.h3([], ['The server process']),
+          h.p(
+            [h.Class('where')],
+            [`start #${model.serverStarts} · reads the file on every call`],
+          ),
+          h.p([h.Class('none')], ['holds nothing between calls']),
+        ],
+      ),
+      h.div(
+        [
+          h.Class(
+            `placebox ${memory.storagePath === 'package-cache' ? 'active' : ''}`,
+          ),
+        ],
+        [
+          h.h3([], ['Package cache']),
+          h.p(
+            [h.Class('where')],
+            [
+              `${pathLabel['package-cache']} · wiped on reinstall${memory.storagePath === 'package-cache' ? ' · in use' : ''}`,
+            ],
+          ),
+          factLines(memory.packageCache, h),
+        ],
+      ),
+      h.div(
+        [h.Class(`placebox ${memory.storagePath === 'home' ? 'active' : ''}`)],
+        [
+          h.h3([], ['Home folder']),
+          h.p(
+            [h.Class('where')],
+            [
+              `${pathLabel.home} · survives reinstall${memory.storagePath === 'home' ? ' · in use' : ''}`,
+            ],
+          ),
+          factLines(memory.home, h),
+        ],
+      ),
+    ],
+  )
+}
+
+// THINKING
+
+const thinkingBenchView = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('ctl')],
+    [
+      placeSelect(
+        'from',
+        'From',
+        model.from,
+        model.world,
+        value => Message.SelectedFrom({ value }),
+        h,
+      ),
+      placeSelect(
+        'to',
+        'To',
+        model.to,
+        model.world,
+        value => Message.SelectedTo({ value }),
+        h,
+      ),
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('btn'),
+          h.Disabled(RunState.isAnyOf(['Running'])(model.run)),
+          h.OnClick(Message.ClickedExecute()),
+        ],
+        ['Execute plan_steps'],
+      ),
+    ],
+  )
+
+const planView = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('places')],
+    [
+      h.div(
+        [h.Class('placebox')],
+        [
+          h.h3([], ['Your thoughts, sent with the call']),
+          h.p([h.Class('where')], ['from the caller']),
+          h.ol(
+            [h.Class('lines')],
+            Array.map(callerThoughts, thought =>
+              h.keyed('li')(thought, [], [thought]),
+            ),
+          ),
+        ],
+      ),
+      Option.match(finishedRecord(model.run), {
+        onNone: () => h.empty,
+        onSome: record =>
+          record.outcome._tag === 'Succeeded' &&
+          record.outcome.output._tag === 'PlanMade'
+            ? h.div(
+                [h.Class('placebox active')],
+                [
+                  h.h3([], ['The plan that came back']),
+                  h.p(
+                    [h.Class('where')],
+                    [
+                      `written by ${record.outcome.output.madeBy} · ${record.outcome.output.checkedAgainstMap ? 'derived from the map' : 'not checked against the map'}`,
+                    ],
+                  ),
+                  h.ol(
+                    [h.Class('lines')],
+                    Array.map(record.outcome.output.steps, step =>
+                      h.keyed('li')(step, [], [step]),
+                    ),
+                  ),
+                ],
+              )
+            : h.empty,
+      }),
+    ],
+  )
+
 // ONSTAGE
 
 const workbenchView = (model: Model, h: H): Html =>
@@ -739,7 +1089,11 @@ const workbenchView = (model: Model, h: H): Html =>
             [h.Class('panehead')],
             [
               h.span([h.Class('eyebrow')], ['Onstage · what you see']),
-              model.station === 'fetch' ? runPill(model.run, h) : h.empty,
+              model.station === 'fetch' ||
+              model.station === 'memory' ||
+              model.station === 'thinking'
+                ? runPill(model.run, h)
+                : h.empty,
             ],
           ),
           Option.match(findSpecimen(model.station), {
@@ -752,14 +1106,26 @@ const workbenchView = (model: Model, h: H): Html =>
                 resultView(model, h),
                 fetchedPageView(model, h),
               ]
-            : [
-                h.p(
-                  [h.Class('empty')],
-                  [
-                    'Nothing to run yet. This station is a research lead waiting for its simulation.',
-                  ],
-                ),
-              ]),
+            : model.station === 'memory'
+              ? [
+                  memoryBenchView(model, h),
+                  resultView(model, h),
+                  memoryPlacesView(model, h),
+                ]
+              : model.station === 'thinking'
+                ? [
+                    thinkingBenchView(model, h),
+                    resultView(model, h),
+                    planView(model, h),
+                  ]
+                : [
+                    h.p(
+                      [h.Class('empty')],
+                      [
+                        'Nothing to run yet. This station is a research lead waiting for its simulation.',
+                      ],
+                    ),
+                  ]),
         ],
       )
 
@@ -1054,7 +1420,18 @@ const backstageView = (model: Model, h: H): Html =>
     [
       h.div(
         [h.Class('panehead')],
-        [h.span([h.Class('eyebrow')], ['Backstage · what actually happened'])],
+        [
+          h.span([h.Class('eyebrow')], ['Backstage · what actually happened']),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('toggle'),
+              h.AriaExpanded(model.backstage === 'open'),
+              h.OnClick(Message.ClickedToggleBackstage()),
+            ],
+            [model.backstage === 'open' ? 'Collapse' : 'Expand'],
+          ),
+        ],
       ),
       h.div(
         [h.Class('tabs'), h.Role('group'), h.AriaLabel('Evidence')],
@@ -1069,13 +1446,15 @@ const backstageView = (model: Model, h: H): Html =>
           ),
         ),
       ),
-      model.tab === 'engine'
-        ? engineTabView(model, h)
-        : model.tab === 'app'
-          ? appTabView(model, h)
-          : model.tab === 'recording'
-            ? recordingTabView(model, h)
-            : networkView(model, h),
+      model.backstage === 'collapsed'
+        ? h.empty
+        : model.tab === 'engine'
+          ? engineTabView(model, h)
+          : model.tab === 'app'
+            ? appTabView(model, h)
+            : model.tab === 'recording'
+              ? recordingTabView(model, h)
+              : networkView(model, h),
     ],
   )
 

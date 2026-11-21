@@ -16,6 +16,15 @@ export const outcomeLine = (record: RunRecord): string =>
         if (output._tag === 'PageFetched') {
           return `OK "${output.title}" from ${output.finalUrl} (${output.hops.length} hops, ${output.robotsChecks} robots checks)`
         }
+        if (output._tag === 'Remembered') {
+          return `OK stored "${output.entity} ${output.observation}" in ${output.storedAt} (${output.factsInFile} lines)`
+        }
+        if (output._tag === 'Recalled') {
+          return `OK ${output.entity}: ${output.observations.length === 0 ? 'nothing stored' : output.observations.join(' | ')} (from ${output.readFrom})`
+        }
+        if (output._tag === 'PlanMade') {
+          return `OK plan by ${output.madeBy}: ${output.steps.join(' ')}`
+        }
         if (output._tag === 'PathBuilt') {
           return `OK ${output.artifact.id}: ${output.artifact.summary}`
         }

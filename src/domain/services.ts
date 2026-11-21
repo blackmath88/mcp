@@ -13,6 +13,10 @@ export const ComponentId = Schema.Literals([
   'fetcher',
   'robots-policy',
   'synthetic-web',
+  'memory-graph',
+  'disk',
+  'thinking-tool',
+  'expert-model',
 ])
 export type ComponentId = typeof ComponentId.Type
 

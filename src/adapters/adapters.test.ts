@@ -181,6 +181,44 @@ describe('fetch specimen through both entrances', () => {
   })
 })
 
+describe('memory and thinking through MCP', () => {
+  test('memory persists across calls on one connection and is gone on the next', async () => {
+    const fact = { entity: 'Workshop A', observation: 'belongs to Team Blue' }
+    const same = await withClient([], async client => {
+      await client.callTool({ name: 'remember', arguments: fact })
+      return client.callTool({
+        name: 'recall',
+        arguments: { entity: fact.entity },
+      })
+    })
+    const later = await withClient([], client =>
+      client.callTool({ name: 'recall', arguments: { entity: fact.entity } }),
+    )
+    expect(same.structuredContent).toMatchObject({
+      outcome: { output: { observations: ['belongs to Team Blue'] } },
+    })
+    expect(later.structuredContent).toMatchObject({
+      outcome: { output: { observations: [] } },
+    })
+  })
+
+  test('the same plan_steps schema hides different builds', async () => {
+    const call = (client: Client) =>
+      client.callTool({
+        name: 'plan_steps',
+        arguments: { from: 'forge', to: 'mill', thoughts: ['Go.'] },
+      })
+    const recorded = await withClient([], call)
+    const computed = await withClient(['--thinking=compute'], call)
+    expect(recorded.structuredContent).toMatchObject({
+      outcome: { output: { madeBy: 'the caller' } },
+    })
+    expect(computed.structuredContent).toMatchObject({
+      outcome: { output: { steps: ['Walk forge → mill.'] } },
+    })
+  })
+})
+
 describe('recording shown in the lab', () => {
   test('carries its provenance and a real handshake', () => {
     expect(recording.mcpSdk).toMatch(/^\d+\.\d+\.\d+$/)
