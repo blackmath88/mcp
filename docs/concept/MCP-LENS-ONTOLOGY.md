@@ -90,3 +90,21 @@ A project can have multiple deployments; a deployment exposes multiple capabilit
 **Minimum acceptance.** Feed the same fixture twice and obtain identical claims with stable rule IDs. Compare URL kinds for the same project. Show an auth wall, a partially paginated result and a package-only record without inventing an empty inventory. Check that a UI declaration cannot produce a runtime-rendered claim and that one observed run cannot establish universal behaviour. Show the Lens result beside one existing host specimen; the classifier need not gate the first host milestone.
 
 Protocol references: [versioning](https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning), [tools and annotations](https://modelcontextprotocol.io/specification/2026-07-28/server/tools), [MCP Apps metadata](https://apps.extensions.modelcontextprotocol.io/api/documents/overview.html), [Tasks extension](https://tasks.extensions.modelcontextprotocol.io/specification/2026-07-28/tasks), [registry](https://modelcontextprotocol.io/registry/about), [security guidance](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices).
+
+## From representation to consequence
+
+MCP lets a project give a concept a name, an address and operations. That is the first half of the ontology. The second half is the relationship between the exposed object and the world it describes. A tool can expose a simulated world in which its own rules decide what happens. A tool that reports on an institution, a person or a physical device depends on authority elsewhere. A clue to that difference is whether changing a record changes the thing itself.
+
+Use three existing phases to reveal this relationship on the same object:
+
+| Inventory | Workshop | Follow the work |
+| --- | --- | --- |
+| Identify the representation and its producer. A synthetic EEG stream yields a field labelled “focus.” | Hold the score constant and switch the source label between synthetic and recorded. The numeric value is identical; the warranted interpretation changes. | Show a fixture in which the assistant shortens its answer. The trace supports an effect on answer length. The person’s actual attention remains unknown. |
+| Read a fictional world clock. | Advance it one tick. | Show the simulated event that becomes due. The engine’s clock governs that world. |
+| Read an entity-formation status. | Compare a draft, a managed submission and a testnet transaction. | Link a matching external filing if available. Each record speaks for a different authority. |
+
+**Lens rule.** For each capability, retain the existing evidence and rule IDs. Record the object being represented, who produced the value, who can change it, and which consumer used that version for which decision. Link independent evidence for any claimed external effect. A URL or README can supply a publisher’s claim. A tool listing supplies an advertised surface. Mark a missing consumer, authority or receipt as unknown. One tool may produce several claims with different grounds.
+
+**Acceptance fixture.** Use the identical field `status: active` in a fictional world, an agreement tracker and a company dashboard. Given only those bytes, Lens returns an observed field and leaves authority unknown. Add a world rule, a signed application event or a matching official filing one at a time. Only the claim supported by the added evidence should change. Show the evidence next to that claim.
+
+**Navigation.** Keep the object selected when the learner moves from its value to its origin or consequence. “Explore another example” can show the same relationship in a different domain, such as a dream rule beside a game clock. The relationship belongs in the ontology; the named projects supply the examples. See the [third specimen intake](../research/BOUNDARY-BENDING-SPECIMENS.md#third-intake--what-gets-to-count-as-real).
