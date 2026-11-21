@@ -82,8 +82,17 @@ Not a general-purpose agent platform, identity provider, universal gateway, work
 
 Conversation records establish intent, not external technical truth. Earlier protocol-version, feature-status, SDK, and provider claims require fresh primary-source validation before implementation. No prior claim about sampling, discovery, bidirectionality, tasks, or client support should become a requirement merely because it appeared in the discussion.
 
+## Updated direction: real specimens and the meta layer
+
+The follow-up direction selects Effect/Foldkit/Alchemy as the application stack, reuses existing tools as working specimens, and adds discovery plus MCP Lens as an explanation layer. This supersedes the earlier implication that stack choice was entirely open; it does not imply that the application or specimen host has been implemented.
+
+Read the [concept addendum](docs/concept/ADDENDUM-SPECIMENS-LENS-AND-EMBEDDING.md) for the chapter-by-chapter anchors and diversions, actual MCP Apps embedding, REST/MCP discovery comparison, Lens evidence model, critical limits, and the next Claude build milestone.
+
+The existing Python/HTML registry example remains an untested REST adapter example, not a substitute for a real MCP connection or the planned Foldkit host.
+
 ## Read next
 
+- [Updated specimens, Lens, and embedding direction](docs/concept/ADDENDUM-SPECIMENS-LENS-AND-EMBEDDING.md)
 - [Narrative and learning design](docs/concept/NARRATIVE.md)
 - [Architecture and composition](docs/concept/ARCHITECTURE.md)
 - [Critical questions](docs/concept/CRITICAL-QUESTIONS.md)
