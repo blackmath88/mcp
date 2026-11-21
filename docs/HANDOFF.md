@@ -1,5 +1,9 @@
 # Handoff
 
+## Creative specimen intake · 2026-11-21
+
+Added the [boundary-bending specimen shelf](research/BOUNDARY-BENDING-SPECIMENS.md). The first proposed exhibits are retro-protocol browsing, a shared ComfyUI canvas and one Meta Chess turn. Primary documents and project records support the research; experiments have not been run. Unresolved attributions are marked in the shelf. Next, select one fixture or recorded interaction for the existing stations.
+
 ## Security boundaries — 2026-11-21
 
 Learned: the owner asked where the hacking happens. Answer recorded: at boundaries where information becomes authority, across discovery, descriptions, model and host, gateway identity, server scope, embedded-app bridge, observation, and Lens itself.

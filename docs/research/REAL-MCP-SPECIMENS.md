@@ -2,6 +2,8 @@
 
 Research snapshot · 21 November 2026. Use this alongside the [specimen-host and MCP Lens addendum](../concept/ADDENDUM-SPECIMENS-LENS-AND-EMBEDDING.md). The first host milestone remains one upstream MCP App with actual discovery, invocation, interaction, trace and failure. The paper-map sequence below is a storyboard candidate. No third-party runtime was installed or exercised in this research.
 
+The [boundary-bending specimen shelf](BOUNDARY-BENDING-SPECIMENS.md) adds source-checked creative examples and outstanding research leads to the existing stations.
+
 ## Specimens by MCP Lens ontology
 
 Browse by the original ten Lens facets. The ten facets below use the order and keys from the [ontology](../concept/MCP-LENS-ONTOLOGY.md). The same specimen appears under multiple facets when different operations supply different evidence. These are documented examples; a specific deployment, principal or run needs its own evidence. The [learner route](../concept/LEARNER-JOURNEY.md) selects a few of these views for each chapter.
