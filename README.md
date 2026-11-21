@@ -27,7 +27,7 @@ npm run record       # rerun the real CLI and MCP exchange shown in the lab
 
 What is real and what is not:
 
-- The browser runs the engine in process. Its Backstage events are emitted by that execution. It makes no MCP connection.
+- The browser runs a real MCP client and a real MCP server in the tab, joined by the SDK's in-memory transport. Every run is an actual `tools/call`; Backstage shows the frames. The data is made up and nothing crosses a network.
 - The CLI and the MCP stdio server run the same engine. The MCP path is tested with the official SDK client over stdio.
 - The "Recorded CLI + MCP" tab shows `src/recordings/entrances.json`, captured by `npm run record`. It is a recording, labelled as such.
 - There is no model, no approval step and no remote service anywhere in this slice.

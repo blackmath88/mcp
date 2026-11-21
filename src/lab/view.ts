@@ -634,7 +634,7 @@ const titlebarView = (model: Model, h: H): Html =>
           h.b([], [stationTitle(model.station)]),
         ],
       ),
-      h.span([h.Class('simtag')], ['Simulation · synthetic data']),
+      h.span([h.Class('simtag')], ['Real MCP · made-up data']),
       phaseMapView(model, h),
     ],
   )
@@ -1054,7 +1054,7 @@ const inspectorView = (model: Model, h: H): Html =>
           h.p(
             [h.Class('side-note')],
             [
-              'The engine runs in this tab on synthetic data. There is no model, no approval step and no live MCP connection. Discovering an item is not permission to use it; here nothing checks who you are.',
+              'Every run is a real tools/call from a real MCP client to a real MCP server, both in this tab, over an in-memory transport. The data is made up. There is no model, no approval step and no network. Discovering an item is not permission to use it; here nothing checks who you are.',
             ],
           ),
         ],
@@ -1104,8 +1104,8 @@ const statusbarView = (model: Model, h: H): Html =>
   h.footer(
     [h.Class('statusbar')],
     [
-      h.span([], ['Simulation · engine in this tab']),
-      h.span([], ['No model · no live MCP']),
+      h.span([], ['Made-up data · real MCP client and server in this tab']),
+      h.span([], ['No model · no network']),
       h.span(
         [],
         [
@@ -2887,6 +2887,7 @@ const artifactsView = (world: World, h: H): Html =>
 // BACKSTAGE
 
 const tabs: ReadonlyArray<Readonly<{ id: BackstageTab; label: string }>> = [
+  { id: 'frames', label: 'MCP frames' },
   { id: 'engine', label: 'Engine events' },
   { id: 'app', label: 'App messages' },
   { id: 'recording', label: 'Recorded CLI + MCP' },
@@ -2927,18 +2928,68 @@ const backstageView = (model: Model, h: H): Html =>
       ),
       model.backstage === 'collapsed'
         ? h.empty
-        : model.tab === 'engine'
-          ? engineTabView(model, h)
-          : model.tab === 'app'
-            ? appTabView(model, h)
-            : model.tab === 'recording'
-              ? recordingTabView(model, h)
-              : networkView(model, h),
+        : model.tab === 'frames'
+          ? framesTabView(model, h)
+          : model.tab === 'engine'
+            ? engineTabView(model, h)
+            : model.tab === 'app'
+              ? appTabView(model, h)
+              : model.tab === 'recording'
+                ? recordingTabView(model, h)
+                : networkView(model, h),
     ],
   )
 
 const modeView = (mode: string, detail: string, h: H): Html =>
   h.p([h.Class('mode')], [h.b([], [mode]), ` · ${detail}`])
+
+const framesTabView = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('tabpane')],
+    [
+      model.transport === 'mcp-in-tab'
+        ? modeView(
+            'Actual MCP connection',
+            'a real SDK client and a real server, both running in this tab, joined by the in-memory transport. Nothing crossed a network.',
+            h,
+          )
+        : modeView(
+            'No MCP connection for this run',
+            'the in-tab connection failed, so the engine was called directly. There are no frames to show.',
+            h,
+          ),
+      Array.match(model.frames, {
+        onEmpty: () =>
+          h.p(
+            [h.Class('quiet')],
+            ['No frames yet. Run something on this station to see them.'],
+          ),
+        onNonEmpty: frames =>
+          h.ol(
+            [h.Class('log')],
+            Array.map(frames, (frame, index) =>
+              h.keyed('li')(
+                String(index),
+                [
+                  h.DataAttribute(
+                    'kind',
+                    frame.direction === 'client → server' ? 'req' : 'res',
+                  ),
+                ],
+                [
+                  h.span([h.Class('n')], [String(index + 1)]),
+                  h.span([h.Class('hop')], [frame.direction]),
+                  h.details(
+                    [h.Class('lab')],
+                    [h.summary([], [frame.label]), h.pre([], [frame.json])],
+                  ),
+                ],
+              ),
+            ),
+          ),
+      }),
+    ],
+  )
 
 const engineTabView = (model: Model, h: H): Html => {
   const total = Option.match(finishedRecord(model.run), {
@@ -2952,7 +3003,7 @@ const engineTabView = (model: Model, h: H): Html => {
     [
       modeView(
         'In-process domain execution',
-        'emitted by the engine as it ran in this tab. Not MCP traffic.',
+        'emitted by the engine inside the server handler, in this tab. These are not protocol messages; see MCP frames for those.',
         h,
       ),
       total === 0

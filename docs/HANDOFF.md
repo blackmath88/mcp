@@ -1,5 +1,22 @@
 # Handoff
 
+## Real MCP in the page — 2026-11-21
+
+Owner pointed to `blackmath88/lil-beavrs` (public; the name given was "lil-weavr", which does not exist) as the model: its lessons run real Python in the browser through Pyodide against an in-page mock, loaded lazily. The equivalent here is a real MCP client and server in the tab (D13).
+
+Changed:
+
+- `src/adapters/lab-server.ts`: the one MCP server of the lab, extracted from the stdio entry point. `src/adapters/mcp-server.ts` now only parses flags and connects it to stdio.
+- `src/adapters/in-tab-mcp.ts`: creates the server and an SDK `Client`, links them with `InMemoryTransport`, performs the handshake and one `tools/call`, and records every frame in both directions. The SDK and the server are dynamically imported.
+- The lab's run command uses that connection. If it fails to load, it falls back to calling the engine directly and the page says there was no MCP connection for that run.
+- Backstage has a new first tab, "MCP frames", labelled "Actual MCP connection" with what that means. The engine-events label now says those events come from inside the server handler and are not protocol messages. Header tag reads "Real MCP · made-up data".
+- `@modelcontextprotocol/sdk` moved from devDependencies to dependencies.
+
+Evidence: typecheck, lint, build pass; 127 tests pass, including four that drive the in-memory connection in Node and assert frame order (initialize, result, notifications/initialized, tools/call, result), equality with the direct engine, and `isError` on a domain failure. Headless Chromium on the production build: the frames appear after a click, a failing run ends in "result · isError: true", zero requests left the page other than fonts, no console errors. Screenshot: `docs/reports/first-slice/real-mcp-in-tab.png`.
+
+Limits: each run opens a fresh connection, so every run shows a handshake; there is no long-lived session, `tools/list` is not called by the page (the kit still comes from the shared catalogue), and resources, list-changed notifications, sampling and elicitation are not exercised. The client is the SDK's, not a real host: there is still no model and no approval step. The main bundle is now about 500 kB before gzip plus a 250 kB lazy chunk. A separate design canvas with the proposed new look exists outside the repository and is not yet ported.
+
+
 ## Compact styling pass — 2026-11-21
 
 Owner feedback: everything looks bulky. CSS-only change at the end of `src/styles.css`: one type size down, tighter padding, the phases as slim tabs in a single-row title bar, narrower sidebar and inspector, the specimen's three folds on one line, the run status moved beside the title, and a collapsed Backstage reduced to one slim row. No behaviour changed; 121 tests pass; no overflow at 1440, 1000 and 390 px. Screenshot: `docs/reports/first-slice/compact-08.png`.

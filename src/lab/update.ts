@@ -2,8 +2,13 @@ import { Array, Effect, Option, Schema, pipe } from 'effect'
 import { Command, type Runtime, type Update } from 'foldkit'
 import { modifyFields } from 'foldkit/struct'
 
-import { runInProcess } from '../adapters/in-process.ts'
+import {
+  STAGE_PAUSE_MILLISECONDS,
+  runInProcess,
+} from '../adapters/in-process.ts'
+import { runOverMcp } from '../adapters/in-tab-mcp.ts'
 import type { CapabilityName, RunRecord } from '../domain/capabilities.ts'
+import { Pace } from '../domain/services.ts'
 import { applySettings } from '../domain/settings.ts'
 import { callerThoughts } from '../domain/thinking.ts'
 import {
@@ -74,7 +79,7 @@ export const RunCapability = Command.define('RunCapability', {
     place,
     toolName,
   }) =>
-    runInProcess(
+    runOverMcp(
       world,
       capability,
       capability === 'fetch_page'
@@ -98,13 +103,50 @@ export const RunCapability = Command.define('RunCapability', {
                         : capability === 'where_am_i'
                           ? { client }
                           : { from, to },
+      Pace.slowedBy(STAGE_PAUSE_MILLISECONDS),
     ).pipe(
       Effect.map(result =>
         Message.CompletedRunCapability({
           runId,
           record: result.record,
           world: result.world,
+          frames: result.frames,
         }),
+      ),
+      Effect.catch(() =>
+        Effect.map(
+          runInProcess(
+            world,
+            capability,
+            capability === 'fetch_page'
+              ? { url }
+              : capability === 'remember'
+                ? { entity, observation }
+                : capability === 'recall'
+                  ? { entity }
+                  : capability === 'plan_steps'
+                    ? { from, to, thoughts: callerThoughts }
+                    : capability === 'read_file'
+                      ? { path }
+                      : capability === 'click'
+                        ? { target }
+                        : capability === 'show_map'
+                          ? { place }
+                          : capability === 'call_tool'
+                            ? { name: toolName }
+                            : capability === 'go_to'
+                              ? { client, place }
+                              : capability === 'where_am_i'
+                                ? { client }
+                                : { from, to },
+          ),
+          result =>
+            Message.CompletedRunCapability({
+              runId,
+              record: result.record,
+              world: result.world,
+            }),
+        ),
       ),
     ),
 })
@@ -146,6 +188,8 @@ export const initialModel: Model = {
   replay: Replay.Complete(),
   reading: 'person',
   savedRuns: [],
+  frames: [],
+  transport: 'mcp-in-tab',
   tab: 'engine',
   backstage: 'collapsed',
   appLog: [],
@@ -371,6 +415,7 @@ export const update = (current: Model, message: Message) => {
             }),
           ),
         replay: () => Replay.Complete(),
+        frames: () => [],
         reading: () => 'person',
       }),
       commands: interruptIfRunning(model),
@@ -573,7 +618,7 @@ export const update = (current: Model, message: Message) => {
             }),
           }),
 
-    CompletedRunCapability: ({ runId, record, world }) =>
+    CompletedRunCapability: ({ runId, record, world, frames }) =>
       RunState.match<UpdateReturn>(model.run, {
         Idle: () => ({ model }),
         Succeeded: () => ({ model }),
@@ -586,6 +631,9 @@ export const update = (current: Model, message: Message) => {
                 model: complete(
                   modifyFields(model, {
                     world: () => world,
+                    frames: () => frames ?? [],
+                    transport: () =>
+                      frames === undefined ? 'in-process' : 'mcp-in-tab',
                     conversation: lines => [...lines, ...spoken(record)],
                     run: () =>
                       record.outcome._tag === 'Succeeded'

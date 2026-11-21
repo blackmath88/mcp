@@ -287,7 +287,7 @@ describe('orientation', () => {
       expect(role('button', { name: /Explore the inventory/ })).toExist(),
       expect(role('button', { name: /Open the workshop/ })).toExist(),
       expect(role('button', { name: /Follow the work/ })).toExist(),
-      expect(text('Simulation · synthetic data')).toExist(),
+      expect(text('Real MCP · made-up data')).toExist(),
       expect(role('button', { name: 'Reset experiment' })).toExist(),
     )
   })
@@ -317,6 +317,32 @@ describe('orientation', () => {
 })
 
 describe('truthful labelling of evidence', () => {
+  test('MCP frames are labelled as an actual connection only when frames exist', () => {
+    scene(
+      { update, view },
+      given(initialModel),
+      click(role('button', { name: 'MCP frames' })),
+      expect(text('Actual MCP connection')).toExist(),
+      expect(
+        text('No frames yet. Run something on this station to see them.'),
+      ).toExist(),
+    )
+  })
+
+  test('a run that fell back to the direct engine says it has no MCP frames', () => {
+    scene(
+      { update, view },
+      given({
+        ...initialModel,
+        transport: 'in-process',
+        tab: 'frames',
+        backstage: 'open',
+      }),
+      expect(text('No MCP connection for this run')).toExist(),
+      expect(text('Actual MCP connection')).toBeAbsent(),
+    )
+  })
+
   test('engine events are labelled in-process, never as MCP traffic', () => {
     scene(
       { update, view },

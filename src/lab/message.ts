@@ -2,6 +2,7 @@ import { Schema } from 'effect'
 import { Command } from 'foldkit'
 import { defineMessageUnion } from 'foldkit/message'
 
+import { Frame } from '../adapters/in-tab-mcp.ts'
 import { CapabilityName, RunRecord } from '../domain/capabilities.ts'
 import {
   FetchPolicy,
@@ -56,6 +57,7 @@ export const Message = defineMessageUnion({
     runId: Schema.Number,
     record: RunRecord,
     world: World,
+    frames: Schema.optional(Schema.Array(Frame)),
   },
   ClickedCancel: {},
   ClickedReset: {},

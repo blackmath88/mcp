@@ -1,0 +1,88 @@
+import { Effect, type Layer } from 'effect'
+
+import { Server } from '@modelcontextprotocol/sdk/server/index.js'
+import {
+  CallToolRequestSchema,
+  ListResourcesRequestSchema,
+  ListToolsRequestSchema,
+  ReadResourceRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js'
+
+import { catalogue, inputJsonSchema, runOn } from '../domain/capabilities.ts'
+import type { Pace } from '../domain/services.ts'
+import type { World } from '../domain/world.ts'
+import { recordText } from './text.ts'
+
+export const MAP_URI = 'valley://map/current'
+
+export type Held = { world: World }
+
+// NOTE: The one MCP server of the lab. The stdio entry point and the in-tab
+// connection both use it; only the transport and the pacing differ.
+export const createLabServer = (
+  held: Held,
+  pace: Layer.Layer<Pace>,
+): Server => {
+  const server = new Server(
+    { name: 'mcp-lab-valley', version: '0.1.0' },
+    { capabilities: { tools: {}, resources: {} } },
+  )
+
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({
+    tools: catalogue.map(capability => ({
+      name: capability.name,
+      title: capability.title,
+      description: capability.description,
+      inputSchema: inputJsonSchema(capability),
+      annotations: {
+        readOnlyHint:
+          capability.affordance === 'readable' ||
+          capability.affordance === 'queryable',
+      },
+    })),
+  }))
+
+  server.setRequestHandler(CallToolRequestSchema, async request => {
+    const result = await Effect.runPromise(
+      runOn(
+        held.world,
+        request.params.name,
+        request.params.arguments ?? {},
+      ).pipe(Effect.provide(pace)),
+    )
+    held.world = result.world
+    return {
+      content: [{ type: 'text', text: recordText(result.record) }],
+      structuredContent: result.record,
+      isError: result.record.outcome._tag === 'Failed',
+    }
+  })
+
+  server.setRequestHandler(ListResourcesRequestSchema, async () => ({
+    resources: [
+      {
+        uri: MAP_URI,
+        name: 'Valley map',
+        description: 'The current map as JSON. Reading it changes nothing.',
+        mimeType: 'application/json',
+      },
+    ],
+  }))
+
+  server.setRequestHandler(ReadResourceRequestSchema, async request => {
+    if (request.params.uri !== MAP_URI) {
+      throw new Error(`Unknown resource: ${request.params.uri}`)
+    }
+    return {
+      contents: [
+        {
+          uri: MAP_URI,
+          mimeType: 'application/json',
+          text: JSON.stringify(held.world, null, 2),
+        },
+      ],
+    }
+  })
+
+  return server
+}

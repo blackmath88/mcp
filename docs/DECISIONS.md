@@ -110,6 +110,12 @@ Status: decided by the assistant at the owner's request ("you decide"), 2026-11-
 
 Station 08 is the reference interaction: the specimen is in the centre and is moved directly; three readings of one state (person, model, tool result) sit beside it; evidence opens on demand. The other eleven stations keep their text-box benches until this pattern has been tried with a person. Navigation follows the three learner phases from docs/concept/LEARNER-JOURNEY.md. Browsing between stations keeps each station's state; reset is explicit and per station.
 
+## D13 — A real MCP client and server run inside the page
+
+Status: agreed direction from owner ("really do some stuff in the middle", pointing to lil-beavrs, where real programs run in the browser), 2026-11-21. Implemented.
+
+Every run in the lab is now a real `tools/call` from the official SDK client to the lab's own MCP server, both in the tab, joined by the SDK's in-memory transport. The frames are captured and shown. The data stays made up and nothing crosses a network. This supersedes P06 (SDK kept out of the browser bundle) and narrows D08: "simulation" now describes the data and the stand-in models, not the protocol. The SDK is imported on demand, so it loads on the first run.
+
 ## Still undecided
 
 Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.
