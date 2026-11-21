@@ -1058,7 +1058,11 @@ const workbenchView = (model: Model, h: H): Html =>
         [h.Class('panehead')],
         [
           h.span([h.Class('eyebrow')], ['Onstage · what you see']),
-          runPill(model.run, h),
+          model.station === 'code-mode' &&
+          model.python !== 'idle' &&
+          RunState.isAnyOf(['Idle'])(model.run)
+            ? pythonPill(model, h)
+            : runPill(model.run, h),
         ],
       ),
       Option.match(findSpecimen(model.station), {
@@ -1067,8 +1071,12 @@ const workbenchView = (model: Model, h: H): Html =>
           specimenView(specimen, stationTitle(model.station), h),
       }),
       benchToolsView(model, h),
+      model.station === 'code-mode' &&
+      model.python !== 'idle' &&
+      RunState.isAnyOf(['Idle'])(model.run)
+        ? h.empty
+        : resultView(model, h),
       ...benchView(model, h),
-      resultView(model, h),
     ],
   )
 
@@ -1249,6 +1257,15 @@ const homeView = (model: Model, h: H): Html =>
     ],
   )
 
+const pythonPill = (model: Model, h: H): Html =>
+  model.python === 'running'
+    ? h.span([h.Class('pill busy')], ['Running Python'])
+    : model.python === 'unavailable'
+      ? h.span([h.Class('pill warn')], ['Python unavailable'])
+      : model.pythonError === ''
+        ? h.span([h.Class('pill ok')], ['Python finished'])
+        : h.span([h.Class('pill warn')], ['Python stopped'])
+
 const runPill = (run: RunState, h: H): Html =>
   RunState.match(run, {
     Idle: () => h.span([h.Class('pill')], ['Idle']),
@@ -1310,7 +1327,13 @@ const afterRunView = (record: RunRecord, h: H): Html =>
 
 const resultView = (model: Model, h: H): Html =>
   RunState.match(model.run, {
-    Idle: () => h.empty,
+    Idle: () =>
+      h.p(
+        [h.Class('result idle')],
+        [
+          'Nothing run yet. Use something on the bench; what happens shows here.',
+        ],
+      ),
     Running: () =>
       h.p(
         [h.Class('result'), h.AriaLive('polite')],

@@ -674,4 +674,23 @@ describe('the Python program and the home screen', () => {
       }),
     )
   })
+
+  test('reset clears what Python printed', () => {
+    story(
+      update,
+      given({
+        ...initialModel,
+        station: 'code-mode',
+        python: 'done',
+        pythonOutput: 'wrote clay',
+        pythonError: 'boom',
+      }),
+      message(Message.ClickedReset()),
+      model(current => {
+        expect(current.python).toBe('idle')
+        expect(current.pythonOutput).toBe('')
+        expect(current.pythonError).toBe('')
+      }),
+    )
+  })
 })

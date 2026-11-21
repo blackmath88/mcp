@@ -423,6 +423,31 @@ const valleyBench = (model: Model, h: H): ReadonlyArray<Html> => {
       message: toMessage(place.id),
     }))
   return [
+    chips(
+      'From',
+      placeChoices(model.from, value => Message.SelectedFrom({ value })),
+      h,
+    ),
+    chips(
+      'To',
+      placeChoices(model.to, value => Message.SelectedTo({ value })),
+      h,
+    ),
+    row(
+      [
+        action(model, 'Read the map', run('read_map', {}), h),
+        action(model, 'Find a route', run('find_route', goal), h),
+        action(model, 'Build this path', run('build_path', goal), h),
+        action(
+          model,
+          'Connect them, any way',
+          run('connect_places', goal),
+          h,
+          'primary',
+        ),
+      ],
+      h,
+    ),
     h.svg(
       [
         h.Class('map'),
@@ -481,31 +506,6 @@ const valleyBench = (model: Model, h: H): ReadonlyArray<Html> => {
             `${path.from}–${path.to} (${path.span}${path.builtInRevision > 0 ? ', built' : ''})`,
         ).join(', '),
       ],
-    ),
-    chips(
-      'From',
-      placeChoices(model.from, value => Message.SelectedFrom({ value })),
-      h,
-    ),
-    chips(
-      'To',
-      placeChoices(model.to, value => Message.SelectedTo({ value })),
-      h,
-    ),
-    row(
-      [
-        action(model, 'Read the map', run('read_map', {}), h),
-        action(model, 'Find a route', run('find_route', goal), h),
-        action(model, 'Build this path', run('build_path', goal), h),
-        action(
-          model,
-          'Connect them, any way',
-          run('connect_places', goal),
-          h,
-          'primary',
-        ),
-      ],
-      h,
     ),
     Array.match(world.artifacts, {
       onEmpty: () => h.empty,
@@ -1394,6 +1394,13 @@ const appBench = (model: Model, h: H): ReadonlyArray<Html> => {
 
 // 09 · CODE MODE
 
+const lastLine = (text: string): string =>
+  text
+    .split('\n')
+    .filter(line => line.trim() !== '')
+    .at(-1)
+    ?.replace(/^pyodide\.ffi\.JsException: (Error: )?/, '') ?? text
+
 const codeBench = (model: Model, h: H): ReadonlyArray<Html> => [
   h.div(
     [h.Class('twoup wide-left')],
@@ -1463,7 +1470,16 @@ const codeBench = (model: Model, h: H): ReadonlyArray<Html> => [
                 : h.pre([h.Class('page')], [model.pythonOutput]),
               model.pythonError === ''
                 ? h.empty
-                : h.pre([h.Class('page bad')], [model.pythonError]),
+                : h.p([h.Class('page bad')], [lastLine(model.pythonError)]),
+              model.pythonError === ''
+                ? h.empty
+                : h.details(
+                    [h.Class('fold')],
+                    [
+                      h.summary([], ['Full traceback']),
+                      h.pre([h.Class('page')], [model.pythonError]),
+                    ],
+                  ),
             ],
             false,
             h,

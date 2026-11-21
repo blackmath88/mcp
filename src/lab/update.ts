@@ -798,6 +798,9 @@ export const update = (current: Model, message: Message) => {
               python: () => 'running',
               pythonOutput: () => '',
               pythonError: () => '',
+              run: () => RunState.Idle(),
+              maybeSelected: () => Option.some('write_entry'),
+              tab: () => 'frames',
             }),
             commands: [
               RunPython({
@@ -929,6 +932,9 @@ export const update = (current: Model, message: Message) => {
         replay: () => Replay.Complete(),
         conversation: lines => (model.station === 'memory' ? [] : lines),
         serverStarts: starts => (model.station === 'memory' ? 1 : starts),
+        python: state => (state === 'running' ? state : 'idle'),
+        pythonOutput: () => '',
+        pythonError: () => '',
       }),
       commands: interruptIfRunning(model),
     }),

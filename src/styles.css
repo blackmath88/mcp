@@ -487,8 +487,21 @@ h3 {
 }
 .goal {
   font-weight: 500;
-  align-self: center;
   margin-right: 6px;
+}
+.result.idle {
+  color: var(--fg2);
+  border-style: dashed;
+}
+.workbench > .where {
+  font-size: 12px;
+  color: var(--fg2);
+}
+.page {
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 /* Specimens */

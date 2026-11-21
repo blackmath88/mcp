@@ -1,5 +1,27 @@
 # Handoff
 
+## Quality pass on the touchable benches — 2026-11-21
+
+Owner request: a quality check and a small UI/UX analysis, with fixes and a report.
+
+### Changed
+
+- The result of a run now sits directly under the Bend row, above the bench, with a dashed placeholder before the first run. Measured before: on 8 of 12 stations with the Backstage drawer open, and on the valley with it closed, the result was partly or fully below the fold.
+- Valley: place chips and the four action buttons moved above the map.
+- Station 09: a Python run now shows in the status pill, selects "Write one entry" in the inspector and opens the MCP frames tab. The error shows the last line; the full traceback is folded. Reset clears Python output.
+- Wording that still said "Execute" now says what the bench does. The goal line on the CLI station is left-aligned.
+
+### Evidence (observed in this session)
+
+- `typecheck`, `lint`, `test` (148 passed), `build` pass.
+- Headless Chromium, 1440×900, light: all 13 stations driven from a reset with two or three actions each, no page or console error; result top edge between 119 and 171 px inside the workbench on stations 01 to 12. Dark: home, valley, perception and station 09 looked at.
+- Station 09 with "Third write fails": Python printed two lines, the ledger held clay and timber, the third frame was `isError: true`.
+- Not re-run after the last two edits (valley reorder, traceback prefix): the browser drive. Tests pass on them.
+
+### Open UX items, not fixed
+
+See the session report: Backstage takes half the workbench when open; Fetch needs two clicks; the valley's seven steps are not tied to the new buttons; the map's circles are mouse-only; the kit list in the sidebar only inspects; phone order puts the journey below the bench.
+
 ## Touchable benches on every station, real Python, home screen — 2026-11-21
 
 Owner request: "Do it for all station finish the nice ui with python stuff where it makes sense".
