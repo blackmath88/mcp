@@ -21,6 +21,7 @@ import {
 } from './atlas.ts'
 import { calledToolOf, findCapability } from './belt.ts'
 import { benchView, bendView } from './benches.ts'
+import { flowOf } from './flow.ts'
 import { iconView } from './icons.ts'
 import { lensTabView } from './lens-view.ts'
 import { Message } from './message.ts'
@@ -1107,6 +1108,59 @@ const happenedView = (model: Model, h: H): Html =>
                   ),
                 ],
                 [isPlaying ? 'Pause' : 'Watch it again'],
+              ),
+            ],
+          ),
+          h.div(
+            [h.Class('flow'), h.AriaLabel('The path this call took')],
+            [
+              h.span(
+                [h.Class('flow-stop tool reached')],
+                [
+                  Option.match(findCapability(record.capability), {
+                    onNone: () => h.empty,
+                    onSome: capability => iconView(capability.name, h),
+                  }),
+                  h.span([], [record.capability]),
+                ],
+              ),
+              ...Array.flatMap(flowOf(record, shown), stop => [
+                h.span(
+                  [
+                    h.Class(`flow-arrow ${stop.reached ? 'reached' : ''}`),
+                    h.AriaHidden(true),
+                  ],
+                  ['→'],
+                ),
+                h.span(
+                  [
+                    h.Class(
+                      `flow-stop ${stop.reached ? 'reached' : ''} ${stop.isCurrent && isPlaying ? 'now' : ''} ${stop.changed ? 'changed' : ''} ${stop.failed ? 'failed' : ''}`,
+                    ),
+                  ],
+                  [componentNames[stop.component]],
+                ),
+              ]),
+              h.span(
+                [
+                  h.Class(
+                    `flow-arrow ${shown.length === record.events.length ? 'reached' : ''}`,
+                  ),
+                  h.AriaHidden(true),
+                ],
+                ['→'],
+              ),
+              h.span(
+                [
+                  h.Class(
+                    `flow-stop end ${shown.length === record.events.length ? 'reached' : ''} ${record.outcome._tag === 'Failed' ? 'failed' : ''}`,
+                  ),
+                ],
+                [
+                  record.outcome._tag === 'Failed'
+                    ? 'error back'
+                    : 'result back',
+                ],
               ),
             ],
           ),

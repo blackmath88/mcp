@@ -2328,6 +2328,70 @@ textarea.console-text {
   gap: 8px;
 }
 
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.flow-stop {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px dashed var(--bd);
+  color: var(--fg2);
+  font-size: 11.5px;
+  transition:
+    background 200ms ease,
+    border-color 200ms ease;
+}
+.flow-stop .px {
+  width: 20px;
+  height: 20px;
+}
+.flow-stop.tool {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding-left: 4px;
+}
+.flow-stop.reached {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--sky) 55%, var(--bd));
+  color: var(--fg);
+  background: var(--bg);
+}
+.flow-stop.changed {
+  border-color: var(--amber);
+  background: var(--ambersub);
+}
+.flow-stop.failed {
+  border-color: var(--rose);
+  background: var(--rosesub);
+}
+.flow-stop.now {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sky) 30%, transparent);
+}
+.flow-stop.end.reached:not(.failed) {
+  border-color: var(--pri);
+  background: var(--prisub);
+}
+.flow-arrow {
+  color: var(--bd);
+  font-size: 12px;
+}
+.flow-arrow.reached {
+  color: var(--sky);
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-stop,
+  .tb-tool {
+    transition: none;
+  }
+}
+
 /* Belt */
 .belt {
   grid-area: belt;
