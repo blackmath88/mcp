@@ -2,6 +2,8 @@
 
 Date: 2026-11-21. Status: proposed concept and experiment design. No security test, scan, exploit, or upstream runtime was executed. Nothing here is a finding that a named upstream project is vulnerable, and nothing here authorizes testing any system.
 
+The [MCP proxy exhibit](MCP-PROXY.md) follows discovery, invocation and results through a gateway and maps the available evidence to Papercut.
+
 ## Trust inversion
 
 A map editor may have permission to move a bridge. A map publisher may know that the bridge moved. When the editor reads the publisher’s note and treats it as permission to edit, the publisher has acquired practical authority through a perfectly ordinary piece of information. The critical event is the editor’s decision to spend someone else’s permission.

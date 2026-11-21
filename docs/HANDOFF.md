@@ -1,5 +1,9 @@
 # Handoff
 
+## Gateway exhibit · 2026-11-21
+
+Added the [proxy concept](concept/MCP-PROXY.md) and its Papercut module mapping. The proposed fixture compares proxy and backend denials using separate receipts. No runtime experiment was executed. Development Practice draft at `8a416833d269475653861964984cb8cfb6aa37c1`, baseline, decision ledger and prototype profile, informed the choice of a disposable fixture. The next design check is whether a learner can identify which component denied each edit.
+
 ## Creative specimen intake · 2026-11-21
 
 Added the [boundary-bending specimen shelf](research/BOUNDARY-BENDING-SPECIMENS.md). The first proposed exhibits are retro-protocol browsing, a shared ComfyUI canvas and one Meta Chess turn. Primary documents and project records support the research; experiments have not been run. Unresolved attributions are marked in the shelf. Next, select one fixture or recorded interaction for the existing stations.
