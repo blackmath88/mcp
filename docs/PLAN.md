@@ -2,6 +2,8 @@
 
 Status: proposed sequence for a concept-first exploration lab. No delivery dates or implementation commitments are implied.
 
+For implementation, read the [current specimen-host milestone](concept/ADDENDUM-SPECIMENS-LENS-AND-EMBEDDING.md) and [real-world specimen research](research/REAL-MCP-SPECIMENS.md). The research maps source-backed examples and controlled variations to the phases below.
+
 ## Phase 0 — Concept dossier
 
 Capture narrative, architecture, conversation evolution, counterarguments, experiment proposals, and open decisions. Distinguish owner direction from assistant suggestions. This documentation change addresses Phase 0 only.
