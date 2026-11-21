@@ -1,5 +1,9 @@
 # Handoff
 
+## Sprites at 24×24, vivid palette, drawn by a script — 2026-11-21
+
+Owner asked to go further and for "less brown, more vivid anime-style colours". All 28 sprites are now 24×24, built from shapes by `scripts/draw-sprites.mjs`, which writes `src/lab/sprites.ts` (generated; edit the script). The palette is 15 saturated paints with an indigo outline; shading is two overlay paths (white highlight upper-left, violet-tinted shadow lower-right). Atlas objects render at 48 px. Observed: typecheck, lint, 157 tests and build pass; atlas looked at in headless Chromium in light and dark (`docs/reports/atlas/sprites-24-light.png`, `sprites-24-dark.png`). Not looked at after this change: belt, inspector chips (20 px) and phone. Screenshots of the earlier 12×12 and 16×16 sprites in that folder are out of date.
+
 ## Sprites redrawn at 16×16 with shading — 2026-11-21
 
 Owner asked for higher-fidelity pixel art. All 28 sprites were redrawn on a 16×16 grid (was 12×12) with more detail, and `iconView` adds a highlight path and a shadow path computed from each sprite (light from above). Observed: typecheck, lint, 157 tests, build pass; the atlas was looked at in headless Chromium in light mode (`docs/reports/atlas/sprites-16.png`). The dark-mode render was captured but not looked at. The earlier screenshots in `docs/reports/atlas/` still show the 12×12 sprites. The earlier rough edge about the four Compose sprites is reduced: each bench now carries a distinct 8-row object.

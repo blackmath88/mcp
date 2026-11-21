@@ -1461,50 +1461,65 @@ textarea.console-text {
   image-rendering: pixelated;
 }
 .px-K {
-  fill: var(--px-ink);
+  fill: #2b2350;
 }
 .px-P {
-  fill: #f6f1e4;
+  fill: #fffdf7;
 }
-.px-W {
-  fill: #b98b5e;
+.px-L {
+  fill: #fff1a8;
 }
-.px-M {
-  fill: #a1a1aa;
-}
-.px-D {
-  fill: #52525b;
-}
-.px-G {
-  fill: #a5dff5;
+.px-S {
+  fill: #ffd9ea;
 }
 .px-R {
-  fill: #e5484d;
+  fill: #ff4466;
+}
+.px-O {
+  fill: #ff9a2e;
 }
 .px-Y {
-  fill: #f2c230;
-}
-.px-B {
-  fill: #3b82f6;
+  fill: #ffd43b;
 }
 .px-N {
-  fill: #2fa66a;
+  fill: #2fd98b;
+}
+.px-C {
+  fill: #35c8ff;
+}
+.px-B {
+  fill: #4b78ff;
+}
+.px-V {
+  fill: #9a5cff;
+}
+.px-H {
+  fill: #ff6fbf;
+}
+.px-M {
+  fill: #c5d0ea;
+}
+.px-D {
+  fill: #3c3a78;
+}
+.px-G {
+  fill: #b4f1ff;
 }
 .px-lit {
   fill: #fff;
-  opacity: 0.34;
+  opacity: 0.42;
 }
 .px-shade {
-  fill: #000;
-  opacity: 0.2;
+  fill: #3b1a7a;
+  opacity: 0.26;
 }
 
 @media (prefers-color-scheme: dark) {
   /* Sprites keep their dark outline, so they sit on a light plate. */
   .px {
-    background: #d8d5cc;
+    background: #ece9f7;
     border-radius: 5px;
-    outline: 2px solid #d8d5cc;
+    outline: 2px solid #ece9f7;
   }
 }
 
@@ -1612,6 +1627,10 @@ textarea.console-text {
 }
 .obj.kin {
   border: 1px dashed var(--sky);
+}
+.obj .px {
+  width: 48px;
+  height: 48px;
 }
 .obj-name {
   font-size: 11px;
