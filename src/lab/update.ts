@@ -36,6 +36,7 @@ import {
   useThinkingMode,
   vanishClient,
 } from '../domain/world.ts'
+import { needsApproval } from './approval.ts'
 import { beltOf, findCapability } from './belt.ts'
 import { Message } from './message.ts'
 import {
@@ -239,6 +240,11 @@ export const initialModel: Model = {
   screen: 'bench',
   atlasView: 'map',
   pins: [],
+  approval: 'never',
+  pending: Option.none(),
+  declined: '',
+  approvedLast: '',
+  watching: false,
   tampered: false,
   lens: 'family',
   transport: 'mcp-in-tab',
@@ -388,7 +394,26 @@ const presetText = (preset: string, model: Model): string => {
   return call({ name: tool, arguments: inputFor(tool, model) })
 }
 
+// The host asks first when its rule says so. Nothing is sent until the
+// person approves; a denied call never reaches the server.
 const startRun = (
+  model: Model,
+  name: CapabilityName,
+  inputJson: string,
+): UpdateReturn =>
+  RunState.isAnyOf(['Running'])(model.run)
+    ? { model }
+    : needsApproval(model.approval, name)
+      ? {
+          model: modifyFields(model, {
+            maybeSelected: () => Option.some(name),
+            pending: () => Option.some({ name, inputJson, kind: 'tool' }),
+            declined: () => '',
+          }),
+        }
+      : sendRun(model, name, inputJson)
+
+const sendRun = (
   model: Model,
   name: CapabilityName,
   inputJson: string,
@@ -397,6 +422,9 @@ const startRun = (
     ? { model }
     : {
         model: modifyFields(model, {
+          pending: () => Option.none(),
+          declined: () => '',
+          watching: () => false,
           maybeSelected: () => Option.some(name),
           run: () =>
             RunState.Running({ runId: model.nextRunId, capability: name }),
@@ -413,6 +441,26 @@ const startRun = (
           }),
         ],
       }
+
+const runPython = (model: Model): UpdateReturn => ({
+  model: modifyFields(model, {
+    pending: () => Option.none(),
+    declined: () => '',
+    python: () => 'running',
+    pythonOutput: () => '',
+    pythonError: () => '',
+    run: () => RunState.Idle(),
+    maybeSelected: () => Option.some('write_entry'),
+    tab: () => 'frames',
+  }),
+  commands: [
+    RunPython({
+      world: model.world,
+      station: model.station,
+      code: model.program,
+    }),
+  ],
+})
 
 const interruptIfRunning = (model: Model) =>
   RunState.isAnyOf(['Running'])(model.run)
@@ -520,6 +568,9 @@ export const update = (current: Model, message: Message): UpdateReturn => {
       model: modifyFields(model, {
         station: () => station,
         tampered: () => false,
+        pending: () => Option.none(),
+        declined: () => '',
+        watching: () => false,
         screen: () => 'bench',
         maybeSelected: () => defaultCapability(station),
         savedRuns: saved => [
@@ -715,28 +766,15 @@ export const update = (current: Model, message: Message): UpdateReturn => {
     }),
 
     ClickedExecute: () =>
-      RunState.isAnyOf(['Running'])(model.run)
-        ? { model }
-        : Option.match(model.maybeSelected, {
-            onNone: () => ({ model }),
-            onSome: capability => ({
-              model: modifyFields(model, {
-                run: () =>
-                  RunState.Running({ runId: model.nextRunId, capability }),
-                nextRunId: runId => runId + 1,
-                replay: () => Replay.Complete(),
-              }),
-              commands: [
-                RunCapability({
-                  runId: model.nextRunId,
-                  world: model.world,
-                  station: model.station,
-                  capability: capability,
-                  inputJson: JSON.stringify(inputFor(capability, model)),
-                }),
-              ],
-            }),
-          }),
+      Option.match(model.maybeSelected, {
+        onNone: () => ({ model }),
+        onSome: capability =>
+          startRun(
+            model,
+            capability,
+            JSON.stringify(inputFor(capability, model)),
+          ),
+      }),
 
     CompletedRunCapability: ({ runId, record, world, frames, tools }) =>
       RunState.match<UpdateReturn>(model.run, {
@@ -817,23 +855,19 @@ export const update = (current: Model, message: Message): UpdateReturn => {
     ClickedRunPython: () =>
       model.python === 'running'
         ? { model }
-        : {
-            model: modifyFields(model, {
-              python: () => 'running',
-              pythonOutput: () => '',
-              pythonError: () => '',
-              run: () => RunState.Idle(),
-              maybeSelected: () => Option.some('write_entry'),
-              tab: () => 'frames',
-            }),
-            commands: [
-              RunPython({
-                world: model.world,
-                station: model.station,
-                code: model.program,
+        : needsApproval(model.approval, 'run_python')
+          ? {
+              model: modifyFields(model, {
+                pending: () =>
+                  Option.some({
+                    name: 'run_python',
+                    inputJson: '',
+                    kind: 'program',
+                  }),
+                declined: () => '',
               }),
-            ],
-          },
+            }
+          : runPython(model),
 
     CompletedRunPython: ({ output, error, world, frames, tools }) => ({
       model: modifyFields(model, {
@@ -873,6 +907,52 @@ export const update = (current: Model, message: Message): UpdateReturn => {
         EnterDomain({ world: model.world, station: model.station, tamper: on }),
       ],
     }),
+
+    SelectedApprovalRule: ({ rule }) => ({
+      model: modifyFields(model, {
+        approval: () => rule,
+        pending: () => Option.none(),
+      }),
+    }),
+
+    ClickedApprove: () =>
+      Option.match(model.pending, {
+        onNone: () => ({ model }),
+        onSome: pending => {
+          const approved = modifyFields(model, {
+            approvedLast: () => pending.name,
+          })
+          return pending.kind === 'program'
+            ? runPython(approved)
+            : Option.match(findCapability(pending.name), {
+                onNone: () => ({
+                  model: modifyFields(model, { pending: () => Option.none() }),
+                }),
+                onSome: capability =>
+                  sendRun(approved, capability.name, pending.inputJson),
+              })
+        },
+      }),
+
+    ClickedDeny: () => ({
+      model: modifyFields(model, {
+        declined: () =>
+          Option.match(model.pending, {
+            onNone: () => '',
+            onSome: pending => pending.name,
+          }),
+        pending: () => Option.none(),
+      }),
+    }),
+
+    ClickedWatch: () => {
+      const rewound = update(model, Message.ClickedReplayFromStart())
+      const played = update(rewound.model, Message.ClickedPlay())
+      return {
+        ...played,
+        model: modifyFields(played.model, { watching: () => true }),
+      }
+    },
 
     ClickedShowOnAtlas: () => ({
       model: modifyFields(model, {

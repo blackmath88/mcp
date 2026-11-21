@@ -121,6 +121,17 @@ export const Model = Schema.Struct({
   python: Schema.Literals(['idle', 'running', 'done', 'unavailable']),
   screen: Schema.Literals(['home', 'bench']),
   atlasView: Schema.Literals(['map', 'list', 'ladder']),
+  approval: Schema.Literals(['never', 'writes', 'always']),
+  pending: Schema.Option(
+    Schema.Struct({
+      name: Schema.String,
+      inputJson: Schema.String,
+      kind: Schema.Literals(['tool', 'program']),
+    }),
+  ),
+  declined: Schema.String,
+  approvedLast: Schema.String,
+  watching: Schema.Boolean,
   pins: Schema.Array(
     Schema.Struct({ name: Schema.String, fingerprint: Schema.String }),
   ),

@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vitest'
 
 import { catalogue, families, runOn } from '../domain/capabilities.ts'
 import { Pace } from '../domain/services.ts'
+import { needsApproval } from './approval.ts'
 import { beltOf, calledTools, slotForKey } from './belt.ts'
 import { ICON_SIZE, sprites } from './icons.ts'
 import { Message } from './message.ts'
@@ -541,6 +542,7 @@ describe('the live session', () => {
       description: '',
       readOnly: false,
       parameters: [],
+      json: '',
     },
   ]
 
@@ -770,6 +772,7 @@ describe('the belt selects and never executes', () => {
           description: '',
           readOnly: true,
           parameters: [],
+          json: '',
         },
       ],
     })
@@ -824,5 +827,73 @@ describe('the belt selects and never executes', () => {
         expect(current.maybeSelected).toEqual(Option.some('recall'))
       }),
     )
+  })
+})
+
+describe('the host asks before a call runs', () => {
+  test('with "ask unless read-only", a write waits and sends nothing', () => {
+    story(
+      update,
+      given({ ...initialModel, station: 'code-mode', approval: 'writes' }),
+      message(Message.ClickedRun({ name: 'write_entry' })),
+      Command.expectNone(),
+      model(current => {
+        expect(current.run._tag).toBe('Idle')
+        expect(Option.isSome(current.pending)).toBe(true)
+      }),
+    )
+  })
+
+  test('denying leaves the world exactly as it was', () => {
+    const before = {
+      ...initialModel,
+      station: 'code-mode' as const,
+      approval: 'always' as const,
+    }
+    story(
+      update,
+      given(before),
+      message(Message.ClickedRun({ name: 'write_entry' })),
+      message(Message.ClickedDeny()),
+      Command.expectNone(),
+      model(current => {
+        expect(current.world).toEqual(before.world)
+        expect(current.declined).toBe('write_entry')
+        expect(Option.isNone(current.pending)).toBe(true)
+      }),
+    )
+  })
+
+  test('allowing sends the call and remembers that it was asked', () => {
+    story(
+      update,
+      given({ ...initialModel, station: 'code-mode', approval: 'always' }),
+      message(Message.ClickedRun({ name: 'write_entry' })),
+      message(Message.ClickedApprove()),
+      Command.expectHas(RunCapability),
+      model(current => {
+        expect(current.run._tag).toBe('Running')
+        expect(current.approvedLast).toBe('write_entry')
+      }),
+      Command.resolve(RunCapability, completed(1, 'calm')),
+    )
+  })
+
+  test('a read-only call runs at once under "ask unless read-only"', () => {
+    story(
+      update,
+      given({ ...initialModel, station: 'memory', approval: 'writes' }),
+      message(Message.ClickedRun({ name: 'recall' })),
+      Command.expectHas(RunCapability),
+      Command.resolve(RunCapability, completed(1, 'calm')),
+    )
+  })
+
+  test('the rule decides, from the hint the server sent', () => {
+    expect(needsApproval('never', 'write_entry')).toBe(false)
+    expect(needsApproval('writes', 'write_entry')).toBe(true)
+    expect(needsApproval('writes', 'recall')).toBe(false)
+    expect(needsApproval('writes', 'run_python')).toBe(true)
+    expect(needsApproval('always', 'recall')).toBe(true)
   })
 })

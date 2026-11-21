@@ -21,6 +21,7 @@ export const OfferedTool = Schema.Struct({
   description: Schema.String,
   readOnly: Schema.Boolean,
   parameters: Schema.Array(Schema.String),
+  json: Schema.String,
 })
 export type OfferedTool = typeof OfferedTool.Type
 
@@ -94,6 +95,7 @@ const listTools = async (open: Session): Promise<void> => {
     description: tool.description ?? '',
     readOnly: tool.annotations?.readOnlyHint === true,
     parameters: Object.keys(Object(tool.inputSchema.properties)),
+    json: JSON.stringify(tool, null, 2),
   }))
 }
 

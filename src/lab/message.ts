@@ -72,6 +72,12 @@ export const Message = defineMessageUnion({
   SelectedLens: { lens: Schema.Literals(['family', 'server']) },
   ClickedOpenSpecimen: { name: CapabilityName },
   ClickedShowOnAtlas: {},
+  SelectedApprovalRule: {
+    rule: Schema.Literals(['never', 'writes', 'always']),
+  },
+  ClickedApprove: {},
+  ClickedDeny: {},
+  ClickedWatch: {},
   ClickedTamper: { on: Schema.Boolean },
   ClickedOpenInventory: {},
   PressedSlotKey: { slot: Schema.Number },

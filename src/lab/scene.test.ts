@@ -333,6 +333,7 @@ describe('orientation', () => {
             description: '',
             readOnly: true,
             parameters: [],
+            json: '',
           },
           {
             name: 'enter_domain',
@@ -340,6 +341,7 @@ describe('orientation', () => {
             description: '',
             readOnly: false,
             parameters: [],
+            json: '',
           },
         ],
       }),
@@ -382,7 +384,7 @@ describe('orientation', () => {
         },
       }),
       expect(text('Was anyone asked?')).toExist(),
-      expect(text(/This simulation has no approval prompt/)).toExist(),
+      expect(text(/This host’s rule is “never ask”/)).toExist(),
       expect(text('App view: open the interactive map.')).toExist(),
       expect(text(/nothing could change/)).toBeAbsent(),
     )
@@ -558,6 +560,7 @@ describe('Lens', () => {
       description: 'Store one observation.',
       readOnly: false,
       parameters: ['entity', 'observation'],
+      json: '',
     }
     scene(
       { update, view },
@@ -632,6 +635,40 @@ describe('segment 13 and the thirteen questions', () => {
       expect(text('Claims versus the grounds for believing them')).toExist(),
       expect(text('Resume')).toExist(),
       expect(role('button', { name: 'Profile itself' })).toExist(),
+    )
+  })
+})
+
+describe('the toolbench', () => {
+  test('a bench shows what it hands you, what it does not, and asks before a write', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, station: 'code-mode', approval: 'writes' }),
+      expect(text('Handed to you by the Ledger server')).toExist(),
+      expect(text('undo_entry()')).toExist(),
+      expect(text('not offered: there is no undo')).toExist(),
+      click(role('button', { name: /^Write one entry, write_entry\(load\)/ })),
+      expect(
+        text(
+          'Under the hood: what the model receives, what gets sent, what Lens reads',
+        ),
+      ).toExist(),
+      click(role('button', { name: 'Use it' })),
+      expect(text('The host asks you')).toExist(),
+      click(role('button', { name: 'Deny' })),
+      expect(text('You declined write_entry.')).toExist(),
+      expect(text('Nothing has run on this bench yet.')).toExist(),
+    )
+  })
+
+  test('a program is approved once, not per write', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, station: 'code-mode', approval: 'always' }),
+      click(role('button', { name: 'Run this program' })),
+      expect(
+        text(/You approve it once; every ledger.write inside it/),
+      ).toExist(),
     )
   })
 })

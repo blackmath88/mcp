@@ -33,6 +33,7 @@ import {
   type Station,
 } from './model.ts'
 import { serverNames, stationNames } from './names.ts'
+import { toolbenchView } from './toolbench.ts'
 import { finishedRecord } from './update.ts'
 
 type H = HtmlBuilder<Message>
@@ -405,6 +406,13 @@ const failureOrigin = (record: RunRecord): Option.Option<ComponentId> =>
     Option.map(event => event.component),
   )
 
+const askedText = (model: Model, name: string): string =>
+  model.approvedLast === name
+    ? 'Yes. The host asked you and you allowed it.'
+    : model.approval === 'never'
+      ? 'No. This host’s rule is “never ask”.'
+      : 'No. The host’s rule let it through without asking.'
+
 type Answer = Readonly<{ question: string; answer: string }>
 
 const fiveAnswers = (model: Model): ReadonlyArray<Answer> => {
@@ -434,9 +442,9 @@ const fiveAnswers = (model: Model): ReadonlyArray<Answer> => {
         ),
         Option.match({
           onNone: () =>
-            'No. This simulation has no approval prompt, and no component checked the request.',
+            `${askedText(model, record.capability)} No component checked the request.`,
           onSome: event =>
-            `No. This simulation has no approval prompt. The ${componentNames[event.component].toLowerCase()} applied a rule in code.`,
+            `${askedText(model, record.capability)} The ${componentNames[event.component].toLowerCase()} applied a rule in code.`,
         }),
       ),
     ),
@@ -768,7 +776,7 @@ const inspectorView = (model: Model, h: H): Html =>
           h.p(
             [h.Class('side-note')],
             [
-              'Every run is a real tools/call from a real MCP client to a real MCP server, both in this tab, over an in-memory transport. The data is made up. There is no model, no approval step and no network. Discovering an item is not permission to use it; here nothing checks who you are.',
+              'Every run is a real tools/call from a real MCP client to a real MCP server, both in this tab, over an in-memory transport. The data is made up. There is no model and no network; the host asks you only if you set an approval rule on the bench. Discovering an item is not permission to use it; here nothing checks who you are.',
             ],
           ),
         ],
@@ -1048,14 +1056,146 @@ const workbenchView = (model: Model, h: H): Html =>
           specimenView(specimen, stationTitle(model.station), h),
       }),
       benchToolsView(model, h),
-      model.station === 'code-mode' &&
-      model.python !== 'idle' &&
-      RunState.isAnyOf(['Idle'])(model.run)
-        ? h.empty
-        : resultView(model, h),
-      ...benchView(model, h),
+      toolbenchView(
+        model,
+        {
+          material: benchView(model, h),
+          result:
+            model.station === 'code-mode' &&
+            model.python !== 'idle' &&
+            RunState.isAnyOf(['Idle'])(model.run)
+              ? h.p(
+                  [h.Class('result')],
+                  [
+                    `Python ${model.python === 'running' ? 'is running' : model.pythonError === '' ? 'finished' : 'stopped with an error'}. Each ledger.write was its own tools/call; see the frames.`,
+                  ],
+                )
+              : resultView(model, h),
+          happened: happenedView(model, h),
+          stays: staysView(model, h),
+        },
+        h,
+      ),
     ],
   )
+
+const happenedView = (model: Model, h: H): Html =>
+  Option.match(finishedRecord(model.run), {
+    onNone: () => h.empty,
+    onSome: record => {
+      const shown = visibleEvents(model)
+      const isPlaying = Replay.isAnyOf(['Playing'])(model.replay)
+      return h.div(
+        [h.Class('tb-happened')],
+        [
+          h.div(
+            [h.Class('tb-happened-head')],
+            [
+              h.b([], ['How it happened']),
+              h.span(
+                [h.Class('tb-note')],
+                [`${shown.length} of ${record.events.length} engine events`],
+              ),
+              h.button(
+                [
+                  h.Type('button'),
+                  h.Class('btn ghost small'),
+                  h.OnClick(
+                    isPlaying ? Message.ClickedPause() : Message.ClickedWatch(),
+                  ),
+                ],
+                [isPlaying ? 'Pause' : 'Watch it again'],
+              ),
+            ],
+          ),
+          h.ol(
+            [h.Class('tb-events')],
+            Array.map(shown, (event, index) =>
+              h.keyed('li')(
+                `${event.seq}`,
+                [
+                  h.Class(
+                    `${event.kind} ${index === shown.length - 1 && isPlaying ? 'now' : ''}`,
+                  ),
+                ],
+                [
+                  h.span([h.Class('who')], [componentNames[event.component]]),
+                  h.span([h.Class('what')], [event.operation]),
+                ],
+              ),
+            ),
+          ),
+        ],
+      )
+    },
+  })
+
+const staysView = (model: Model, h: H): Html => {
+  if (
+    model.station === 'code-mode' &&
+    model.python !== 'idle' &&
+    RunState.isAnyOf(['Idle'])(model.run)
+  ) {
+    return h.div(
+      [h.Class('tb-stamp')],
+      [
+        h.b([], ['The ledger now holds']),
+        h.p(
+          [],
+          [
+            model.world.ledger.entries.length === 0
+              ? 'nothing'
+              : model.world.ledger.entries.join(', '),
+          ],
+        ),
+        h.p([h.Class('side-note')], ['There is no undo.']),
+      ],
+    )
+  }
+  return Option.match(finishedRecord(model.run), {
+    onNone: () =>
+      h.p([h.Class('tb-quiet')], ['Nothing has run on this bench yet.']),
+    onSome: record => {
+      const changes = Array.filter(
+        visibleEvents(model),
+        event =>
+          event.kind === 'state-changed' || event.kind === 'artifact-produced',
+      )
+      return Array.match(changes, {
+        onEmpty: () =>
+          h.p(
+            [h.Class('tb-quiet')],
+            [
+              record.outcome._tag === 'Failed'
+                ? 'Nothing. It failed before changing anything.'
+                : 'Nothing. This call left everything as it was.',
+            ],
+          ),
+        onNonEmpty: shown =>
+          h.div(
+            [h.Class('tb-stamp')],
+            [
+              ...Array.map(shown, event =>
+                h.p(
+                  [],
+                  [
+                    h.b([], [`${componentNames[event.component]}: `]),
+                    event.detail,
+                  ],
+                ),
+              ),
+              record.outcome._tag === 'Failed'
+                ? h.p(
+                    [h.Class('side-note')],
+                    ['It failed after this. Nothing was rolled back.'],
+                  )
+                : h.empty,
+            ],
+          ),
+      })
+    },
+  })
+}
 
 const pythonPill = (model: Model, h: H): Html =>
   model.python === 'running'
