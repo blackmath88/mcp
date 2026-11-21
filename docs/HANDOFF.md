@@ -1,5 +1,9 @@
 # Handoff
 
+## Sprites redrawn at 16×16 with shading — 2026-11-21
+
+Owner asked for higher-fidelity pixel art. All 28 sprites were redrawn on a 16×16 grid (was 12×12) with more detail, and `iconView` adds a highlight path and a shadow path computed from each sprite (light from above). Observed: typecheck, lint, 157 tests, build pass; the atlas was looked at in headless Chromium in light mode (`docs/reports/atlas/sprites-16.png`). The dark-mode render was captured but not looked at. The earlier screenshots in `docs/reports/atlas/` still show the 12×12 sprites. The earlier rough edge about the four Compose sprites is reduced: each bench now carries a distinct 8-row object.
+
 ## Capability atlas, pixel tool icons, tool belt — 2026-11-21
 
 Brief: `docs/briefs/2026-11-21-capability-atlas.md`. Owner: "Ok implement it".

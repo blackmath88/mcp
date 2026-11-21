@@ -1490,6 +1490,14 @@ textarea.console-text {
 .px-N {
   fill: #2fa66a;
 }
+.px-lit {
+  fill: #fff;
+  opacity: 0.34;
+}
+.px-shade {
+  fill: #000;
+  opacity: 0.2;
+}
 
 @media (prefers-color-scheme: dark) {
   /* Sprites keep their dark outline, so they sit on a light plate. */
