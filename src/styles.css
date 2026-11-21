@@ -1112,3 +1112,265 @@ tbody th {
     order: 5;
   }
 }
+
+/* Compact pass: one type size down, less padding, fewer frames. */
+body {
+  font-size: 13px;
+}
+h1 {
+  font-size: 17px;
+}
+h2 {
+  font-size: 17px;
+}
+h3 {
+  font-size: 13px;
+}
+.titlebar {
+  flex-wrap: nowrap;
+  padding-block: 5px;
+  gap: 14px;
+}
+.titlebar .location {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex-shrink: 1;
+}
+.phase-map {
+  flex: 0 0 auto;
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  order: 2;
+  margin-left: auto;
+}
+.phase-stop {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 0;
+  background: none;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.phase-stop small {
+  display: none;
+}
+.phase-name {
+  font-size: 12.5px;
+}
+.simtag {
+  order: 3;
+  margin-left: 0;
+  padding: 4px 6px;
+  font-size: 9.5px;
+  white-space: nowrap;
+}
+.ide {
+  grid-template-columns: 204px minmax(0, 1fr) 256px;
+}
+.sidebar {
+  padding: 10px 8px;
+  gap: 14px;
+}
+.side-section {
+  gap: 5px;
+}
+.rung,
+.slotb {
+  padding: 4px 7px;
+  gap: 5px;
+  border-radius: 5px;
+}
+.rung .t,
+.slot-name {
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.rung[aria-current='page'] .t,
+.rung[aria-current='step'] .t,
+.slotb[aria-pressed='true'] .slot-name {
+  font-weight: 600;
+}
+.slotb {
+  grid-template-columns: 52px minmax(0, 1fr);
+}
+.source-jump {
+  padding: 4px 6px;
+  font-size: 12px;
+}
+.workbench {
+  position: relative;
+  padding: 12px 16px;
+  gap: 8px;
+}
+.workbench > .panehead {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+}
+.workbench > .panehead .eyebrow,
+.specimen .prompt > .pill {
+  display: none;
+}
+.prompt {
+  padding-right: 110px;
+}
+.prompt p,
+.question {
+  font-size: 13.5px;
+  font-weight: 400;
+  color: var(--muted) !important;
+}
+.specimen {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+}
+.specimen > .prompt,
+.specimen > details[open] {
+  flex-basis: 100%;
+}
+.fold > summary {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 0;
+}
+.btn {
+  padding: 6px 11px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.btn.small {
+  padding: 3px 8px;
+  font-size: 12px;
+}
+.seg button,
+.tabs button {
+  padding: 3px 10px;
+  font-size: 12px;
+}
+.field select {
+  padding: 5px 8px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+.result {
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+.places {
+  gap: 6px;
+}
+.placebox {
+  padding: 7px 10px;
+  border-radius: 6px;
+  background: none;
+}
+.placebox.active {
+  background: var(--surface-2);
+  border-color: var(--muted);
+}
+.placebox .where {
+  margin-bottom: 3px;
+}
+.lines {
+  font-size: 13px;
+}
+.card {
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+.inspector {
+  padding: 10px;
+  gap: 8px;
+}
+.five div {
+  padding: 6px 9px;
+}
+.five dd,
+.facts dd {
+  font-size: 12.5px;
+}
+.facts dt,
+.five dt {
+  font-size: 10px;
+  margin-bottom: 2px;
+}
+.reading {
+  padding: 5px 9px;
+  border-radius: 6px;
+}
+.chip {
+  padding: 3px 10px;
+  font-size: 12.5px;
+}
+.map {
+  border-radius: 6px;
+}
+.panel {
+  padding: 8px 16px;
+  gap: 8px;
+}
+.ide.backstage-collapsed .panel {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-block: 5px;
+}
+.ide.backstage-collapsed .panel .panehead {
+  position: static;
+  order: 2;
+  margin: 0 0 0 auto;
+  padding: 0;
+}
+.ide.backstage-collapsed .panel .eyebrow {
+  display: none;
+}
+.toggle {
+  padding: 3px 9px;
+  font-size: 12px;
+}
+.log li {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+.statusbar {
+  padding-block: 3px;
+  font-size: 11px;
+}
+@media (max-width: 1080px) {
+  .ide {
+    grid-template-columns: 196px minmax(0, 1fr);
+  }
+  .titlebar {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 720px) {
+  .phase-map {
+    flex-basis: 100%;
+    order: 3;
+    margin-left: 0;
+  }
+  .phase-stop {
+    flex: 1;
+    flex-direction: row;
+    justify-content: center;
+    padding: 4px 6px;
+  }
+  .phase-number {
+    display: none;
+  }
+  .prompt {
+    padding-right: 0;
+  }
+  .workbench > .panehead {
+    position: static;
+  }
+}

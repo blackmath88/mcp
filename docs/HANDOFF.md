@@ -1,5 +1,12 @@
 # Handoff
 
+## Compact styling pass — 2026-11-21
+
+Owner feedback: everything looks bulky. CSS-only change at the end of `src/styles.css`: one type size down, tighter padding, the phases as slim tabs in a single-row title bar, narrower sidebar and inspector, the specimen's three folds on one line, the run status moved beside the title, and a collapsed Backstage reduced to one slim row. No behaviour changed; 121 tests pass; no overflow at 1440, 1000 and 390 px. Screenshot: `docs/reports/first-slice/compact-08.png`.
+
+The owner pointed to a clean dashboard in the Effect/Foldkit template repository as the look to aim for. It was not found: that repository contains only the counter example, and nothing named "takt" or "dashboard" appears in it, its reference catalog, or the linked starters that were checked. The exact reference is still needed.
+
+
 ## Orientation and station 08 as the pattern — 2026-11-21
 
 Input: an external review supplied by the owner, who left the decision to the assistant. It proposed perfecting station 08 before more breadth, three jobs for navigation, and two fixes. Also merged: the owner's nine commits on `main` (learner journey, Lens ontology, real-specimen research, registry example). Draft PR #2 (phase navigation) was based on an older state of this branch; its navigation is re-implemented here on top of all twelve stations, so that PR is superseded.
