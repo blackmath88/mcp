@@ -2,7 +2,7 @@
 
 > Who owns this server process, and whose state is it holding?
 
-Status: reference only; not built. Claims below are unverified research leads.
+Status: simulated in the lab on synthetic data; upstream not executed. Claims below are unverified research leads.
 
 ## Anchor
 
@@ -23,10 +23,10 @@ Connect two clients to a specimen with explicit state. Disconnect one unexpected
 | Field | Value |
 | --- | --- |
 | Pinned upstream revision | not pinned |
-| Documented behaviour checked against source | no |
-| Controlled mutation | not defined |
-| Actual evidence | none |
-| What this does not prove | not applicable yet |
+| Documented behaviour checked against source | yes, README and issues 35, 126, 160 read 2026-11-21; release notes not checked |
+| Controlled mutation | gateway build (one shared process, a process per connection); reconnect, vanish, timeout |
+| Actual evidence | lab simulation only: `npm run lab -- where_am_i --client A --state .lab/g.json` after two `go_to` calls |
+| What this does not prove | anything about how the upstream tool behaves when run |
 
 ## Sources
 

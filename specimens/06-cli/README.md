@@ -2,7 +2,7 @@
 
 > Which parts discover a change dynamically, and which are generated artifacts that go stale?
 
-Status: reference only; not built. Claims below are unverified research leads.
+Status: simulated in the lab on synthetic data; upstream not executed. Claims below are unverified research leads.
 
 ## Anchor
 
@@ -27,10 +27,10 @@ Generate a CLI, then change the server's schema.
 | Field | Value |
 | --- | --- |
 | Pinned upstream revision | not pinned |
-| Documented behaviour checked against source | no |
-| Controlled mutation | not defined |
-| Actual evidence | none |
-| What this does not prove | not applicable yet |
+| Documented behaviour checked against source | partly, generator doc and README read 2026-11-21; the snapshot question is not settled there |
+| Controlled mutation | server schema version (v1, v2 adds a required field); regenerate |
+| Actual evidence | lab simulation only: `npm run lab -- call_generated --state .lab/c.json --server-schema 2` after `generate_cli` |
+| What this does not prove | anything about how the upstream tool behaves when run |
 
 ## Sources
 

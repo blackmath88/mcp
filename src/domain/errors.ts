@@ -76,7 +76,19 @@ export class NoSnapshot extends Schema.TaggedError<NoSnapshot>()(
   {},
 ) {}
 
+export class NoArtifact extends Schema.TaggedError<NoArtifact>()(
+  'NoArtifact',
+  {},
+) {}
+
+export class SchemaMismatch extends Schema.TaggedError<SchemaMismatch>()(
+  'SchemaMismatch',
+  { detail: Schema.String },
+) {}
+
 export type DomainError =
+  | NoArtifact
+  | SchemaMismatch
   | AccessDenied
   | UnknownFile
   | NotPerceivable
@@ -109,6 +121,9 @@ export const describeError = (error: DomainError): string =>
         `The reference for "${target}" comes from an older snapshot. The page has changed since.`,
       NoSnapshot: () =>
         'No snapshot has been taken, so there are no references yet.',
+      NoArtifact: () => 'No CLI has been generated yet.',
+      SchemaMismatch: ({ detail }) =>
+        `The server rejected the call: ${detail}.`,
       InvalidInput: ({ message }) => `Invalid input: ${message}`,
       UnknownCapability: ({ name }) => `There is no capability named ${name}.`,
       SamePlace: ({ place }) => `${place} cannot be connected to itself.`,

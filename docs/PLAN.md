@@ -48,8 +48,10 @@ Agreed 2026-11-21: the lab follows the twelve specimens in specimens/route.json.
 | 03 "Thinking" as a tool | simulated: record, compute, consult (scripted stand-in) behind one tool name |
 | 04 Filesystem | simulated: three server builds, client roots sent and revoked |
 | 05 Browser perception | simulated: snapshot versus coordinates, stale references |
-| 06 CLI, reversed | next |
-| 07 to 12 | reference cards only |
+| 06 CLI, reversed | simulated: generated artifact versus live call across a schema change |
+| 07 Local and remote | simulated: shared process versus one per connection; reconnect, vanish, timeout |
+| 08 The item becomes an application | next |
+| 09 to 12 | reference cards only |
 
 Per station, before calling it done: pin the upstream revision, check the documented behaviour against the source, and fill the evidence record in its README. None of that has been done for any station.
 
@@ -57,7 +59,7 @@ Protocol facts (revision, feature status, client support) still need a check aga
 
 ## Immediate next action
 
-Build station 06 (CLI, reversed: a generated CLI going stale when the schema changes) and 07 (Local and remote: who owns the process and its state). Read the mcporter and supergateway sources first, as done for station 04. The specification site was not reachable from the build session; allow it or supply the pages before stations that depend on protocol wording.
+Stations 08 to 12 are a step up: an interactive application, a code-execution item, another model, iteration with durability, and the network. Before building them, decide with the owner how far simulation should go, because 10 and 11 centre on a model and the lab has none. Station 08 can reuse the valley map as the application. Seven stations still lack pinned upstream revisions.
 
 ## Explicit exclusions for this change
 

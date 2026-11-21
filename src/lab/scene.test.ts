@@ -96,10 +96,10 @@ describe('the route of specimens', () => {
     scene(
       { update, view },
       given(initialModel),
-      click(role('button', { name: /CLI, reversed/ })),
+      click(role('button', { name: /One item contains a language/ })),
       expect(
         text(
-          'Which parts discover a change dynamically, and which are generated artifacts that go stale?',
+          'Is the unit of responsibility a tool call, an individual effect, or the whole program?',
         ),
       ).toExist(),
       expect(text('Reference only · not built')).toExist(),
@@ -214,6 +214,32 @@ describe('filesystem and perception stations', () => {
       expect(text('The page, as a person sees it')).toExist(),
       expect(text('no snapshot taken yet')).toExist(),
       expect(text('pixels drawn on a canvas')).toExist(),
+    )
+  })
+})
+
+describe('cli and gateway stations', () => {
+  test('the CLI station shows server, artifact and live call side by side', () => {
+    scene(
+      { update, view },
+      given(initialModel),
+      click(role('button', { name: /CLI, reversed/ })),
+      expect(text('The generated CLI')).toExist(),
+      expect(text('not generated yet')).toExist(),
+      expect(role('button', { name: 'v2 adds destination' })).toExist(),
+      expect(role('button', { name: 'Execute generate_cli' })).toExist(),
+    )
+  })
+
+  test('the gateway station shows processes and reacts to the build', () => {
+    scene(
+      { update, view },
+      given(initialModel),
+      click(role('button', { name: /Local and remote/ })),
+      expect(text('Server process #1')).toExist(),
+      expect(text('shared by every client')).toExist(),
+      click(role('button', { name: 'A process per connection' })),
+      expect(text('No server process yet')).toExist(),
     )
   })
 })

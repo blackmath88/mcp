@@ -249,6 +249,30 @@ describe('filesystem and perception through MCP', () => {
   })
 })
 
+describe('gateway specimen through MCP', () => {
+  test('the build decides whether two callers share state', async () => {
+    const script = async (client: Client) => {
+      await client.callTool({
+        name: 'go_to',
+        arguments: { client: 'A', place: 'forge' },
+      })
+      await client.callTool({
+        name: 'go_to',
+        arguments: { client: 'B', place: 'dock' },
+      })
+      return client.callTool({ name: 'where_am_i', arguments: { client: 'A' } })
+    }
+    const shared = await withClient([], script)
+    const separate = await withClient(['--gateway=per-connection'], script)
+    expect(shared.structuredContent).toMatchObject({
+      outcome: { output: { place: 'dock' } },
+    })
+    expect(separate.structuredContent).toMatchObject({
+      outcome: { output: { place: 'forge' } },
+    })
+  })
+})
+
 describe('recording shown in the lab', () => {
   test('carries its provenance and a real handshake', () => {
     expect(recording.mcpSdk).toMatch(/^\d+\.\d+\.\d+$/)

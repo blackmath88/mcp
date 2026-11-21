@@ -133,7 +133,7 @@
     {
       "id": "cli",
       "title": "CLI, reversed",
-      "status": "reference",
+      "status": "simulated",
       "question": "Which parts discover a change dynamically, and which are generated artifacts that go stale?",
       "anchor": {
         "repo": "modelcontextprotocol/inspector",
@@ -146,27 +146,28 @@
           "note": "Calls servers from scripts and the terminal, and generates a standalone CLI from a server's tool definitions."
         }
       ],
-      "bent": "A generated CLI is a snapshot of a schema.",
+      "bent": "The generator doc says an artifact embeds the resolved server definition and its metadata and \"always targets that snapshot\", and offers inspect-cli and generate-cli --from to refresh it. It does not settle whether tool schemas are fixed at generation time. The lab simulates the case where they are.",
       "experiment": "Generate a CLI, then change the server's schema.",
       "sources": [
         "https://github.com/modelcontextprotocol/inspector",
         "https://github.com/openclaw/mcporter",
         "https://github.com/openclaw/mcporter/blob/main/docs/cli-generator.md"
       ],
-      "number": 6
+      "number": 6,
+      "checked": "mcporter cli-generator doc and README read on 2026-11-21 through a fetch tool. Not pinned. The schema-snapshot question is not settled by those pages."
     },
     {
       "id": "local-remote",
       "title": "Local and remote",
-      "status": "reference",
+      "status": "simulated",
       "question": "Who owns this server process, and whose state is it holding?",
       "anchor": {
         "repo": "supercorp-ai/supergateway",
         "path": "",
-        "note": "Bridges local stdio servers and network transports."
+        "note": "Runs stdio servers over SSE, WebSocket or Streamable HTTP. The README says each SSE and each WebSocket connection gets its own server process, and describes a stateful mode with a session timeout."
       },
       "diversions": [],
-      "bent": "Issue history includes a child process shared across clients, reconnection handling and cleanup of abandoned sessions (issues 35, 126, 160). Some record fixes; pin the revision to reproduce.",
+      "bent": "Issue 35: one child process shared across SSE connections, so one client saw another’s state; the maintainer reports it fixed in v4.1.0, noting a reconnect gets a fresh child. Issue 126: a session-conflict error terminated the child on reconnect; reported fixed in v4.0.0. Issue 160: the session timeout never armed while a stream stayed open, leaking children after an ungraceful disconnect; reported fixed in v4.1.0 with pings.",
       "experiment": "Connect two clients to a specimen with explicit state. Disconnect one unexpectedly.",
       "sources": [
         "https://github.com/supercorp-ai/supergateway",
@@ -174,7 +175,8 @@
         "https://github.com/supercorp-ai/supergateway/issues/126",
         "https://github.com/supercorp-ai/supergateway/issues/160"
       ],
-      "number": 7
+      "number": 7,
+      "checked": "supergateway README and issues 35, 126 and 160 read on 2026-11-21 through a fetch tool. Release notes not checked; not pinned."
     },
     {
       "id": "apps",

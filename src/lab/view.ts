@@ -9,8 +9,10 @@ import {
   type RunRecord,
   catalogue,
 } from '../domain/capabilities.ts'
+import { fieldsOf, helpText } from '../domain/cli-snapshot.ts'
 import { siteUrls } from '../domain/fetch.ts'
 import { filePaths, rootChoices } from '../domain/files.ts'
+import { clients, gatewayPlaces } from '../domain/gateway.ts'
 import { entities, observations, pathLabel } from '../domain/memory.ts'
 import { controls } from '../domain/perception.ts'
 import type { ComponentId, EngineEvent } from '../domain/services.ts'
@@ -18,7 +20,9 @@ import { callerThoughts } from '../domain/thinking.ts'
 import {
   type FetchPolicy,
   type FsBuild,
+  type GatewayBuild,
   LAUNCH_DIRECTORIES,
+  NO_ARTIFACT,
   NO_SNAPSHOT,
   type Path,
   type Perception,
@@ -126,6 +130,12 @@ const componentNames: Record<ComponentId, string> = {
   'browser-tool': 'Browser tool',
   'accessibility-tree': 'Accessibility tree',
   'synthetic-page': 'Synthetic page',
+  'cli-generator': 'CLI generator',
+  'generated-cli': 'Generated CLI',
+  'live-client': 'Live client',
+  'crate-server': 'Crate server',
+  gateway: 'Gateway',
+  'child-process': 'Server process',
 }
 
 const componentRoles: Record<ComponentId, string> = {
@@ -154,6 +164,13 @@ const componentRoles: Record<ComponentId, string> = {
   'browser-tool': 'Takes snapshots and clicks, by reference or by coordinates.',
   'accessibility-tree': 'Lists only controls that have a role and a name.',
   'synthetic-page': 'Four made-up controls. Every click re-renders it.',
+  'cli-generator': 'Reads the tool list once and bakes it into an artifact.',
+  'generated-cli': 'Checks arguments against its embedded schema, then calls.',
+  'live-client': 'Lists the tools before every call.',
+  'crate-server': 'Accepts ship_crates under its current schema only.',
+  gateway:
+    'Bridges network clients to stdio server processes and decides who shares one.',
+  'child-process': 'A stateful server process. It holds one current place.',
 }
 
 const componentsOf = (station: Station): ReadonlyArray<ComponentId> =>
@@ -171,23 +188,34 @@ const componentsOf = (station: Station): ReadonlyArray<ComponentId> =>
               'boundary',
               'synthetic-files',
             ]
-          : station === 'perception'
+          : station === 'cli'
             ? [
                 'adapter',
                 'catalogue',
-                'browser-tool',
-                'accessibility-tree',
-                'synthetic-page',
+                'cli-generator',
+                'generated-cli',
+                'live-client',
+                'crate-server',
               ]
-            : [
-                'adapter',
-                'catalogue',
-                'planner',
-                'map',
-                'validator',
-                'world-store',
-                'artifact-store',
-              ]
+            : station === 'local-remote'
+              ? ['adapter', 'catalogue', 'gateway', 'child-process']
+              : station === 'perception'
+                ? [
+                    'adapter',
+                    'catalogue',
+                    'browser-tool',
+                    'accessibility-tree',
+                    'synthetic-page',
+                  ]
+                : [
+                    'adapter',
+                    'catalogue',
+                    'planner',
+                    'map',
+                    'validator',
+                    'world-store',
+                    'artifact-store',
+                  ]
 
 type Specimen = (typeof route.specimens)[number]
 
@@ -243,6 +271,18 @@ const perceptions: ReadonlyArray<Readonly<{ id: Perception; label: string }>> =
     { id: 'vision', label: 'Coordinates on' },
   ]
 
+const serverSchemas: ReadonlyArray<Readonly<{ id: number; label: string }>> = [
+  { id: 1, label: 'Server schema v1' },
+  { id: 2, label: 'v2 adds destination' },
+]
+
+const gatewayBuilds: ReadonlyArray<
+  Readonly<{ id: GatewayBuild; label: string }>
+> = [
+  { id: 'shared', label: 'One shared process' },
+  { id: 'per-connection', label: 'A process per connection' },
+]
+
 const policies: ReadonlyArray<Readonly<{ id: FetchPolicy; label: string }>> = [
   { id: 'every-hop', label: 'Check every hop' },
   { id: 'first-hop', label: 'First URL only' },
@@ -291,6 +331,18 @@ const outcomeText = (record: RunRecord): string => {
   }
   if (output._tag === 'RouteFound') {
     return `Route: ${output.route.places.join(' → ')} (span ${output.route.span}).`
+  }
+  if (output._tag === 'CliGenerated') {
+    return `Generated a CLI from schema v${output.schemaVersion}. That schema is now baked in.`
+  }
+  if (output._tag === 'CratesShipped') {
+    return `Shipped via ${output.via}, sending ${output.sentFields.join(' and ')}.`
+  }
+  if (output._tag === 'WentTo') {
+    return `Client ${output.client} went to ${output.place}. Process #${output.childId} served it.`
+  }
+  if (output._tag === 'WhereAmI') {
+    return `Client ${output.client} is told: ${output.place === '' ? 'nowhere yet' : output.place}. Process #${output.childId} answered.`
   }
   if (output._tag === 'FileRead') {
     return `${output.path}: “${output.content}”`
@@ -487,49 +539,95 @@ const titlebarView = (model: Model, h: H): Html =>
                   ),
                   h,
                 )
-              : model.station === 'perception'
+              : model.station === 'cli'
                 ? bendView(
-                    'Perception',
-                    Array.map(perceptions, mode =>
+                    'Server schema',
+                    Array.map(serverSchemas, schema =>
                       h.button(
                         [
                           h.Type('button'),
                           h.AriaPressed(
-                            model.world.page.mode === mode.id
+                            model.world.cli.serverSchema === schema.id
                               ? 'true'
                               : 'false',
                           ),
                           h.OnClick(
-                            Message.SelectedPerception({ mode: mode.id }),
+                            Message.SelectedServerSchema({
+                              version: schema.id,
+                            }),
                           ),
                         ],
-                        [mode.label],
+                        [schema.label],
                       ),
                     ),
                     h,
                   )
-                : model.station === 'thinking'
+                : model.station === 'local-remote'
                   ? bendView(
-                      'What is inside',
-                      Array.map(thinkingModes, mode =>
+                      'Gateway build',
+                      Array.map(gatewayBuilds, build =>
                         h.button(
                           [
                             h.Type('button'),
                             h.AriaPressed(
-                              model.world.thinkingMode === mode.id
+                              model.world.gateway.build === build.id
                                 ? 'true'
                                 : 'false',
                             ),
                             h.OnClick(
-                              Message.SelectedThinkingMode({ mode: mode.id }),
+                              Message.SelectedGatewayBuild({ build: build.id }),
                             ),
                           ],
-                          [mode.label],
+                          [build.label],
                         ),
                       ),
                       h,
                     )
-                  : h.empty,
+                  : model.station === 'perception'
+                    ? bendView(
+                        'Perception',
+                        Array.map(perceptions, mode =>
+                          h.button(
+                            [
+                              h.Type('button'),
+                              h.AriaPressed(
+                                model.world.page.mode === mode.id
+                                  ? 'true'
+                                  : 'false',
+                              ),
+                              h.OnClick(
+                                Message.SelectedPerception({ mode: mode.id }),
+                              ),
+                            ],
+                            [mode.label],
+                          ),
+                        ),
+                        h,
+                      )
+                    : model.station === 'thinking'
+                      ? bendView(
+                          'What is inside',
+                          Array.map(thinkingModes, mode =>
+                            h.button(
+                              [
+                                h.Type('button'),
+                                h.AriaPressed(
+                                  model.world.thinkingMode === mode.id
+                                    ? 'true'
+                                    : 'false',
+                                ),
+                                h.OnClick(
+                                  Message.SelectedThinkingMode({
+                                    mode: mode.id,
+                                  }),
+                                ),
+                              ],
+                              [mode.label],
+                            ),
+                          ),
+                          h,
+                        )
+                      : h.empty,
     ],
   )
 
@@ -798,9 +896,13 @@ const statusbarView = (model: Model, h: H): Html =>
                   ? `build: ${model.world.thinkingMode}`
                   : model.station === 'filesystem'
                     ? `allowed now: ${model.world.files.allowed.join(', ') || 'nothing'}`
-                    : model.station === 'perception'
-                      ? `page revision ${model.world.page.revision} · ${model.world.page.mode}`
-                      : 'reference only · unverified',
+                    : model.station === 'cli'
+                      ? `server schema v${model.world.cli.serverSchema} · CLI embeds ${model.world.cli.artifactSchema === NO_ARTIFACT ? 'nothing yet' : `v${model.world.cli.artifactSchema}`}`
+                      : model.station === 'local-remote'
+                        ? `${model.world.gateway.children.length} server process(es) behind the gateway`
+                        : model.station === 'perception'
+                          ? `page revision ${model.world.page.revision} · ${model.world.page.mode}`
+                          : 'reference only · unverified',
         ],
       ),
     ],
@@ -1338,6 +1440,173 @@ const pageView = (model: Model, h: H): Html => {
   )
 }
 
+// CLI SNAPSHOT
+
+const cliBenchView = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('ctl')],
+    [
+      h.p([h.Class('goal')], ['You want to ship 3 crates to the dock.']),
+      executeButton(
+        model,
+        Option.match(model.maybeSelected, {
+          onNone: () => 'Execute',
+          onSome: name => `Execute ${name}`,
+        }),
+        h,
+      ),
+    ],
+  )
+
+const cliPlacesView = (model: Model, h: H): Html => {
+  const cli = model.world.cli
+  const hasArtifact = cli.artifactSchema !== NO_ARTIFACT
+  const isStale = hasArtifact && cli.artifactSchema !== cli.serverSchema
+  return h.div(
+    [h.Class('places')],
+    [
+      h.div(
+        [h.Class('placebox')],
+        [
+          h.h3([], ['The server, right now']),
+          h.p([h.Class('where')], [`schema v${cli.serverSchema}`]),
+          pathLines(
+            [`ship_crates(${fieldsOf(cli.serverSchema).join(', ')})`],
+            h,
+          ),
+        ],
+      ),
+      h.div(
+        [h.Class('placebox active')],
+        [
+          h.h3([], ['The generated CLI']),
+          h.p(
+            [h.Class('where')],
+            [
+              !hasArtifact
+                ? 'not generated yet'
+                : isStale
+                  ? `embeds schema v${cli.artifactSchema} · stale, and it cannot know`
+                  : `embeds schema v${cli.artifactSchema} · matches the server`,
+            ],
+          ),
+          hasArtifact
+            ? pathLines([helpText(cli.artifactSchema)], h)
+            : h.p([h.Class('none')], ['nothing']),
+        ],
+      ),
+      h.div(
+        [h.Class('placebox')],
+        [
+          h.h3([], ['A live call']),
+          h.p([h.Class('where')], ['embeds nothing · asks every time']),
+          h.p([h.Class('none')], ['lists the tools, then calls']),
+        ],
+      ),
+    ],
+  )
+}
+
+// GATEWAY
+
+const gatewayBenchView = (model: Model, h: H): Html => {
+  const isGoTo = Option.contains(model.maybeSelected, 'go_to')
+  return h.div(
+    [h.Class('ctl')],
+    [
+      optionSelect(
+        'client',
+        'Client',
+        model.client,
+        clients,
+        value => Message.SelectedClient({ value }),
+        h,
+      ),
+      isGoTo
+        ? optionSelect(
+            'gateway-place',
+            'Place',
+            model.place,
+            gatewayPlaces,
+            value => Message.SelectedGatewayPlace({ value }),
+            h,
+          )
+        : h.empty,
+      executeButton(model, isGoTo ? 'Execute go_to' : 'Execute where_am_i', h),
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('btn ghost'),
+          h.OnClick(Message.ClickedReconnectClient()),
+        ],
+        ['This client reconnects'],
+      ),
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('btn ghost'),
+          h.OnClick(Message.ClickedVanishClient()),
+        ],
+        ['This client vanishes'],
+      ),
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('btn ghost'),
+          h.OnClick(Message.ClickedPassTimeout()),
+        ],
+        ['Session timeout passes'],
+      ),
+    ],
+  )
+}
+
+const processesView = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('places')],
+    Array.match(model.world.gateway.children, {
+      onEmpty: () => [
+        h.div(
+          [h.Class('placebox')],
+          [
+            h.h3([], ['No server process yet']),
+            h.p(
+              [h.Class('where')],
+              ['one is spawned when a client first connects'],
+            ),
+          ],
+        ),
+      ],
+      onNonEmpty: children =>
+        Array.map(children, child =>
+          h.div(
+            [h.Class(`placebox ${child.orphaned ? '' : 'active'}`)],
+            [
+              h.h3([], [`Server process #${child.id}`]),
+              h.p(
+                [h.Class('where')],
+                [
+                  child.orphaned
+                    ? `orphaned · was client ${child.owner}’s · still running`
+                    : child.owner === 'shared'
+                      ? 'shared by every client'
+                      : `owned by client ${child.owner}’s connection`,
+                ],
+              ),
+              h.p(
+                [],
+                [
+                  child.place === ''
+                    ? 'current place: none'
+                    : `current place: ${child.place}`,
+                ],
+              ),
+            ],
+          ),
+        ),
+    }),
+  )
+
 // THINKING
 
 const thinkingBenchView = (model: Model, h: H): Html =>
@@ -1433,6 +1702,8 @@ const workbenchView = (model: Model, h: H): Html =>
               model.station === 'memory' ||
               model.station === 'filesystem' ||
               model.station === 'perception' ||
+              model.station === 'cli' ||
+              model.station === 'local-remote' ||
               model.station === 'thinking'
                 ? runPill(model.run, h)
                 : h.empty,
@@ -1460,26 +1731,38 @@ const workbenchView = (model: Model, h: H): Html =>
                     resultView(model, h),
                     boundaryView(model, h),
                   ]
-                : model.station === 'perception'
+                : model.station === 'cli'
                   ? [
-                      perceptionBenchView(model, h),
+                      cliBenchView(model, h),
                       resultView(model, h),
-                      pageView(model, h),
+                      cliPlacesView(model, h),
                     ]
-                  : model.station === 'thinking'
+                  : model.station === 'local-remote'
                     ? [
-                        thinkingBenchView(model, h),
+                        gatewayBenchView(model, h),
                         resultView(model, h),
-                        planView(model, h),
+                        processesView(model, h),
                       ]
-                    : [
-                        h.p(
-                          [h.Class('empty')],
-                          [
-                            'Nothing to run yet. This station is a research lead waiting for its simulation.',
-                          ],
-                        ),
-                      ]),
+                    : model.station === 'perception'
+                      ? [
+                          perceptionBenchView(model, h),
+                          resultView(model, h),
+                          pageView(model, h),
+                        ]
+                      : model.station === 'thinking'
+                        ? [
+                            thinkingBenchView(model, h),
+                            resultView(model, h),
+                            planView(model, h),
+                          ]
+                        : [
+                            h.p(
+                              [h.Class('empty')],
+                              [
+                                'Nothing to run yet. This station is a research lead waiting for its simulation.',
+                              ],
+                            ),
+                          ]),
         ],
       )
 

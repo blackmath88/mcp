@@ -9,6 +9,7 @@ import {
   CALM_MAX_SPAN,
   FetchPolicy,
   FsBuild,
+  GatewayBuild,
   Perception,
   STORM_MAX_SPAN,
   StoragePath,
@@ -17,6 +18,8 @@ import {
   applyRootsUpdate,
   reinstallPackage,
   seedWorld,
+  useGatewayBuild,
+  useServerSchema,
   useStoragePath,
 } from '../domain/world.ts'
 import { catalogueText, recordText } from './text.ts'
@@ -37,6 +40,9 @@ Options:
   --fs-build <b>  default, confine or pre-fix
   --target <t>    control for click: gate, lever, valve, bell
   --perception <m>  snapshot (default) or vision
+  --server-schema <n>  crate server schema for station 06: 1 or 2
+  --gateway <b>   shared or per-connection (applies when the world is created)
+  --client <c> --place <p>  input for go_to; --client alone for where_am_i
   --storm         start from the storm world (span limit ${STORM_MAX_SPAN} instead of ${CALM_MAX_SPAN})
   --state <file>  keep the world in this file between runs (default: a fresh world each run)
   --json          print the full run record as JSON
@@ -62,6 +68,10 @@ const { values, positionals } = parseArgs({
     'fs-build': { type: 'string' },
     target: { type: 'string' },
     perception: { type: 'string' },
+    'server-schema': { type: 'string' },
+    gateway: { type: 'string' },
+    client: { type: 'string' },
+    place: { type: 'string' },
     storm: { type: 'boolean', default: false },
     state: { type: 'string' },
     json: { type: 'boolean', default: false },
@@ -107,19 +117,21 @@ if (command === 'list') {
 }
 
 const input =
-  values.path !== undefined
-    ? { path: values.path }
-    : values.target !== undefined
-      ? { target: values.target }
-      : values.entity !== undefined
-        ? { entity: values.entity, observation: values.observation }
-        : values.thought !== undefined
-          ? { from: values.from, to: values.to, thoughts: values.thought }
-          : values.url !== undefined
-            ? { url: values.url }
-            : values.from === undefined && values.to === undefined
-              ? {}
-              : { from: values.from, to: values.to }
+  values.client !== undefined
+    ? { client: values.client, place: values.place }
+    : values.path !== undefined
+      ? { path: values.path }
+      : values.target !== undefined
+        ? { target: values.target }
+        : values.entity !== undefined
+          ? { entity: values.entity, observation: values.observation }
+          : values.thought !== undefined
+            ? { from: values.from, to: values.to, thoughts: values.thought }
+            : values.url !== undefined
+              ? { url: values.url }
+              : values.from === undefined && values.to === undefined
+                ? {}
+                : { from: values.from, to: values.to }
 
 const loaded = loadWorld(values.state, values.storm)
 const moved =
@@ -129,7 +141,18 @@ const moved =
         loaded,
         Schema.decodeUnknownSync(StoragePath)(values['memory-path']),
       )
-const reinstalled = values.reinstall ? reinstallPackage(moved) : moved
+const upgraded =
+  values['server-schema'] === undefined
+    ? moved
+    : useServerSchema(moved, Number(values['server-schema']))
+const bridged =
+  values.gateway === undefined || existsSync(values.state ?? '')
+    ? upgraded
+    : useGatewayBuild(
+        upgraded,
+        Schema.decodeUnknownSync(GatewayBuild)(values.gateway),
+      )
+const reinstalled = values.reinstall ? reinstallPackage(bridged) : bridged
 const startWorld =
   values.roots === undefined
     ? reinstalled

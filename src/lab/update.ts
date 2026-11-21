@@ -9,11 +9,16 @@ import {
   PlaceId,
   World,
   applyRootsUpdate,
+  passSessionTimeout,
+  reconnectClient,
   reinstallPackage,
   useFsBuild,
+  useGatewayBuild,
   usePerception,
+  useServerSchema,
   useStoragePath,
   useThinkingMode,
+  vanishClient,
 } from '../domain/world.ts'
 import { Message } from './message.ts'
 import {
@@ -42,6 +47,8 @@ export const RunCapability = Command.define('RunCapability', {
     observation: Schema.String,
     path: Schema.String,
     target: Schema.String,
+    client: Schema.String,
+    place: Schema.String,
   },
   messages: [Message.CompletedRunCapability],
   interrupt: true,
@@ -56,6 +63,8 @@ export const RunCapability = Command.define('RunCapability', {
     observation,
     path,
     target,
+    client,
+    place,
   }) =>
     runInProcess(
       world,
@@ -72,7 +81,11 @@ export const RunCapability = Command.define('RunCapability', {
                 ? { path }
                 : capability === 'click'
                   ? { target }
-                  : { from, to },
+                  : capability === 'go_to'
+                    ? { client, place }
+                    : capability === 'where_am_i'
+                      ? { client }
+                      : { from, to },
     ).pipe(
       Effect.map(result =>
         Message.CompletedRunCapability({
@@ -107,6 +120,8 @@ export const initialModel: Model = {
   path: '/valley/mill/ledger.txt',
   target: 'gate',
   rootChoice: '/valley/mill',
+  client: 'A',
+  place: 'forge',
   conversation: [],
   serverStarts: 1,
   world: worldFor('calm'),
@@ -202,13 +217,19 @@ const freshWorld = (model: Model, weather: Weather): Model =>
   modifyFields(model, {
     weather: () => weather,
     world: () =>
-      worldFor(
-        weather,
-        model.fetchPolicy,
-        model.world.memory.storagePath,
-        model.world.thinkingMode,
-        model.world.files.build,
-        model.world.page.mode,
+      useGatewayBuild(
+        useServerSchema(
+          worldFor(
+            weather,
+            model.fetchPolicy,
+            model.world.memory.storagePath,
+            model.world.thinkingMode,
+            model.world.files.build,
+            model.world.page.mode,
+          ),
+          model.world.cli.serverSchema,
+        ),
+        model.world.gateway.build,
       ),
     conversation: () => [],
     serverStarts: () => 1,
@@ -314,7 +335,11 @@ export const update = (current: Model, message: Message) => {
                   ? Option.some('read_file')
                   : station === 'perception'
                     ? Option.some('take_snapshot')
-                    : Option.none(),
+                    : station === 'cli'
+                      ? Option.some('generate_cli')
+                      : station === 'local-remote'
+                        ? Option.some('go_to')
+                        : Option.none(),
         tab: () => 'engine',
       }),
       commands: interruptIfRunning(model),
@@ -392,6 +417,44 @@ export const update = (current: Model, message: Message) => {
       }),
     }),
 
+    SelectedServerSchema: ({ version }) => ({
+      model: modifyFields(model, {
+        world: world => useServerSchema(world, version),
+      }),
+    }),
+
+    SelectedGatewayBuild: ({ build }) => ({
+      model: modifyFields(model, {
+        world: world => useGatewayBuild(world, build),
+        run: () => RunState.Idle(),
+      }),
+      commands: interruptIfRunning(model),
+    }),
+
+    SelectedClient: ({ value }) => ({
+      model: modifyFields(model, { client: () => value }),
+    }),
+
+    SelectedGatewayPlace: ({ value }) => ({
+      model: modifyFields(model, { place: () => value }),
+    }),
+
+    ClickedReconnectClient: () => ({
+      model: modifyFields(model, {
+        world: world => reconnectClient(world, model.client),
+      }),
+    }),
+
+    ClickedVanishClient: () => ({
+      model: modifyFields(model, {
+        world: world => vanishClient(world, model.client),
+      }),
+    }),
+
+    ClickedPassTimeout: () => ({
+      model: modifyFields(model, { world: world => passSessionTimeout(world) }),
+    }),
+
     ClickedRestartClient: () => ({
       model: modifyFields(model, { conversation: () => [] }),
     }),
@@ -452,6 +515,8 @@ export const update = (current: Model, message: Message) => {
                   observation: model.observation,
                   path: model.path,
                   target: model.target,
+                  client: model.client,
+                  place: model.place,
                 }),
               ],
             }),

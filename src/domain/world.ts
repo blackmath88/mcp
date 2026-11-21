@@ -81,6 +81,32 @@ export const Page = Schema.Struct({
 })
 export type Page = typeof Page.Type
 
+export const Cli = Schema.Struct({
+  serverSchema: Schema.Number,
+  artifactSchema: Schema.Number,
+})
+export type Cli = typeof Cli.Type
+
+export const NO_ARTIFACT = 0
+
+export const GatewayBuild = Schema.Literals(['shared', 'per-connection'])
+export type GatewayBuild = typeof GatewayBuild.Type
+
+export const Child = Schema.Struct({
+  id: Schema.Number,
+  owner: Schema.String,
+  place: Schema.String,
+  orphaned: Schema.Boolean,
+})
+export type Child = typeof Child.Type
+
+export const Gateway = Schema.Struct({
+  build: GatewayBuild,
+  children: Schema.Array(Child),
+  nextChildId: Schema.Number,
+})
+export type Gateway = typeof Gateway.Type
+
 export const LAUNCH_DIRECTORIES: ReadonlyArray<string> = ['/valley/forge']
 export const NO_SNAPSHOT = -1
 
@@ -92,6 +118,8 @@ export const World = Schema.Struct({
   thinkingMode: ThinkingMode,
   files: Files,
   page: Page,
+  cli: Cli,
+  gateway: Gateway,
   places: Schema.Array(Place),
   paths: Schema.Array(Path),
   artifacts: Schema.Array(Artifact),
@@ -135,6 +163,12 @@ const seedPath = (from: PlaceId, to: PlaceId): Path => {
   }
 }
 
+const sharedGateway: Gateway = {
+  build: 'shared',
+  children: [{ id: 1, owner: 'shared', place: '', orphaned: false }],
+  nextChildId: 2,
+}
+
 export const seedWorld = (
   maxSpan: number,
   fetchPolicy: FetchPolicy = 'every-hop',
@@ -164,6 +198,8 @@ export const seedWorld = (
     valve: false,
     bell: 0,
   },
+  cli: { serverSchema: 1, artifactSchema: NO_ARTIFACT },
+  gateway: sharedGateway,
   places: seedPlaces,
   paths: [seedPath('forge', 'mill'), seedPath('kiln', 'dock')],
   artifacts: [],
@@ -351,4 +387,53 @@ export const useFsBuild = (world: World, build: FsBuild): World => ({
 export const usePerception = (world: World, mode: Perception): World => ({
   ...world,
   page: { ...world.page, mode },
+})
+
+export const useServerSchema = (world: World, serverSchema: number): World => ({
+  ...world,
+  cli: { ...world.cli, serverSchema },
+})
+
+export const useGatewayBuild = (world: World, build: GatewayBuild): World => ({
+  ...world,
+  gateway:
+    build === 'shared'
+      ? sharedGateway
+      : { build, children: [], nextChildId: 1 },
+})
+
+// NOTE: Models behaviour described in the supergateway README and issues 35
+// and 160 as read on 2026-11-21. The lab's simulation, not upstream code.
+export const reconnectClient = (world: World, client: string): World =>
+  world.gateway.build === 'shared'
+    ? world
+    : {
+        ...world,
+        gateway: {
+          ...world.gateway,
+          children: world.gateway.children.filter(
+            child => child.owner !== client || child.orphaned,
+          ),
+        },
+      }
+
+export const vanishClient = (world: World, client: string): World =>
+  world.gateway.build === 'shared'
+    ? world
+    : {
+        ...world,
+        gateway: {
+          ...world.gateway,
+          children: world.gateway.children.map(child =>
+            child.owner === client ? { ...child, orphaned: true } : child,
+          ),
+        },
+      }
+
+export const passSessionTimeout = (world: World): World => ({
+  ...world,
+  gateway: {
+    ...world.gateway,
+    children: world.gateway.children.filter(child => !child.orphaned),
+  },
 })

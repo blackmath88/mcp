@@ -23,6 +23,12 @@ export const ComponentId = Schema.Literals([
   'browser-tool',
   'accessibility-tree',
   'synthetic-page',
+  'cli-generator',
+  'generated-cli',
+  'live-client',
+  'crate-server',
+  'gateway',
+  'child-process',
 ])
 export type ComponentId = typeof ComponentId.Type
 

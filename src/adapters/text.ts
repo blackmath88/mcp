@@ -34,6 +34,18 @@ export const outcomeLine = (record: RunRecord): string =>
         if (output._tag === 'Clicked') {
           return `OK clicked ${output.target} by ${output.how}`
         }
+        if (output._tag === 'CliGenerated') {
+          return `OK generated from schema v${output.schemaVersion}: ${output.help}`
+        }
+        if (output._tag === 'CratesShipped') {
+          return `OK shipped via ${output.via}, sending ${output.sentFields.join(', ')} (schema v${output.schemaUsed})`
+        }
+        if (output._tag === 'WentTo') {
+          return `OK client ${output.client} → ${output.place}, served by child #${output.childId}`
+        }
+        if (output._tag === 'WhereAmI') {
+          return `OK client ${output.client} is at ${output.place === '' ? 'nowhere yet' : output.place}, says child #${output.childId}`
+        }
         if (output._tag === 'PathBuilt') {
           return `OK ${output.artifact.id}: ${output.artifact.summary}`
         }

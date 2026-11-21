@@ -1,6 +1,13 @@
 import { Effect, Match, Result, Schema } from 'effect'
 
 import {
+  CliGenerated,
+  CratesShipped,
+  callGenerated,
+  callLive,
+  generateCli,
+} from './cli-snapshot.ts'
+import {
   MapRead,
   PathBuilt,
   PlacesConnected,
@@ -18,6 +25,14 @@ import {
 } from './errors.ts'
 import { PageFetched, fetchPage, siteUrls } from './fetch.ts'
 import { FileRead, filePaths, readFile } from './files.ts'
+import {
+  WentTo,
+  WhereAmI,
+  clients,
+  gatewayPlaces,
+  goTo,
+  whereAmI,
+} from './gateway.ts'
 import {
   Recalled,
   Remembered,
@@ -57,6 +72,11 @@ export const CapabilityName = Schema.Literals([
   'read_file',
   'take_snapshot',
   'click',
+  'generate_cli',
+  'call_live',
+  'call_generated',
+  'go_to',
+  'where_am_i',
 ])
 export type CapabilityName = typeof CapabilityName.Type
 
@@ -69,6 +89,8 @@ export type Specimen =
   | 'thinking'
   | 'filesystem'
   | 'perception'
+  | 'cli'
+  | 'local-remote'
 
 export type Capability = Readonly<{
   name: CapabilityName
@@ -85,6 +107,8 @@ export type Capability = Readonly<{
     | 'thoughts'
     | 'path'
     | 'target'
+    | 'client-place'
+    | 'client'
   observe: string
   request: string
   produces: string
@@ -256,6 +280,80 @@ export const catalogue: ReadonlyArray<Capability> = [
     finishes: 'Immediately, or not at all.',
     dependsOn: ['browser-tool', 'accessibility-tree', 'synthetic-page'],
   },
+  {
+    name: 'generate_cli',
+    specimen: 'cli',
+    title: 'CLI generator',
+    affordance: 'operable',
+    description:
+      'Generate a standalone CLI from the server’s current tool schema.',
+    input: 'none',
+    observe: 'The server’s tool list, once.',
+    request: 'Nothing.',
+    produces: 'A CLI artifact with the schema embedded.',
+    changes: 'Replaces the previous artifact.',
+    finishes: 'Immediately.',
+    dependsOn: ['cli-generator', 'crate-server'],
+  },
+  {
+    name: 'call_live',
+    specimen: 'cli',
+    title: 'Live call',
+    affordance: 'operable',
+    description:
+      'Ship crates by listing the server’s tools first, then calling.',
+    input: 'none',
+    observe: 'The current schema, every time.',
+    request: 'Three crates to the dock.',
+    produces: 'A shipment.',
+    changes: 'Crates leave.',
+    finishes: 'After two round trips.',
+    dependsOn: ['live-client', 'crate-server'],
+  },
+  {
+    name: 'call_generated',
+    specimen: 'cli',
+    title: 'Generated CLI',
+    affordance: 'operable',
+    description:
+      'Ship crates through the generated CLI and its embedded schema.',
+    input: 'none',
+    observe: 'Nothing new. It trusts what it embedded.',
+    request: 'Three crates to the dock.',
+    produces: 'A shipment, if the embedded schema still matches.',
+    changes: 'Crates leave.',
+    finishes: 'After one round trip.',
+    dependsOn: ['generated-cli', 'crate-server'],
+  },
+  {
+    name: 'go_to',
+    specimen: 'local-remote',
+    title: 'Go to',
+    affordance: 'operable',
+    description:
+      'Tell the server to move to a place. It remembers one current place.',
+    input: 'client-place',
+    observe: 'Nothing beyond a confirmation.',
+    request: 'Which client is asking, and a place.',
+    produces: 'A confirmation naming the process that served it.',
+    changes: 'The serving process’s single "current place".',
+    finishes: 'Immediately.',
+    dependsOn: ['gateway', 'child-process'],
+  },
+  {
+    name: 'where_am_i',
+    specimen: 'local-remote',
+    title: 'Where am I',
+    affordance: 'queryable',
+    description: 'Ask the server for its current place.',
+    input: 'client',
+    observe: 'The current place held by whichever process serves you.',
+    request: 'Which client is asking.',
+    produces: 'A place, or nothing yet.',
+    changes: 'Nothing, unless a new process has to be spawned for you.',
+    finishes: 'Immediately.',
+    dependsOn: ['gateway', 'child-process'],
+  },
 ]
 
 export const Endpoints = Schema.Struct({ from: PlaceId, to: PlaceId })
@@ -326,22 +424,43 @@ const targetJsonSchema = {
   additionalProperties: false,
 } as const
 
+const clientJsonSchema = {
+  type: 'object',
+  properties: { client: { type: 'string', enum: clients } },
+  required: ['client'],
+  additionalProperties: false,
+} as const
+
+const clientPlaceJsonSchema = {
+  type: 'object',
+  properties: {
+    client: { type: 'string', enum: clients },
+    place: { type: 'string', enum: gatewayPlaces },
+  },
+  required: ['client', 'place'],
+  additionalProperties: false,
+} as const
+
 export const inputJsonSchema = (capability: Capability) =>
-  capability.input === 'path'
-    ? pathJsonSchema
-    : capability.input === 'target'
-      ? targetJsonSchema
-      : capability.input === 'fact'
-        ? factJsonSchema
-        : capability.input === 'entity'
-          ? entityJsonSchema
-          : capability.input === 'thoughts'
-            ? thoughtsJsonSchema
-            : capability.input === 'endpoints'
-              ? endpointsJsonSchema
-              : capability.input === 'url'
-                ? urlJsonSchema
-                : emptyInputJsonSchema
+  capability.input === 'client'
+    ? clientJsonSchema
+    : capability.input === 'client-place'
+      ? clientPlaceJsonSchema
+      : capability.input === 'path'
+        ? pathJsonSchema
+        : capability.input === 'target'
+          ? targetJsonSchema
+          : capability.input === 'fact'
+            ? factJsonSchema
+            : capability.input === 'entity'
+              ? entityJsonSchema
+              : capability.input === 'thoughts'
+                ? thoughtsJsonSchema
+                : capability.input === 'endpoints'
+                  ? endpointsJsonSchema
+                  : capability.input === 'url'
+                    ? urlJsonSchema
+                    : emptyInputJsonSchema
 
 // EXECUTION
 
@@ -357,6 +476,10 @@ export const CapabilityOutput = Schema.Union([
   FileRead,
   SnapshotTaken,
   Clicked,
+  CliGenerated,
+  CratesShipped,
+  WentTo,
+  WhereAmI,
 ])
 export type CapabilityOutput = typeof CapabilityOutput.Type
 
@@ -423,6 +546,22 @@ const decodeField = (field: 'path' | 'target') => (input: unknown) =>
     Effect.mapError(invalid(`expected { ${field} } with a string`)),
   )
 
+const decodeClient = (input: unknown) =>
+  Schema.decodeUnknownEffect(
+    Schema.Struct({ client: Schema.Literals(clients) }),
+  )(input).pipe(
+    Effect.map(decoded => decoded.client),
+    Effect.mapError(invalid('expected { client } as A or B')),
+  )
+
+const decodePlace = (input: unknown) =>
+  Schema.decodeUnknownEffect(
+    Schema.Struct({ place: Schema.Literals(gatewayPlaces) }),
+  )(input).pipe(
+    Effect.map(decoded => decoded.place),
+    Effect.mapError(invalid('expected { place } naming a place')),
+  )
+
 const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
   const trace = yield* Trace
   const step = {
@@ -453,7 +592,23 @@ const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
       capability === 'read_file' ? yield* decodeField('path')(input) : ''
     const target =
       capability === 'click' ? yield* decodeField('target')(input) : ''
-    return { capability, endpoints, url, fact, entity, thoughts, path, target }
+    const client =
+      capability === 'go_to' || capability === 'where_am_i'
+        ? yield* decodeClient(input)
+        : 'A'
+    const place = capability === 'go_to' ? yield* decodePlace(input) : 'forge'
+    return {
+      capability,
+      endpoints,
+      url,
+      fact,
+      entity,
+      thoughts,
+      path,
+      target,
+      client,
+      place,
+    }
   }).pipe(
     Effect.tapError(error =>
       trace.emit({ ...step, kind: 'failed', detail: describeError(error) }),
@@ -471,8 +626,18 @@ export const execute = Effect.fnUntraced(function* (
   name: string,
   input: unknown,
 ): Effect.fn.Return<CapabilityOutput, DomainError, Trace | WorldStore | Pace> {
-  const { capability, endpoints, url, fact, entity, thoughts, path, target } =
-    yield* resolve(name, input)
+  const {
+    capability,
+    endpoints,
+    url,
+    fact,
+    entity,
+    thoughts,
+    path,
+    target,
+    client,
+    place,
+  } = yield* resolve(name, input)
   const { from, to } = endpoints
   return yield* Match.value(capability).pipe(
     Match.when('read_map', () => readMap('catalogue')),
@@ -491,6 +656,11 @@ export const execute = Effect.fnUntraced(function* (
     Match.when('read_file', () => readFile('catalogue', path)),
     Match.when('take_snapshot', () => takeSnapshot('catalogue')),
     Match.when('click', () => click('catalogue', target)),
+    Match.when('generate_cli', () => generateCli('catalogue')),
+    Match.when('call_live', () => callLive('catalogue')),
+    Match.when('call_generated', () => callGenerated('catalogue')),
+    Match.when('go_to', () => goTo('catalogue', client, place)),
+    Match.when('where_am_i', () => whereAmI('catalogue', client)),
     Match.when('plan_steps', () => planSteps('catalogue', from, to, thoughts)),
     Match.exhaustive,
   )

@@ -91,6 +91,8 @@ export const Model = Schema.Struct({
   path: Schema.String,
   target: Schema.String,
   rootChoice: Schema.String,
+  client: Schema.String,
+  place: Schema.String,
   conversation: Schema.Array(Schema.String),
   serverStarts: Schema.Number,
   world: World,
