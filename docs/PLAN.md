@@ -6,7 +6,7 @@ For implementation, read the [current specimen-host milestone](concept/ADDENDUM-
 
 The [Lens ontology and learning ladder](concept/MCP-LENS-ONTOLOGY.md) specify a proposed URL classifier and the distinctions each exhibit adds.
 
-The [three-chapter journey and specimen shelf](concept/LEARNER-JOURNEY.md) define progressive disclosure and an observable learner action for every ontology key.
+The [three-chapter journey and specimen shelf](concept/LEARNER-JOURNEY.md) show recurring aspects at increasing complexity and define progressive disclosure and an observable learner action for every ontology key.
 
 ## Phase 0 — Concept dossier
 

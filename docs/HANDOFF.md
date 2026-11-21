@@ -1,5 +1,9 @@
 # Handoff
 
+## Recurring aspects across phases · 2026-11-21
+
+The original ten-facet ontology remains the background classifier. The [learner journey](concept/LEARNER-JOURNEY.md#recurring-aspects) now carries interface, behaviour, architecture and evidence through each phase of one progressively more complex specimen. This supersedes the category-first presentation below. Design update only.
+
 ## Capability profile summary · 2026-11-21
 
 The ontology and specimen index now group detailed facets under Interface, Behaviour and Architecture. Observability supplies evidence for each classification. This changes the presentation of the proposed classifier and preserves the ten facet keys.

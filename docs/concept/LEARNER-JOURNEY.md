@@ -2,13 +2,17 @@
 
 Proposed learner experience · 21 November 2026. Companion to the [Lens ontology](MCP-LENS-ONTOLOGY.md) and [research dossier](../research/REAL-MCP-SPECIMENS.md). The ontology numbers below index lessons for authors. Learners see three entry points. Each stands on its own; the map and its current revision can travel across them.
 
-## What the learner sees
+## Recurring aspects
 
-| Chapter | One question on arrival | First interaction | Reason to open the next layer |
-| --- | --- | --- | --- |
-| Explore the inventory | What can I do here? | Pick a map and ask for a route. Open the source behind the answer if curious. | Could I actually move that bridge? |
-| Open the workshop | What changes when I use it? | Move the bridge by hand. Ask for the route again and compare it with the first answer. | Which map did the agent see, and how did that edit reach it? |
-| Follow the work | What happened after I asked? | Dispatch revision 3 to a simulated printer. Move the bridge in revision 4 and inspect the returned print. | Why is the old bridge on the page when the screen shows the new one? |
+Follow one map from lookup to shared edit to downstream job. Interface, behaviour and architecture recur in every phase. This matrix is an authoring aid. Onstage, show the artifact, action and consequence; Backstage can unfold the underlying ontology and trace.
+
+| Learner phase | Interface | Behaviour and information | Architecture | Visible evidence |
+| --- | --- | --- | --- | --- |
+| Explore the inventory | Choose one map and request a route. | The caller can read a specific map revision. The query returns a route and leaves the map intact. | One caller reaches one route service backed by a map. | Route and source revision alongside each other. |
+| Open the workshop | Open the interactive map, move a bridge by hand and ask for the route again. | An authorised edit creates a new revision. The next route depends on which revision reached the caller. | Human editor and agent share a map through the host. The edit has a return path to inspect. | Before/after geometry and the revision used for the second answer. |
+| Follow the work | Dispatch the map to a simulated printer, disconnect and reopen the job. | A queued job retains its submitted revision while the live map can change. A later print can faithfully show the old bridge. | The caller, queue, worker and output store have separate lifetimes. Follow one job across them. | Job receipt, submitted revision and labelled simulated output. |
+
+For finer-grained reveals inside a phase, repeat the same pattern. For example, switching from MCP to CLI varies the interface while holding the map operation and engine constant. Introducing a repair loop varies the behaviour while keeping the artifact and entry point familiar. The thirteen reveal keys let authors select these variations.
 
 Keep the simulation visibly labelled, even with the inspector closed. The bridge story is a proposed synthetic thread. Real specimens keep their actual vocabulary, supported operations and evidence.
 

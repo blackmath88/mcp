@@ -32,17 +32,7 @@ Test design: make one change at a time in each interactive exhibit. A classifier
 
 Browse the [specimen index by ontology facet](../research/REAL-MCP-SPECIMENS.md#specimens-by-mcp-lens-ontology) for examples and multi-facet capability profiles.
 
-### Capability categories
-
-| Category | Facet keys | Scope |
-| --- | --- | --- |
-| Interface | surface, affordance, interaction | Entry points, available actions and interaction patterns. |
-| Behaviour | authority, effect, state | Permissions, observable effects and persistent state. |
-| Architecture | composition, intelligence, placement | Components, decision ownership and execution location. |
-
-**Evidence** applies across all three categories. The observability facet records the source and scope of each claim, including uncertainty about a deployment or run.
-
-### Detailed classification keys
+The ten facets and the entity relationships below form the background model for Lens. Interface, behaviour and architecture recur together as authoring perspectives in [every learner phase](LEARNER-JOURNEY.md#recurring-aspects). Preserve evidence at claim level.
 
 Use stable facet keys. Multiple values can coexist where evidence warrants it. A server overview groups capability profiles and preserves exceptions. A gateway exposing a job tool does not make every backend durable.
 

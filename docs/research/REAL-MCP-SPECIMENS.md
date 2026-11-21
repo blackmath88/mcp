@@ -4,15 +4,9 @@ Research snapshot · 21 November 2026. Use this alongside the [specimen-host and
 
 ## Specimens by MCP Lens ontology
 
-Browse by capability category. The ten facets below use the order and keys from the [ontology](../concept/MCP-LENS-ONTOLOGY.md). The same specimen appears under multiple facets when different operations supply different evidence. These are documented examples; a specific deployment, principal or run needs its own evidence. The [learner route](../concept/LEARNER-JOURNEY.md) selects a few of these views for each chapter.
+Browse by the original ten Lens facets. The ten facets below use the order and keys from the [ontology](../concept/MCP-LENS-ONTOLOGY.md). The same specimen appears under multiple facets when different operations supply different evidence. These are documented examples; a specific deployment, principal or run needs its own evidence. The [learner route](../concept/LEARNER-JOURNEY.md) selects a few of these views for each chapter.
 
-| Category | Specimen to compare |
-| --- | --- |
-| **Interface** | Context7 returns a lookup result. tldraw lets the human and agent continue working on a shared canvas. |
-| **Behaviour** | Compare Plotter Studio’s SVG dispatch and camera capture. One requests a physical effect; the other returns information about the paper. |
-| **Architecture** | Cloudflare runs caller-written code. Consilium asks downstream models to deliberate. Each hides a different process behind a tool call. |
-
-Each classification carries evidence. The [capability categories](../concept/MCP-LENS-ONTOLOGY.md#capability-categories) group the detailed facets below.
+For the phase-by-phase use of these specimens, see the [recurring aspects matrix](../concept/LEARNER-JOURNEY.md#recurring-aspects).
 
 | Facet | Values illustrated and specimens to open |
 | --- | --- |
