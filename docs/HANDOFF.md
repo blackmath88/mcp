@@ -4,7 +4,9 @@
 
 The Registry exhibit offers direct REST and an in-process MCP client/server pair that calls the same official REST search. Switching entrances preserves the query. The local MCP adapter’s `search_registry` result carries the upstream receipt. Backstage shows that receipt separately from the host’s MCP frames.
 
-Chromium queried both entrances with `memory`. Both returned HTTP 200 and the same first eight records. The integrated suite passed 211 Vitest tests, five Playwright scenarios on the built preview, and four infrastructure guard tests. Desktop and phone smoke checks showed no horizontal overflow.
+Chromium queried both entrances with `memory`. Both returned HTTP 200 and the same first eight records. The integrated suite passed 211 Vitest tests, six Playwright scenarios on the built preview, four infrastructure guard tests, and all 13 Python contract tests with the pinned Observstory producer. Desktop and phone smoke checks showed no horizontal overflow. The final lifecycle check reloads a live session and verifies that a second tab with copied storage can discover independently.
+
+An independent static follow-up reviewed the Registry comparison at `cd68264`. Session cleanup now stores only IDs from pages that are leaving. Browser regressions cover reload and storage copied from a live tab.
 
 ### Remaining work
 
@@ -14,9 +16,9 @@ Chromium queried both entrances with `memory`. Both returned HTTP 200 and the sa
 
 ## Workbench repair checkpoint · 2026-11-22
 
-A second agent reviewed the committed host at `c634d1d` by reading its diff. The follow-up keeps completed sends distinct from failed writes, reports an accepted version after initialization, retains successful pages when discovery is partial, preserves an active view when replacement fails, and ignores app replies older than the current session evidence. Leaving the page attempts a best-effort release. A fresh discovery in the same tab retires the remembered session. Chromium verified that reload and rediscovery close the old session.
+A second agent reviewed the committed host at `c634d1d` by reading its diff. The follow-up keeps completed sends distinct from failed writes, reports an accepted version after initialization, retains successful pages when discovery is partial, preserves an active view when replacement fails, and ignores app replies older than the current session evidence. Leaving the page attempts a best-effort release. A fresh discovery retries cleanup for the previous page’s exited session. Chromium verified that reload and rediscovery close the old session.
 
-Reviewed the actual Get Time render at 1366, 850 and 390 pixels, including dark mode and keyboard discovery. Corrected inventory icon positioning, made the newest events easier to reach, and kept desktop evidence scrolling inside Backstage. Vitest passed 210 tests. Chromium passed four scenarios against the built preview. TypeScript, lint and the foundation structure checks passed. Python unittest discovery passed 10 checks and skipped three requiring the Observatory checkout.
+Reviewed the actual Get Time render at 1366, 850 and 390 pixels, including dark mode and keyboard discovery. Corrected inventory icon positioning, made the newest events easier to reach, and kept desktop evidence scrolling inside Backstage. Vitest passed 210 tests. Chromium passed four scenarios against the built preview. TypeScript, lint and the foundation structure checks passed. Python unittest discovery initially skipped three producer checks, then passed all 13 with the pinned checkout.
 
 The documented LastMile hosted SSE endpoint returned HTTP 500 to both a direct request and an SDK connection. No tools were discovered from that endpoint. The official Registry REST service remained reachable. [Hosted SSE documentation](https://github.com/lastmile-ai/mcp-registry-search/blob/6fd52db66d08fd7b6bf327339872010894a6a2a5/README.md#mcp-server)
 

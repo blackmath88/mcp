@@ -4,7 +4,8 @@ import { Reply, type Request } from './contract.ts'
 import { apiPath } from './specimens.ts'
 
 const decodeReply = Schema.decodeUnknownSync(Reply)
-const sessionKey = 'mcp-lab:active-session'
+const sessionKey = 'mcp-lab:exited-session'
+const releaseListeners = new Map<string, AbortController>()
 
 async function send(request: Request, signal?: AbortSignal): Promise<Reply> {
   const response = await fetch(apiPath, {
@@ -49,29 +50,48 @@ export async function requestSpecimen(
   if (request._tag === 'Connect') {
     const previous = rememberedSession()
     if (previous) {
-      await send({ _tag: 'Close', sessionId: previous }, signal)
+      const closed = await send({ _tag: 'Close', sessionId: previous }, signal)
+      if (!closed.error) {
+        remember(null)
+      }
     }
     const reply = await send(request, signal)
     if (reply.session?.state === 'ready') {
-      remember(reply.session.id)
+      trackSessionExit(reply.session.id)
     }
     return reply
   }
   const reply = await send(request, signal)
-  if (
-    request._tag === 'Close' &&
-    rememberedSession() === request.sessionId &&
-    !reply.error
-  ) {
-    remember(null)
+  if (request._tag === 'Close' && !reply.error) {
+    untrackSessionExit(request.sessionId)
+    if (rememberedSession() === request.sessionId) {
+      remember(null)
+    }
   }
   return reply
 }
 
-export function releaseOnExit(sessionId: string, navigator: Navigator) {
-  const request: Request = { _tag: 'Close', sessionId }
-  navigator.sendBeacon(
-    apiPath,
-    new Blob([JSON.stringify(request)], { type: 'application/json' }),
+function trackSessionExit(sessionId: string) {
+  const lifetime = new AbortController()
+  releaseListeners.set(sessionId, lifetime)
+  window.addEventListener(
+    'pagehide',
+    event => {
+      if (!event.persisted) {
+        remember(sessionId)
+        const request: Request = { _tag: 'Close', sessionId }
+        window.navigator.sendBeacon(
+          apiPath,
+          new Blob([JSON.stringify(request)], { type: 'application/json' }),
+        )
+        untrackSessionExit(sessionId)
+      }
+    },
+    { capture: true, signal: lifetime.signal },
   )
+}
+
+function untrackSessionExit(sessionId: string) {
+  releaseListeners.get(sessionId)?.abort()
+  releaseListeners.delete(sessionId)
 }

@@ -209,3 +209,32 @@ test('carries the Registry query from REST into the discovered MCP adapter', asy
   await expect(wire.getByText('MCP in-process', { exact: true })).toBeVisible()
   await expect(wire.getByText('tools/list #1', { exact: true })).toBeVisible()
 })
+
+test('discovering in a duplicated tab leaves the source session active', async ({
+  page,
+  context,
+}) => {
+  await page.goto('/live.html')
+  await page.getByRole('button', { name: 'Discover tools' }).click()
+  await expect(
+    page.getByRole('button', { name: 'Open time app' }),
+  ).toBeVisible()
+
+  const inheritedStorage = await page.evaluate(() =>
+    Object.entries(sessionStorage),
+  )
+  const duplicate = await context.newPage()
+  await duplicate.addInitScript(entries => {
+    entries.forEach(([key, value]) => sessionStorage.setItem(key, value))
+  }, inheritedStorage)
+  await duplicate.goto('/live.html')
+  await duplicate.getByRole('button', { name: 'Discover tools' }).click()
+  await expect(
+    duplicate.getByRole('button', { name: 'Open time app' }),
+  ).toBeVisible()
+
+  await page.getByRole('button', { name: 'Open time app' }).click()
+  await expect(
+    page.getByText('Apps bridge initialized', { exact: true }),
+  ).toBeVisible()
+})

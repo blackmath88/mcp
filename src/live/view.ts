@@ -14,7 +14,7 @@ import type {
 } from './contract.ts'
 import { Message } from './message.ts'
 import { AppState, type Model } from './model.ts'
-import { ConnectApp, WatchSessionExit } from './mount.ts'
+import { ConnectApp } from './mount.ts'
 import {
   allowedTools,
   hostName,
@@ -371,10 +371,7 @@ const mcpOnstage = (model: Model, h: H): Html => {
         onNone: () => h.empty,
         onSome: session =>
           h.div(
-            [
-              h.Class('live-content'),
-              h.OnMount(WatchSessionExit({ sessionId: session.id })),
-            ],
+            [h.Class('live-content')],
             [
               session.state === 'stopped'
                 ? h.p(

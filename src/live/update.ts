@@ -260,7 +260,6 @@ export const update = (model: Model, message: Message): UpdateReturn =>
       }
     },
     CompletedCloseSession: () => ({ model }),
-    WatchingSessionExit: () => ({ model }),
     ObservedAppEvent: ({ sessionId, run, event }) => ({
       model: currentApp(model, sessionId, run)
         ? modifyFields(model, {

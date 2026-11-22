@@ -23,7 +23,10 @@ export function createRegistryMcpServer(
     },
     async ({ query }) => {
       const reply = await search(query)
-      const receipt = { upstream: reply.events, page: reply.registry }
+      const receipt = {
+        upstream: reply.events,
+        ...(reply.registry === undefined ? {} : { page: reply.registry }),
+      }
       return {
         isError: reply.error !== undefined,
         content: [
