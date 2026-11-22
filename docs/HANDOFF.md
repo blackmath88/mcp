@@ -1,5 +1,13 @@
 # Handoff
 
+## Shared Lab workbench · 2026-11-22
+
+The live specimens now use the same Foldkit shell, toolbench layout, pixel sprites, evidence rail and Backstage drawer as the existing Lab benches. The earlier live page styling was removed. The existing Memory bench supplied the rendered reference. The Atlas still links to the live workbench.
+
+Chromium compared desktop, tablet and phone layouts against the original Lab. The browser regression compares the shell grid and exercises the live Apps refresh and stop, the Backstage tabs, Echo and the synthetic boundary, Registry mode switching and failure, and session lifecycle.
+
+Development Practice v0.1 draft at `8a416833d269475653861964984cb8cfb6aa37c1` informed the bounded UI change and verification. Read the baseline, decision ledger and prototype profile.
+
 ## Registry comparison and integrated verification · 2026-11-22
 
 The Registry exhibit offers direct REST and an in-process MCP client/server pair that calls the same official REST search. Switching entrances preserves the query. The local MCP adapter’s `search_registry` result carries the upstream receipt. Backstage shows that receipt separately from the host’s MCP frames.

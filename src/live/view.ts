@@ -5,6 +5,14 @@ import {
   interfaceProfile,
   interfaceUnknowns,
 } from '../domain/interface-profile.ts'
+import { iconView } from '../lab/icons.ts'
+import {
+  backstageLayout,
+  benchShell,
+  benchStep,
+  brandContents,
+  toolbenchLayout,
+} from '../lab/layout.ts'
 import type {
   Evidence,
   Invocation,
@@ -13,9 +21,10 @@ import type {
   Tool,
 } from './contract.ts'
 import { Message } from './message.ts'
-import { AppState, type Model } from './model.ts'
+import { AppState, type BackstageTab, type Model } from './model.ts'
 import { ConnectApp } from './mount.ts'
 import {
+  type SpecimenId,
   allowedTools,
   hostName,
   hostVersion,
@@ -26,289 +35,440 @@ import {
 
 type H = HtmlBuilder<Message>
 
+const selectedTool = (model: Model): Option.Option<Tool> =>
+  Option.flatMap(model.session, session =>
+    Option.fromNullishOr(session.tools.find(tool => tool.name === model.tool)),
+  )
+
+const instrumentIcon = (tool: Tool, h: H): Html =>
+  iconView(
+    tool.uiUri
+      ? 'get_current_view'
+      : tool.name === 'echo'
+        ? 'call_live'
+        : tool.name === 'request_bridge_edit'
+          ? 'write_entry'
+          : 'list_inventory',
+    h,
+  )
+
+const identity = (model: Model, h: H): Html =>
+  h.header(
+    [h.Class('titlebar')],
+    [
+      h.p(
+        [h.Class('location'), h.AriaLabel('Current location')],
+        [
+          h.a([h.Class('crumb'), h.Href('/')], ['← Atlas']),
+          ' / ',
+          h.b([], [specimens[model.specimen].title]),
+        ],
+      ),
+      h.span([h.Class('simtag')], [specimens[model.specimen].mode]),
+    ],
+  )
+
+const navigation = (model: Model, h: H): Html => {
+  const current = isRegistry(model.specimen) ? 'registry' : model.specimen
+  return h.nav(
+    [h.Class('sidebar'), h.AriaLabel('Specimens')],
+    [
+      h.div(
+        [h.Class('journey-groups')],
+        [
+          h.a(
+            [
+              h.Class('brand'),
+              h.Href('/'),
+              h.AriaLabel('MCP Lab, back to the atlas'),
+            ],
+            brandContents(h),
+          ),
+          h.section(
+            [h.Class('side-section')],
+            [
+              h.h2([h.Class('side-title')], ['Live specimens · any order']),
+              h.ol(
+                [h.Class('journey')],
+                shelf.map(id => {
+                  const active = id === current
+                  const specimen = active ? model.specimen : id
+                  const count = active
+                    ? Option.map(model.session, session => session.tools.length)
+                    : Option.none()
+                  return h.keyed('li')(
+                    id,
+                    [],
+                    [
+                      h.button(
+                        [
+                          h.Type('button'),
+                          h.Class('rung'),
+                          h.AriaCurrent(active ? 'page' : 'false'),
+                          h.AriaLabel(
+                            `${specimens[id].title} ${specimens[specimen].mode}`,
+                          ),
+                          h.Disabled(model.operation._tag !== 'Idle'),
+                          h.OnClick(Message.SelectedSpecimen({ specimen })),
+                        ],
+                        [
+                          h.span([
+                            h.Class(active ? 'dot seen' : 'dot'),
+                            h.AriaHidden(true),
+                          ]),
+                          h.span([h.Class('t')], [specimens[id].title]),
+                          h.span(
+                            [h.Class('n')],
+                            [
+                              Option.match(count, {
+                                onNone: () =>
+                                  id === 'registry' ? 'REST / MCP' : '—',
+                                onSome: value =>
+                                  `${value} ${value === 1 ? 'tool' : 'tools'}`,
+                              }),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                }),
+              ),
+            ],
+          ),
+          h.a(
+            [h.Class('side-note crumb'), h.Href('/lab/concept.html')],
+            ['Simulated prototype'],
+          ),
+        ],
+      ),
+    ],
+  )
+}
+
+const runStatus = (model: Model, h: H): Html => {
+  if (model.operation._tag !== 'Idle') {
+    return h.span(
+      [h.Class('pill busy'), h.Role('status')],
+      [`${model.operation._tag}…`],
+    )
+  }
+  if (
+    Option.isSome(model.error) ||
+    Option.exists(model.invocation, result => result.isError)
+  ) {
+    return h.span([h.Class('pill warn')], ['Failed'])
+  }
+  if (Option.isSome(model.invocation) || Option.isSome(model.registry)) {
+    return h.span([h.Class('pill ok')], ['Done'])
+  }
+  return h.span([h.Class('pill')], ['Idle'])
+}
+
+const questions: Record<SpecimenId, string> = {
+  time: 'What happens when a tool opens its own view?',
+  everything: 'What does this server actually hand you?',
+  boundary: 'Who can change the bridge note?',
+  registry: 'What does the registry know about a server?',
+  'registry-mcp': 'What does the registry know about a server?',
+}
+
+const specimenHeader = (model: Model, h: H): Html => {
+  const specimen = specimens[model.specimen]
+  return h.div(
+    [h.Class('specimen')],
+    [
+      h.div(
+        [h.Class('prompt')],
+        [
+          h.div(
+            [],
+            [
+              h.p(
+                [h.Class('kicker')],
+                [`${specimen.title} · ${specimen.version}`],
+              ),
+              h.h2([h.Class('question')], [questions[model.specimen]]),
+            ],
+          ),
+        ],
+      ),
+      h.details(
+        [h.Class('fold')],
+        [
+          h.summary([], ['Where it bends, and the experiment']),
+          h.p([], [specimen.description]),
+        ],
+      ),
+      specimen.source
+        ? h.details(
+            [h.Class('fold')],
+            [
+              h.summary([], ['Sources (1)']),
+              h.p(
+                [h.Class('sources')],
+                [
+                  h.a(
+                    [
+                      h.Href(specimen.source),
+                      h.Target('_blank'),
+                      h.Rel('noreferrer'),
+                    ],
+                    [specimen.version],
+                  ),
+                ],
+              ),
+            ],
+          )
+        : h.empty,
+    ],
+  )
+}
+
 const button = (
   label: string,
   message: Message,
   disabled: boolean,
+  classes: string,
   h: H,
 ): Html =>
   h.button(
     [
       h.Type('button'),
-      h.Class('live-button'),
+      h.Class(classes),
       h.Disabled(disabled),
       h.OnClick(message),
     ],
     [label],
   )
 
-const title = (label: string, h: H): Html =>
-  h.h2([h.Class('live-heading')], [label])
-
-const selectedTool = (model: Model): Option.Option<Tool> =>
-  Option.flatMap(model.session, session =>
-    Option.fromNullishOr(session.tools.find(tool => tool.name === model.tool)),
+const sessionControls = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('benchtools')],
+    [
+      isRegistry(model.specimen) ? registryEntrances(model, h) : h.empty,
+      model.specimen === 'registry'
+        ? h.empty
+        : h.div(
+            [h.Class('bend')],
+            [
+              button(
+                model.operation._tag === 'Discovering'
+                  ? 'Discovering…'
+                  : Option.isSome(model.session)
+                    ? 'Discover again'
+                    : 'Discover tools',
+                Message.ClickedDiscover(),
+                model.operation._tag !== 'Idle',
+                'btn ghost small',
+                h,
+              ),
+              Option.match(model.session, {
+                onNone: () => h.empty,
+                onSome: session =>
+                  button(
+                    model.operation._tag === 'Stopping'
+                      ? 'Stopping…'
+                      : 'Stop specimen',
+                    Message.ClickedStop(),
+                    model.operation._tag !== 'Idle' ||
+                      session.state !== 'ready',
+                    'btn ghost small',
+                    h,
+                  ),
+              }),
+            ],
+          ),
+    ],
   )
 
-const inventory = (model: Model, h: H): Html => {
-  const busy = model.operation._tag !== 'Idle'
-  const current = isRegistry(model.specimen) ? 'registry' : model.specimen
-  return h.aside(
-    [h.Class('live-inventory'), h.AriaLabel('Inventory')],
+const signature = (tool: Tool): string => {
+  const schema: unknown = JSON.parse(tool.inputSchemaJson)
+  const properties =
+    typeof schema === 'object' && schema !== null && 'properties' in schema
+      ? schema.properties
+      : undefined
+  const keys =
+    typeof properties === 'object' && properties !== null
+      ? Object.keys(properties)
+      : []
+  return `${tool.name}(${keys.join(', ')})`
+}
+
+const instrument = (model: Model, tool: Tool, index: number, h: H): Html =>
+  h.keyed('button')(
+    tool.name,
     [
-      title('Inventory', h),
-      h.nav(
-        [h.AriaLabel('Live specimens')],
+      h.Type('button'),
+      h.Class(
+        Option.exists(model.invocation, result => result.tool === tool.name)
+          ? 'tb-tool active'
+          : 'tb-tool',
+      ),
+      h.AriaPressed(String(model.tool === tool.name)),
+      h.AriaLabel(tool.uiUri ? `${tool.name} App` : tool.name),
+      h.OnClick(Message.SelectedTool({ tool: tool.name })),
+    ],
+    [
+      h.span([h.Class('tb-key'), h.AriaHidden(true)], [String(index + 1)]),
+      instrumentIcon(tool, h),
+      h.span([h.Class('tb-sig')], [signature(tool)]),
+      h.span(
+        [h.Class(tool.readOnlyHint === true ? 'tb-hint ro' : 'tb-hint')],
+        [`readOnlyHint ${tool.readOnlyHint ?? '—'}`],
+      ),
+      tool.uiUri
+        ? h.span([h.Class('tb-workshop')], ['contains a workshop'])
+        : h.empty,
+    ],
+  )
+
+const instruments = (model: Model, h: H): Html =>
+  Option.match(model.session, {
+    onNone: () =>
+      h.div(
+        [h.Class('tb-instruments')],
         [
-          h.ul(
-            [h.Class('live-shelf')],
-            shelf.map(id =>
-              h.keyed('li')(
-                id,
-                [],
-                [
-                  h.button(
-                    [
-                      h.Type('button'),
-                      h.Class('shelf-slot'),
-                      h.AriaCurrent(id === current ? 'page' : 'false'),
-                      h.Disabled(busy),
-                      h.OnClick(
-                        Message.SelectedSpecimen({
-                          specimen: id === current ? model.specimen : id,
-                        }),
-                      ),
-                    ],
-                    [
-                      h.span(
-                        [h.Class('shelf-slot-icon'), h.AriaHidden(true)],
-                        [
-                          id === 'time'
-                            ? '◷'
-                            : id === 'everything'
-                              ? '≋'
-                              : id === 'boundary'
-                                ? '◇'
-                                : '▤',
-                        ],
-                      ),
-                      h.span(
-                        [],
-                        [
-                          h.strong([], [specimens[id].title]),
-                          h.small(
-                            [],
-                            [
-                              id === current
-                                ? specimens[model.specimen].mode
-                                : specimens[id].mode,
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+          benchStep(
+            '1',
+            'Handed to you',
+            'from the server’s tools/list answer',
+            h,
+          ),
+          h.p(
+            [h.Class('quiet')],
+            ['Discover tools to open this server’s inventory.'],
           ),
         ],
       ),
-      Option.match(model.session, {
-        onNone: () => h.empty,
-        onSome: session => toolShelf(model, session, h),
-      }),
+    onSome: session =>
+      h.div(
+        [h.Class('tb-instruments')],
+        [
+          benchStep(
+            '1',
+            `Handed to you by ${session.server}`,
+            session.partial
+              ? 'from its partial tools/list answer'
+              : 'from its tools/list answer just now',
+            h,
+          ),
+          session.tools.length === 0
+            ? h.p([h.Class('quiet')], ['No tools have been observed.'])
+            : h.div(
+                [h.Class('tb-tools')],
+                session.tools.map((tool, index) =>
+                  instrument(model, tool, index, h),
+                ),
+              ),
+        ],
+      ),
+  })
+
+const toolDrawer = (model: Model, session: Session, tool: Tool, h: H): Html => {
+  const allowed = allowedTools[model.specimen].includes(tool.name)
+  const label =
+    model.operation._tag === 'Calling'
+      ? 'Calling…'
+      : session.state === 'stopped'
+        ? 'Retry tool'
+        : model.specimen === 'time'
+          ? 'Open time app'
+          : 'Run tool'
+  return h.div(
+    [h.Class('tb-drawer')],
+    [
+      h.div(
+        [h.Class('tb-drawer-head')],
+        [
+          h.span([h.Class('bigicon')], [instrumentIcon(tool, h)]),
+          h.div(
+            [],
+            [
+              h.h3([], [tool.title ?? tool.name]),
+              tool.description
+                ? h.p([h.Class('tb-plain')], [tool.description])
+                : h.empty,
+            ],
+          ),
+          allowed && model.specimen !== 'registry-mcp'
+            ? button(
+                label,
+                Message.ClickedCall(),
+                model.operation._tag !== 'Idle' || session.state === 'failed',
+                'btn',
+                h,
+              )
+            : h.empty,
+        ],
+      ),
+      !allowed
+        ? h.p(
+            [h.Class('tb-quiet')],
+            ['This tool is available for metadata inspection in the lab.'],
+          )
+        : h.empty,
+      h.details(
+        [h.Class('fold tb-nerd')],
+        [
+          h.summary([], ['Under the hood: input schema and tool metadata']),
+          h.pre([h.Class('page')], [tool.inputSchemaJson]),
+          button(
+            'Open Lens',
+            Message.SelectedBackstageTab({ tab: 'lens' }),
+            false,
+            'btn ghost small',
+            h,
+          ),
+        ],
+      ),
     ],
   )
 }
 
-const toolShelf = (model: Model, session: Session, h: H): Html =>
-  h.section(
-    [h.Class('tool-shelf')],
+const rolePicker = (model: Model, h: H): Html =>
+  h.fieldset(
+    [h.Class('ctl live-roles')],
     [
-      h.h3([], [session.partial ? 'Partial tool listing' : 'Discovered tools']),
-      session.tools.length === 0
-        ? h.p([], ['No tools have been observed.'])
-        : h.empty,
-      h.ul(
-        [],
-        session.tools.map(tool =>
-          h.keyed('li')(
-            tool.name,
-            [],
-            [
-              h.button(
-                [
-                  h.Type('button'),
-                  h.AriaPressed(String(model.tool === tool.name)),
-                  h.OnClick(Message.SelectedTool({ tool: tool.name })),
-                ],
-                [
-                  tool.name,
-                  tool.uiUri
-                    ? h.span([h.Class('tool-mark')], ['App'])
-                    : h.empty,
-                ],
-              ),
-            ],
-          ),
+      h.legend([h.Class('eyebrow')], ['Synthetic role']),
+      ...(['viewer', 'editor'] as const).map(role =>
+        h.keyed('label')(
+          role,
+          [],
+          [
+            h.input([
+              h.Type('radio'),
+              h.Name('synthetic-role'),
+              h.Checked(model.role === role),
+              h.OnChange(() => Message.UpdatedRole({ role })),
+            ]),
+            role === 'viewer' ? 'Viewer' : 'Editor',
+          ],
         ),
       ),
     ],
   )
 
-const invocationView = (invocation: Invocation, h: H): Html => {
-  const result: unknown = JSON.parse(invocation.resultJson)
-  const text =
-    typeof result === 'object' &&
-    result &&
-    'content' in result &&
-    Array.isArray(result.content)
-      ? result.content
-          .flatMap((item: unknown) =>
-            typeof item === 'object' &&
-            item &&
-            'text' in item &&
-            typeof item.text === 'string'
-              ? [item.text]
-              : [],
-          )
-          .join('\n')
-      : ''
-  return h.div(
-    [
-      h.Class(invocation.isError ? 'live-error' : 'result-block'),
-      h.Role('status'),
-    ],
-    [
-      h.strong(
-        [],
-        [
-          invocation.isError
-            ? 'Specimen reported an error'
-            : 'Last observed result',
-        ],
-      ),
-      h.p(
-        [],
-        [
-          text ||
-            'The server returned structured content. Inspect the result in Backstage.',
-        ],
-      ),
-      h.small(
-        [],
-        [
-          `${invocation.tool} · ${invocation.from === 'app' ? 'App requested' : 'Learner requested'}`,
-        ],
-      ),
-    ],
-  )
-}
-
-const callControls = (
-  model: Model,
-  session: Session,
-  tool: Tool,
-  h: H,
-): Html => {
-  const busy = model.operation._tag !== 'Idle'
-  const allowed = allowedTools[model.specimen].includes(tool.name)
-  const canRun = allowed && session.state !== 'failed'
-  return h.div(
-    [h.Class('live-tool')],
-    [
-      h.h3([], [tool.title ?? tool.name]),
-      tool.description ? h.p([], [tool.description]) : h.empty,
-      model.specimen === 'registry-mcp' && allowed
-        ? registryForm(
-            model,
-            'Search via MCP',
-            Message.ClickedCall(),
-            !canRun,
-            h,
-          )
-        : allowed
-          ? h.div(
-              [h.Class('tool-controls')],
-              [
-                model.specimen === 'everything'
-                  ? h.label(
-                      [],
-                      [
-                        'Message',
-                        h.input([
-                          h.Type('text'),
-                          h.Maxlength(240),
-                          h.Value(model.echoMessage),
-                          h.OnInput(value => Message.UpdatedEcho({ value })),
-                        ]),
-                      ],
-                    )
-                  : h.empty,
-                model.specimen === 'boundary'
-                  ? h.fieldset(
-                      [h.Class('role-picker')],
-                      [
-                        h.legend([], ['Synthetic role']),
-                        ...(['viewer', 'editor'] as const).map(role =>
-                          h.keyed('label')(
-                            role,
-                            [],
-                            [
-                              h.input([
-                                h.Type('radio'),
-                                h.Name('synthetic-role'),
-                                h.Checked(model.role === role),
-                                h.OnChange(() => Message.UpdatedRole({ role })),
-                              ]),
-                              role === 'viewer' ? 'Viewer' : 'Editor',
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  : h.empty,
-                h.div(
-                  [h.Class('live-actions')],
-                  [
-                    button(
-                      model.operation._tag === 'Calling'
-                        ? 'Calling…'
-                        : session.state === 'stopped'
-                          ? 'Retry tool'
-                          : model.specimen === 'time'
-                            ? 'Open time app'
-                            : 'Run tool',
-                      Message.ClickedCall(),
-                      busy || !canRun,
-                      h,
-                    ),
-                  ],
-                ),
-              ],
-            )
-          : h.p(
-              [h.Class('live-muted')],
-              ['This tool is available for metadata inspection in the lab.'],
-            ),
-    ],
-  )
-}
-
 const appView = (model: Model, session: Session, h: H): Html =>
   Option.match(model.app, {
-    onNone: () => h.empty,
+    onNone: () =>
+      h.p(
+        [h.Class('tb-quiet')],
+        ['Open the time app to load the upstream view here.'],
+      ),
     onSome: resource =>
       h.section(
-        [h.Class('app-view'), h.AriaLabel('Upstream app')],
+        [h.Class('card'), h.AriaLabel('Upstream app')],
         [
           h.div(
-            [h.Class('app-label')],
-            [h.strong([], ['Upstream view']), h.code([], [resource.uri])],
+            [h.Class('cardhead')],
+            [
+              h.h3([], ['Upstream view']),
+              h.code([h.Class('meta mono')], [resource.uri]),
+            ],
           ),
           h.p(
-            [h.Role('status'), h.Class('live-muted')],
+            [h.Role('status'), h.Class('tb-quiet')],
             [
               AppState.match(model.appState, {
                 Starting: () => 'Starting the Apps bridge…',
@@ -321,7 +481,7 @@ const appView = (model: Model, session: Session, h: H): Html =>
             [],
             [resource].map(app =>
               h.keyed('div')(`${session.id}:${app.run}`, [
-                h.Class('app-mount'),
+                h.Class('live-app-mount'),
                 h.OnMount(ConnectApp({ resource: app, sessionId: session.id })),
               ]),
             ),
@@ -330,97 +490,253 @@ const appView = (model: Model, session: Session, h: H): Html =>
       ),
   })
 
-const mcpOnstage = (model: Model, h: H): Html => {
-  const busy = model.operation._tag !== 'Idle'
+const material = (model: Model, h: H): ReadonlyArray<Html> => {
+  if (model.specimen === 'registry') {
+    return [
+      registryForm(
+        model,
+        'Search registry',
+        Message.SubmittedSearch(),
+        false,
+        h,
+      ),
+      registryResults(model, h),
+    ]
+  }
+  return Option.match(model.session, {
+    onNone: () => [
+      h.p(
+        [h.Class('tb-quiet')],
+        ['The work area opens when the specimen has been discovered.'],
+      ),
+    ],
+    onSome: session => [
+      session.state === 'stopped'
+        ? h.p(
+            [h.Role('status'), h.Class('pill busy')],
+            ['Specimen stopped. Retry the tool to inspect the failure.'],
+          )
+        : h.empty,
+      Option.match(selectedTool(model), {
+        onNone: () => h.empty,
+        onSome: tool =>
+          !allowedTools[model.specimen].includes(tool.name)
+            ? h.empty
+            : model.specimen === 'everything'
+              ? h.label(
+                  [h.Class('field')],
+                  [
+                    'Message',
+                    h.input([
+                      h.Type('text'),
+                      h.Maxlength(240),
+                      h.Value(model.echoMessage),
+                      h.OnInput(value => Message.UpdatedEcho({ value })),
+                    ]),
+                  ],
+                )
+              : model.specimen === 'boundary'
+                ? rolePicker(model, h)
+                : model.specimen === 'registry-mcp'
+                  ? registryForm(
+                      model,
+                      session.state === 'stopped'
+                        ? 'Retry tool'
+                        : 'Search via MCP',
+                      Message.ClickedCall(),
+                      session.state === 'failed',
+                      h,
+                    )
+                  : h.empty,
+      }),
+      model.specimen === 'time' ? appView(model, session, h) : h.empty,
+      model.specimen === 'registry-mcp' ? registryResults(model, h) : h.empty,
+    ],
+  })
+}
+
+const resultPayload = (invocation: Invocation): unknown =>
+  JSON.parse(invocation.resultJson)
+
+const invocationView = (invocation: Invocation, h: H): Html => {
+  const result = resultPayload(invocation)
+  const text =
+    typeof result === 'object' &&
+    result !== null &&
+    'content' in result &&
+    Array.isArray(result.content)
+      ? result.content
+          .flatMap((item: unknown) =>
+            typeof item === 'object' &&
+            item !== null &&
+            'text' in item &&
+            typeof item.text === 'string'
+              ? [item.text]
+              : [],
+          )
+          .join('\n')
+      : ''
   return h.div(
-    [h.Class('live-content')],
     [
-      h.div(
-        [h.Class('live-actions')],
+      h.Class(invocation.isError ? 'result warn' : 'result ok'),
+      h.Role('status'),
+    ],
+    [
+      h.p([], [text || 'The server returned structured content.']),
+      h.small(
+        [h.Class('tb-note')],
         [
-          button(
-            model.operation._tag === 'Discovering'
-              ? 'Discovering…'
-              : Option.isSome(model.session)
-                ? 'Discover again'
-                : 'Discover tools',
-            Message.ClickedDiscover(),
-            busy,
-            h,
-          ),
-          Option.match(model.session, {
-            onNone: () => h.empty,
-            onSome: session =>
-              h.button(
-                [
-                  h.Type('button'),
-                  h.Class('live-button secondary'),
-                  h.Disabled(busy || session.state !== 'ready'),
-                  h.OnClick(Message.ClickedStop()),
-                ],
-                [
-                  model.operation._tag === 'Stopping'
-                    ? 'Stopping…'
-                    : 'Stop specimen',
-                ],
-              ),
-          }),
+          `${invocation.tool} · ${invocation.from === 'app' ? 'App requested' : 'Learner requested'}`,
         ],
       ),
-      Option.match(model.session, {
-        onNone: () => h.empty,
-        onSome: session =>
-          h.div(
-            [h.Class('live-content')],
-            [
-              session.state === 'stopped'
-                ? h.p(
-                    [h.Role('status'), h.Class('stopped')],
-                    [
-                      'Specimen stopped. Retry the tool to inspect the failure.',
-                    ],
-                  )
-                : h.empty,
-              Option.match(selectedTool(model), {
-                onNone: () => h.empty,
-                onSome: tool => callControls(model, session, tool, h),
-              }),
-              appView(model, session, h),
-            ],
-          ),
-      }),
-      Option.match(model.invocation, {
-        onNone: () => h.empty,
-        onSome: invocation =>
-          model.specimen === 'registry-mcp' && !invocation.isError
-            ? h.empty
-            : invocationView(invocation, h),
-      }),
     ],
   )
 }
 
+const resultTray = (model: Model, h: H): ReadonlyArray<Html> => [
+  benchStep('3', 'Comes back', 'the result of the last call', h),
+  Option.match(model.error, {
+    onNone: () => h.empty,
+    onSome: error =>
+      h.div([h.Class('result warn'), h.Role('alert')], [h.p([], [error])]),
+  }),
+  Option.match(model.invocation, {
+    onNone: () =>
+      Option.isSome(model.error) || Option.isSome(model.registry)
+        ? h.empty
+        : h.p(
+            [h.Class('result idle')],
+            ['Nothing run yet. The result appears here.'],
+          ),
+    onSome: invocation => invocationView(invocation, h),
+  }),
+  Option.match(model.registry, {
+    onNone: () => h.empty,
+    onSome: page =>
+      Option.isSome(model.invocation)
+        ? h.empty
+        : h.p(
+            [h.Class('result ok')],
+            [`${page.entries.length} published records returned.`],
+          ),
+  }),
+  model.specimen === 'boundary'
+    ? benchStep('4', 'Stays changed', 'after the call is over', h)
+    : h.empty,
+  model.specimen === 'boundary'
+    ? Option.match(model.invocation, {
+        onNone: () =>
+          h.p([h.Class('tb-quiet')], ['Nothing has run on this bench yet.']),
+        onSome: invocation => boundaryRevision(invocation, h),
+      })
+    : h.empty,
+]
+
+const boundaryRevision = (invocation: Invocation, h: H): Html => {
+  const result = resultPayload(invocation)
+  const receipt =
+    typeof result === 'object' &&
+    result !== null &&
+    'structuredContent' in result
+      ? result.structuredContent
+      : undefined
+  if (
+    typeof receipt !== 'object' ||
+    receipt === null ||
+    !('before' in receipt) ||
+    !('after' in receipt) ||
+    typeof receipt.before !== 'number' ||
+    typeof receipt.after !== 'number'
+  ) {
+    return h.empty
+  }
+  return h.p(
+    [h.Class(receipt.before === receipt.after ? 'tb-quiet' : 'tb-stamp')],
+    [
+      receipt.before === receipt.after
+        ? `The bridge note stayed at revision ${receipt.after}.`
+        : `Bridge note · revision ${receipt.before} → ${receipt.after}`,
+    ],
+  )
+}
+
+const workbench = (model: Model, h: H): Html =>
+  h.main(
+    [h.Class('workbench'), h.AriaLabel('Workbench')],
+    [
+      h.div(
+        [h.Class('panehead')],
+        [
+          h.span([h.Class('eyebrow')], ['Onstage · what you see']),
+          runStatus(model, h),
+        ],
+      ),
+      specimenHeader(model, h),
+      sessionControls(model, h),
+      toolbenchLayout(
+        {
+          host: h.div(
+            [h.Class('tb-host')],
+            [
+              h.span([], [h.b([], ['Host ']), `${hostName} ${hostVersion}`]),
+              h.span(
+                [h.Class('tb-note')],
+                [
+                  model.specimen === 'registry'
+                    ? 'Official Registry REST'
+                    : 'You choose what runs',
+                ],
+              ),
+            ],
+          ),
+          instruments:
+            model.specimen === 'registry' ? h.empty : instruments(model, h),
+          drawer: Option.match(
+            Option.flatMap(model.session, session =>
+              Option.map(selectedTool(model), tool => ({ session, tool })),
+            ),
+            {
+              onNone: () => h.empty,
+              onSome: ({ session, tool }) =>
+                toolDrawer(model, session, tool, h),
+            },
+          ),
+          materialClass: Option.isSome(model.invocation)
+            ? 'tb-material touched'
+            : 'tb-material',
+          material: [
+            benchStep(
+              '2',
+              'What they work on',
+              'the specimen’s inputs and view',
+              h,
+            ),
+            ...material(model, h),
+          ],
+          tray: resultTray(model, h),
+        },
+        h,
+      ),
+    ],
+  )
+
 const registryRecord = (entry: RegistryEntry, h: H): Html =>
   h.keyed('li')(
     `${entry.name}:${entry.version}`,
-    [],
+    [h.Class('card')],
     [
       h.h3([], [entry.name]),
-      h.code([h.Class('live-muted')], [entry.version]),
-      h.p([], [entry.description]),
+      h.code([h.Class('tb-note mono')], [entry.version]),
+      h.p([h.Class('desc')], [entry.description]),
       ...entry.packages.map(identifier =>
         h.keyed('p')(
           identifier,
-          [h.Class('registry-route')],
-          [h.strong([], ['Package']), h.code([], [identifier])],
+          [h.Class('sources')],
+          [`Package · ${identifier}`],
         ),
       ),
       ...entry.remotes.map(url =>
-        h.keyed('p')(
-          url,
-          [h.Class('registry-route')],
-          [h.strong([], ['Remote endpoint']), h.code([], [url])],
-        ),
+        h.keyed('p')(url, [h.Class('sources')], [`Remote endpoint · ${url}`]),
       ),
     ],
   )
@@ -433,10 +749,10 @@ const registryForm = (
   h: H,
 ): Html =>
   h.form(
-    [h.Class('registry-form'), h.OnSubmit(action)],
+    [h.Class('ctl'), h.OnSubmit(action)],
     [
       h.label(
-        [],
+        [h.Class('field')],
         [
           'Registry query',
           h.input([
@@ -452,7 +768,7 @@ const registryForm = (
       h.button(
         [
           h.Type('submit'),
-          h.Class('live-button'),
+          h.Class('btn'),
           h.Disabled(disabled || model.operation._tag !== 'Idle'),
         ],
         [model.operation._tag === 'Idle' ? label : 'Searching…'],
@@ -465,10 +781,10 @@ const registryResults = (model: Model, h: H): Html =>
     onNone: () => h.empty,
     onSome: ({ entries, partial }) =>
       h.div(
-        [h.Class('registry-results live-content')],
+        [h.Class('tabpane')],
         [
           h.p(
-            [h.Role('status')],
+            [h.Role('status'), h.Class('mode')],
             [
               entries.length === 0
                 ? 'The registry returned no matching records.'
@@ -476,7 +792,7 @@ const registryResults = (model: Model, h: H): Html =>
             ],
           ),
           h.ul(
-            [h.Class('registry-records')],
+            [h.Class('tabpane')],
             entries.map(entry => registryRecord(entry, h)),
           ),
         ],
@@ -485,312 +801,379 @@ const registryResults = (model: Model, h: H): Html =>
 
 const registryEntrances = (model: Model, h: H): Html =>
   h.div(
+    [h.Class('bend')],
     [
-      h.Class('registry-entrance'),
-      h.Role('group'),
-      h.AriaLabel('Registry entrance'),
-    ],
-    [
-      h.button(
+      h.span([h.Class('bendlabel')], ['Entrance']),
+      h.div(
+        [h.Class('seg'), h.Role('group'), h.AriaLabel('Registry entrance')],
         [
-          h.Type('button'),
-          h.AriaPressed(String(model.specimen === 'registry')),
-          h.Disabled(model.operation._tag !== 'Idle'),
-          h.OnClick(Message.SelectedSpecimen({ specimen: 'registry' })),
+          h.button(
+            [
+              h.Type('button'),
+              h.AriaPressed(String(model.specimen === 'registry')),
+              h.Disabled(model.operation._tag !== 'Idle'),
+              h.OnClick(Message.SelectedSpecimen({ specimen: 'registry' })),
+            ],
+            ['Direct REST'],
+          ),
+          h.button(
+            [
+              h.Type('button'),
+              h.AriaPressed(String(model.specimen === 'registry-mcp')),
+              h.Disabled(model.operation._tag !== 'Idle'),
+              h.OnClick(Message.SelectedSpecimen({ specimen: 'registry-mcp' })),
+            ],
+            ['Local MCP adapter'],
+          ),
         ],
-        ['Direct REST'],
-      ),
-      h.button(
-        [
-          h.Type('button'),
-          h.AriaPressed(String(model.specimen === 'registry-mcp')),
-          h.Disabled(model.operation._tag !== 'Idle'),
-          h.OnClick(Message.SelectedSpecimen({ specimen: 'registry-mcp' })),
-        ],
-        ['Local MCP adapter'],
       ),
     ],
   )
 
-const registryOnstage = (model: Model, h: H): Html =>
+const kindOf = (event: Evidence): string => {
+  if (event.direction === 'in') {
+    return 'res'
+  }
+  if (event.direction === 'out') {
+    return 'req'
+  }
+  return event.label.toLowerCase().includes('failed') ? 'failed' : 'host'
+}
+
+const arrowOf = (event: Evidence): string =>
+  event.direction === 'out' ? '→' : event.direction === 'in' ? '←' : '·'
+
+const recentFrames = (model: Model, h: H): Html =>
   h.div(
-    [h.Class('live-content')],
+    [h.Class('card ran')],
     [
-      registryEntrances(model, h),
-      model.specimen === 'registry'
-        ? registryForm(
-            model,
-            'Search registry',
-            Message.SubmittedSearch(),
-            false,
-            h,
-          )
-        : mcpOnstage(model, h),
-      registryResults(model, h),
-    ],
-  )
-
-const onstage = (model: Model, h: H): Html =>
-  h.section(
-    [h.Class('live-onstage'), h.AriaLabel('Onstage')],
-    [
-      title('Onstage', h),
-      h.h3([h.Class('specimen-title')], [specimens[model.specimen].title]),
-      h.p([h.Class('live-muted')], [specimens[model.specimen].description]),
-      isRegistry(model.specimen)
-        ? registryOnstage(model, h)
-        : mcpOnstage(model, h),
-      Option.match(model.error, {
-        onNone: () => h.empty,
-        onSome: error => h.p([h.Role('alert'), h.Class('live-error')], [error]),
-      }),
-    ],
-  )
-
-const evidenceView = (
-  events: ReadonlyArray<Evidence>,
-  scope: string,
-  h: H,
-): Html =>
-  h.ol(
-    [h.Class('wire-events')],
-    [...events]
-      .reverse()
-      .map(event =>
-        h.keyed('li')(
-          `${scope}:${event.seq}`,
-          [],
-          [
-            h.details(
-              [],
-              [
-                h.summary(
-                  [h.Class(`event-${event.direction}`)],
+      h.div(
+        [h.Class('cardhead')],
+        [
+          h.h3([], ['On the wire']),
+          h.span(
+            [h.Class('meta')],
+            [`${model.events.length} events in this run`],
+          ),
+        ],
+      ),
+      model.events.length === 0
+        ? h.p([h.Class('side-note')], ['Nothing has crossed yet.'])
+        : h.ol(
+            [h.Class('wire')],
+            model.events
+              .slice(-6)
+              .reverse()
+              .map(event =>
+                h.keyed('li')(
+                  String(event.seq),
+                  [h.DataAttribute('kind', kindOf(event))],
                   [
                     h.span(
-                      [],
-                      [
-                        event.direction === 'out'
-                          ? '→'
-                          : event.direction === 'in'
-                            ? '←'
-                            : '·',
-                      ],
+                      [h.Class('arrow'), h.AriaHidden(true)],
+                      [arrowOf(event)],
                     ),
-                    h.code([], [event.label]),
+                    h.span([h.Class('lab')], [event.label]),
                   ],
                 ),
-                h.time([h.Datetime(event.at)], [event.at]),
-                h.pre([], [event.detail]),
-              ],
-            ),
-          ],
-        ),
-      ),
-  )
-
-const profileView = (tool: Tool, h: H): Html =>
-  h.details(
-    [h.Class('live-detail')],
-    [
-      h.summary([], ['MCP Lens · advertised interface']),
-      h.ul(
-        [h.Class('lens-claims')],
-        interfaceProfile(tool).map(claim =>
-          h.keyed('li')(
-            claim.rule,
-            [],
-            [h.p([], [claim.statement]), h.code([], [claim.evidence])],
+              ),
           ),
-        ),
-      ),
-      h.h3([], ['Unknown from this listing']),
-      h.ul(
-        [h.Class('lens-claims')],
-        interfaceUnknowns.map(unknown => h.keyed('li')(unknown, [], [unknown])),
-      ),
-      h.details(
-        [],
-        [h.summary([], ['Input schema']), h.pre([], [tool.inputSchemaJson])],
+      button(
+        'Open the frames',
+        Message.SelectedBackstageTab({ tab: 'frames' }),
+        false,
+        'btn ghost small',
+        h,
       ),
     ],
   )
 
-const backstage = (model: Model, h: H): Html => {
-  const specimen = specimens[model.specimen]
-  const scope = Option.match(model.session, {
-    onNone: () => `registry:${model.epoch}`,
-    onSome: session => session.id,
-  })
-  const appScope = Option.match(model.app, {
-    onNone: () => 'no-app',
-    onSome: app => `${scope}:app:${app.run}`,
-  })
-  const appDropped = (model.appEvents[0]?.seq ?? 1) - 1
-  return h.section(
-    [h.Class('live-backstage'), h.AriaLabel('Backstage')],
+const fact = (label: string, value: string, h: H): Html =>
+  h.div([], [h.dt([], [label]), h.dd([], [value])])
+
+const inspector = (model: Model, h: H): Html =>
+  h.aside(
+    [h.Class('inspector'), h.AriaLabel('Evidence')],
     [
-      title('Backstage', h),
-      model.appEvents.length || model.registryEvents.length
-        ? h.nav(
-            [h.Class('wire-jump'), h.AriaLabel('Evidence channels')],
-            [
-              h.a([h.Href('#specimen-evidence')], ['Specimen']),
-              model.appEvents.length
-                ? h.a([h.Href('#apps-evidence')], ['Apps bridge'])
-                : h.empty,
-              model.registryEvents.length
-                ? h.a([h.Href('#registry-receipt')], ['Registry receipt'])
-                : h.empty,
-            ],
-          )
-        : h.empty,
-      h.dl(
-        [h.Class('provenance')],
+      recentFrames(model, h),
+      h.details(
+        [h.Class('fold')],
         [
-          h.dt([], ['Host']),
-          h.dd([], [`${hostName} ${hostVersion}`]),
-          h.dt([], ['Mode']),
-          h.dd([], [specimen.mode]),
-          h.dt([], ['Source']),
-          h.dd(
-            [],
+          h.summary([], ['What is real on this page']),
+          h.dl(
+            [h.Class('facts')],
             [
-              specimen.source
-                ? h.a(
-                    [
-                      h.Href(specimen.source),
-                      h.Target('_blank'),
-                      h.Rel('noreferrer'),
-                    ],
-                    [specimen.version],
-                  )
-                : specimen.version,
+              fact('Host', `${hostName} ${hostVersion}`, h),
+              fact('Mode', specimens[model.specimen].mode, h),
+              fact('Source', specimens[model.specimen].version, h),
+              ...Option.match(model.session, {
+                onNone: () => [],
+                onSome: session => [
+                  fact(
+                    'Observed server',
+                    `${session.server} · ${session.version}`,
+                    h,
+                  ),
+                  fact('Transport', session.transport, h),
+                  fact('Protocol', session.protocol, h),
+                ],
+              }),
             ],
           ),
-          ...Option.match(model.session, {
-            onNone: () => [],
-            onSome: session => [
-              h.dt([], ['Observed server']),
-              h.dd([], [`${session.server} · ${session.version}`]),
-              h.dt([], ['Transport']),
-              h.dd([], [session.transport]),
-              h.dt([], ['Protocol']),
-              h.dd([], [session.protocol]),
-            ],
-          }),
         ],
       ),
-      Option.match(selectedTool(model), {
-        onNone: () => h.empty,
-        onSome: tool => profileView(tool, h),
-      }),
-      Option.match(model.invocation, {
-        onNone: () => h.empty,
-        onSome: invocation =>
-          h.details(
-            [h.Class('live-detail')],
+    ],
+  )
+
+const traceView = (
+  events: ReadonlyArray<Evidence>,
+  scope: string,
+  peers: readonly [string, string],
+  h: H,
+): Html =>
+  events.length === 0
+    ? h.p(
+        [h.Class('quiet')],
+        ['No events yet. Use the bench to see what crosses.'],
+      )
+    : h.ol(
+        [h.Class('log')],
+        events.map(event =>
+          h.keyed('li')(
+            `${scope}:${event.seq}`,
+            [h.DataAttribute('kind', kindOf(event))],
             [
-              h.summary([], [`Last result · ${invocation.tool}`]),
-              h.h3([], ['Arguments']),
-              h.pre([], [invocation.argumentsJson]),
-              h.h3([], ['Result']),
-              h.pre([], [invocation.resultJson]),
-            ],
-          ),
-      }),
-      model.events.length
-        ? h.div(
-            [h.Class('wire-channel'), h.Id('specimen-evidence')],
-            [
-              h.h3(
-                [],
+              h.span([h.Class('n')], [String(event.seq)]),
+              h.span(
+                [h.Class('hop')],
                 [
-                  model.specimen === 'registry'
-                    ? 'Host ↔ Registry'
-                    : 'Host ↔ Specimen',
+                  event.direction === 'local'
+                    ? 'Host'
+                    : event.direction === 'out'
+                      ? peers.join(' → ')
+                      : [peers[1], peers[0]].join(' → '),
                 ],
               ),
-              h.p(
-                [h.Class('wire-order')],
-                ['Latest first · → sent · ← received'],
+              h.details(
+                [h.Class('lab')],
+                [
+                  h.summary([], [event.label]),
+                  h.time([h.Class('hop'), h.Datetime(event.at)], [event.at]),
+                  h.pre([], [event.detail]),
+                ],
               ),
-              model.dropped
-                ? h.p([], [`${model.dropped} older events omitted.`])
-                : h.empty,
-              evidenceView(model.events, scope, h),
             ],
-          )
-        : h.p(
-            [h.Class('wire-empty')],
-            ['Protocol and host events appear here as you use the bench.'],
           ),
-      model.registryEvents.length
-        ? h.div(
-            [h.Class('wire-channel'), h.Id('registry-receipt')],
-            [
-              h.h3([], ['Adapter’s REST receipt']),
-              evidenceView(
-                model.registryEvents,
-                `${scope}:rest:${model.epoch}`,
-                h,
-              ),
-            ],
+        ),
+      )
+
+const mode = (label: string, detail: string, h: H): Html =>
+  h.p([h.Class('mode')], [h.b([], [label]), ` · ${detail}`])
+
+const frameTab = (model: Model, h: H): Html => {
+  const direct = model.specimen === 'registry'
+  const scope = Option.match(model.session, {
+    onNone: () => `request:${model.epoch}`,
+    onSome: session => session.id,
+  })
+  return h.div(
+    [h.Class('tabpane')],
+    [
+      mode(
+        direct ? 'Official Registry REST' : 'Actual MCP connection',
+        Option.match(model.session, {
+          onNone: () => (direct ? 'host ↔ Registry' : 'host ↔ specimen'),
+          onSome: session =>
+            `${session.transport} · ${session.server} · MCP ${session.protocol}`,
+        }),
+        h,
+      ),
+      model.dropped > 0
+        ? h.p(
+            [h.Class('quietline')],
+            [`${model.dropped} older events omitted.`],
           )
         : h.empty,
-      model.appEvents.length
-        ? h.div(
-            [h.Class('wire-channel'), h.Id('apps-evidence')],
-            [
-              h.h3([], ['App ↔ Host']),
-              appDropped > 0
-                ? h.p([], [`${appDropped} older events omitted.`])
-                : h.empty,
-              evidenceView(model.appEvents, appScope, h),
-            ],
-          )
-        : h.empty,
+      traceView(
+        model.events,
+        scope,
+        ['host', direct ? 'Registry' : 'specimen'],
+        h,
+      ),
     ],
   )
 }
 
-export const view = (model: Model, h: H): Document => ({
-  title: 'Live workbench · MCP Lab',
-  body: h.div(
-    [h.Class('live-page')],
+const lensTab = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('tabpane')],
     [
-      h.header(
-        [h.Class('titlebar live-nav')],
-        [
-          h.a(
-            [h.Href('/'), h.Class('live-brand')],
-            [h.span([h.Class('brandmark'), h.AriaHidden(true)]), 'MCP Lab'],
+      mode('MCP Lens', 'advertised interface', h),
+      Option.match(selectedTool(model), {
+        onNone: () =>
+          h.p(
+            [h.Class('quiet')],
+            ['Select a discovered tool to inspect its claims.'],
           ),
-          h.nav(
-            [h.AriaLabel('Lab views')],
+        onSome: tool =>
+          h.div(
+            [h.Class('card')],
             [
-              h.a([h.Href('/')], ['Atlas']),
-              h.a([h.Href('/lab/concept.html')], ['Simulated prototype']),
+              h.h3([], [tool.name]),
+              h.ul(
+                [h.Class('text-list')],
+                interfaceProfile(tool).map(claim =>
+                  h.keyed('li')(
+                    claim.rule,
+                    [h.Class('desc')],
+                    [
+                      claim.statement,
+                      ' ',
+                      h.code([h.Class('mono')], [claim.evidence]),
+                    ],
+                  ),
+                ),
+              ),
+              h.h3([], ['Unknown from this listing']),
+              h.ul(
+                [h.Class('text-list')],
+                interfaceUnknowns.map(unknown =>
+                  h.keyed('li')(unknown, [h.Class('desc')], [unknown]),
+                ),
+              ),
+              h.details(
+                [h.Class('fold')],
+                [
+                  h.summary([], ['Input schema']),
+                  h.pre([h.Class('page')], [tool.inputSchemaJson]),
+                ],
+              ),
             ],
           ),
-        ],
+      }),
+    ],
+  )
+
+const lastResultTab = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('tabpane')],
+    [
+      Option.match(model.invocation, {
+        onNone: () =>
+          h.p([h.Class('quiet')], ['No tool result has been observed.']),
+        onSome: invocation =>
+          h.div(
+            [h.Class('card')],
+            [
+              h.h3([], [invocation.tool]),
+              h.h4([], ['Arguments']),
+              h.pre([h.Class('page')], [invocation.argumentsJson]),
+              h.h4([], ['Result']),
+              h.pre([h.Class('page')], [invocation.resultJson]),
+            ],
+          ),
+      }),
+    ],
+  )
+
+const traceTab = (model: Model, tab: 'app' | 'registry', h: H): Html =>
+  h.div(
+    [h.Class('tabpane')],
+    [
+      h.h3([], [tab === 'app' ? 'App ↔ Host' : 'Adapter’s REST receipt']),
+      mode(
+        tab === 'app' ? 'MCP Apps bridge' : 'Official Registry REST',
+        tab === 'app'
+          ? 'messages between the embedded app and the host'
+          : 'reported by the local MCP adapter',
+        h,
       ),
-      h.main(
-        [h.Class('live-main')],
+      tab === 'app' && (model.appEvents[0]?.seq ?? 1) > 1
+        ? h.p(
+            [h.Class('quietline')],
+            [`${(model.appEvents[0]?.seq ?? 1) - 1} older events omitted.`],
+          )
+        : h.empty,
+      tab === 'app'
+        ? traceView(model.appEvents, 'app', ['host', 'app'], h)
+        : traceView(
+            model.registryEvents,
+            `receipt:${model.epoch}`,
+            ['adapter', 'Registry'],
+            h,
+          ),
+    ],
+  )
+
+const backstage = (model: Model, h: H): Html => {
+  const tabs: ReadonlyArray<readonly [BackstageTab, string]> = [
+    ['frames', model.specimen === 'registry' ? 'REST requests' : 'MCP frames'],
+    ['lens', 'Lens'],
+    ['result', 'Last result'],
+    ...(model.specimen === 'time' ? ([['app', 'App messages']] as const) : []),
+    ...(model.specimen === 'registry-mcp'
+      ? ([['registry', 'REST receipt']] as const)
+      : []),
+  ]
+  return backstageLayout(
+    model.backstage,
+    Message.ClickedToggleBackstage(),
+    tabs.map(([tab, label]) =>
+      h.keyed('button')(
+        tab,
         [
-          h.div(
-            [h.Class('live-intro')],
-            [
-              h.h1([], ['Live workbench']),
-              h.p([], ['Open a specimen and follow what crossed the wire.']),
-            ],
-          ),
-          h.div(
-            [h.Class('live-bench')],
-            [inventory(model, h), onstage(model, h), backstage(model, h)],
-          ),
+          h.Type('button'),
+          h.AriaPressed(String(model.tab === tab)),
+          h.OnClick(Message.SelectedBackstageTab({ tab })),
+        ],
+        [label],
+      ),
+    ),
+    model.backstage === 'collapsed'
+      ? h.empty
+      : model.tab === 'frames'
+        ? frameTab(model, h)
+        : model.tab === 'lens'
+          ? lensTab(model, h)
+          : model.tab === 'result'
+            ? lastResultTab(model, h)
+            : traceTab(model, model.tab, h),
+    h,
+  )
+}
+
+const statusbar = (model: Model, h: H): Html =>
+  h.footer(
+    [h.Class('statusbar')],
+    [
+      h.span([], [specimens[model.specimen].mode]),
+      h.span(
+        [],
+        [
+          Option.match(model.session, {
+            onNone: () =>
+              model.specimen === 'registry'
+                ? 'Official Registry · REST'
+                : 'Discover tools to connect',
+            onSome: session => `${session.transport} · ${session.state}`,
+          }),
         ],
       ),
     ],
+  )
+
+export const view = (model: Model, h: H): Document => ({
+  title: 'Live workbench · MCP Lab',
+  body: benchShell(
+    model.backstage,
+    {
+      titlebar: identity(model, h),
+      sidebar: navigation(model, h),
+      workbench: workbench(model, h),
+      inspector: inspector(model, h),
+      panel: backstage(model, h),
+      statusbar: statusbar(model, h),
+    },
+    h,
   ),
 })

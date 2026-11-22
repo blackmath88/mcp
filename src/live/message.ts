@@ -2,12 +2,14 @@ import { Schema } from 'effect'
 import { defineMessageUnion } from 'foldkit/message'
 
 import { Evidence, Reply } from './contract.ts'
-import { Role } from './model.ts'
+import { BackstageTab, Role } from './model.ts'
 import { SpecimenId } from './specimens.ts'
 
 export const Message = defineMessageUnion({
   SelectedSpecimen: { specimen: SpecimenId },
   SelectedTool: { tool: Schema.String },
+  SelectedBackstageTab: { tab: BackstageTab },
+  ClickedToggleBackstage: {},
   UpdatedEcho: { value: Schema.String },
   UpdatedRole: { role: Role },
   UpdatedQuery: { value: Schema.String },

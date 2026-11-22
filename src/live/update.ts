@@ -57,6 +57,8 @@ const freshModel = (specimen: SpecimenId, epoch: number): Model => ({
   specimen,
   epoch,
   operation: Operation.Idle(),
+  backstage: 'collapsed',
+  tab: 'frames',
   session: Option.none(),
   tool: '',
   echoMessage: 'A note from the workbench',
@@ -151,6 +153,14 @@ export const update = (model: Model, message: Message): UpdateReturn =>
     SelectedTool: ({ tool }) => ({
       model: modifyFields(model, { tool: () => tool }),
     }),
+    SelectedBackstageTab: ({ tab }) => ({
+      model: modifyFields(model, { tab: () => tab, backstage: () => 'open' }),
+    }),
+    ClickedToggleBackstage: () => ({
+      model: modifyFields(model, {
+        backstage: current => (current === 'open' ? 'collapsed' : 'open'),
+      }),
+    }),
     UpdatedEcho: ({ value }) => ({
       model: modifyFields(model, { echoMessage: () => value }),
     }),
@@ -165,6 +175,8 @@ export const update = (model: Model, message: Message): UpdateReturn =>
         return { model }
       }
       const cleared = modifyFields(freshModel(model.specimen, model.epoch), {
+        backstage: () => model.backstage,
+        tab: () => model.tab,
         echoMessage: () => model.echoMessage,
         role: () => model.role,
         query: () => model.query,

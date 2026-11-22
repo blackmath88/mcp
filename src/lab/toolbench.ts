@@ -16,6 +16,7 @@ import { approvalRules, claimsReadOnly } from './approval.ts'
 import { evidenceView } from './atlas.ts'
 import { beltOf, calledToolOf, findCapability } from './belt.ts'
 import { iconView } from './icons.ts'
+import { benchStep, toolbenchLayout } from './layout.ts'
 import { Message } from './message.ts'
 import { type Model, RunState, type Station } from './model.ts'
 import { serverNames } from './names.ts'
@@ -120,16 +121,6 @@ const rawFor = (
 
 // PARTS
 
-const stepLabel = (n: string, title: string, note: string, h: H): Html =>
-  h.div(
-    [h.Class('tb-label')],
-    [
-      h.span([h.Class('tb-n'), h.AriaHidden(true)], [n]),
-      h.b([], [title]),
-      h.span([h.Class('tb-note')], [note]),
-    ],
-  )
-
 const hostView = (model: Model, h: H): Html =>
   h.div(
     [h.Class('tb-host')],
@@ -211,7 +202,7 @@ const instrumentsView = (model: Model, h: H): Html => {
   return h.div(
     [h.Class('tb-instruments')],
     [
-      stepLabel(
+      benchStep(
         '1',
         `Handed to you by the ${serverNames[model.station]}`,
         belt.source === 'server'
@@ -461,50 +452,36 @@ export type BenchParts = Readonly<{
 }>
 
 export const toolbenchView = (model: Model, parts: BenchParts, h: H): Html =>
-  h.section(
-    [h.Class('toolbench'), h.AriaLabel('Toolbench')],
-    [
-      hostView(model, h),
-      instrumentsView(model, h),
-      drawerView(model, h),
-      h.div(
-        [h.Class('tb-main')],
-        [
-          h.div(
-            [
-              h.Class(
-                `tb-material ${Option.isSome(activeName(model)) ? 'touched' : ''} ${isRunning(model) ? 'working' : ''}`,
-              ),
-            ],
-            [
-              stepLabel(
-                '2',
-                'What they work on',
-                Option.match(activeName(model), {
-                  onNone: () =>
-                    'drawn from the lab’s own source; a tool list alone would not show this',
-                  onSome: name =>
-                    isRunning(model)
-                      ? `${name} is working on this now`
-                      : `${name} worked on this · drawn from the lab’s own source`,
-                }),
-                h,
-              ),
-              ...parts.material,
-            ],
-          ),
-          h.aside(
-            [h.Class('tb-tray'), h.AriaLabel('What comes back')],
-            [
-              stepLabel('3', 'Comes back', 'the result of the last call', h),
-              pendingView(model, h),
-              parts.result,
-              parts.happened,
-              stepLabel('4', 'Stays changed', 'after the call is over', h),
-              parts.stays,
-            ],
-          ),
-        ],
-      ),
-    ],
+  toolbenchLayout(
+    {
+      host: hostView(model, h),
+      instruments: instrumentsView(model, h),
+      drawer: drawerView(model, h),
+      materialClass: `tb-material ${Option.isSome(activeName(model)) ? 'touched' : ''} ${isRunning(model) ? 'working' : ''}`,
+      material: [
+        benchStep(
+          '2',
+          'What they work on',
+          Option.match(activeName(model), {
+            onNone: () =>
+              'drawn from the lab’s own source; a tool list alone would not show this',
+            onSome: name =>
+              isRunning(model)
+                ? `${name} is working on this now`
+                : `${name} worked on this · drawn from the lab’s own source`,
+          }),
+          h,
+        ),
+        ...parts.material,
+      ],
+      tray: [
+        benchStep('3', 'Comes back', 'the result of the last call', h),
+        pendingView(model, h),
+        parts.result,
+        parts.happened,
+        benchStep('4', 'Stays changed', 'after the call is over', h),
+        parts.stays,
+      ],
+    },
+    h,
   )

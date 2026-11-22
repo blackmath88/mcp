@@ -10,6 +10,15 @@ import {
 } from './contract.ts'
 import { SpecimenId } from './specimens.ts'
 
+export const BackstageTab = Schema.Literals([
+  'frames',
+  'lens',
+  'result',
+  'app',
+  'registry',
+])
+export type BackstageTab = typeof BackstageTab.Type
+
 export const Role = Schema.Literals(['viewer', 'editor'])
 
 export const Operation = defineTaggedUnion({
@@ -29,6 +38,8 @@ export const Model = Schema.Struct({
   specimen: SpecimenId,
   epoch: Schema.Number,
   operation: Operation,
+  backstage: Schema.Literals(['open', 'collapsed']),
+  tab: BackstageTab,
   session: Schema.Option(Session),
   tool: Schema.String,
   echoMessage: Schema.String,

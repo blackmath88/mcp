@@ -23,6 +23,7 @@ import { calledToolOf, findCapability } from './belt.ts'
 import { benchView, bendView } from './benches.ts'
 import { flowOf } from './flow.ts'
 import { iconView } from './icons.ts'
+import { backstageLayout, benchShell, brandContents } from './layout.ts'
 import { lensTabView } from './lens-view.ts'
 import { Message } from './message.ts'
 import {
@@ -501,19 +502,20 @@ export const view = (model: Model, h: H): Document => ({
             statusbarView(model, h),
           ],
         )
-      : h.div(
-          [h.Class(`ide backstage-${model.backstage}`)],
-          [
-            titlebarView(model, h),
-            h.nav(
+      : benchShell(
+          model.backstage,
+          {
+            titlebar: titlebarView(model, h),
+            sidebar: h.nav(
               [h.Class('sidebar'), h.AriaLabel('Specimens')],
               [journeyView(model, h)],
             ),
-            workbenchView(model, h),
-            inspectorView(model, h),
-            backstageView(model, h),
-            statusbarView(model, h),
-          ],
+            workbench: workbenchView(model, h),
+            inspector: inspectorView(model, h),
+            panel: backstageView(model, h),
+            statusbar: statusbarView(model, h),
+          },
+          h,
         ),
 })
 
@@ -525,10 +527,7 @@ const brandView = (h: H): Html =>
       h.AriaLabel('MCP Lab, back to the atlas'),
       h.OnClick(Message.ClickedHome()),
     ],
-    [
-      h.span([h.Class('brandmark'), h.AriaHidden(true)], []),
-      h.span([h.Class('brandname')], ['MCP Lab']),
-    ],
+    brandContents(h),
   )
 
 const titlebarView = (model: Model, h: H): Html =>
@@ -1376,53 +1375,35 @@ const tabs: ReadonlyArray<Readonly<{ id: BackstageTab; label: string }>> = [
 ]
 
 const backstageView = (model: Model, h: H): Html =>
-  h.section(
-    [h.Class('panel'), h.AriaLabel('Backstage')],
-    [
-      h.div(
-        [h.Class('panehead')],
+  backstageLayout(
+    model.backstage,
+    Message.ClickedToggleBackstage(),
+    Array.map(tabs, tab =>
+      h.button(
         [
-          h.span([h.Class('eyebrow')], ['Backstage · what actually happened']),
-          h.button(
-            [
-              h.Type('button'),
-              h.Class('toggle'),
-              h.AriaExpanded(model.backstage === 'open'),
-              h.OnClick(Message.ClickedToggleBackstage()),
-            ],
-            [model.backstage === 'open' ? 'Collapse' : 'Expand'],
-          ),
+          h.Type('button'),
+          h.AriaPressed(model.tab === tab.id ? 'true' : 'false'),
+          h.OnClick(Message.SelectedTab({ tab: tab.id })),
         ],
+        [tab.label],
       ),
-      h.div(
-        [h.Class('tabs'), h.Role('group'), h.AriaLabel('Evidence')],
-        Array.map(tabs, tab =>
-          h.button(
-            [
-              h.Type('button'),
-              h.AriaPressed(model.tab === tab.id ? 'true' : 'false'),
-              h.OnClick(Message.SelectedTab({ tab: tab.id })),
-            ],
-            [tab.label],
-          ),
-        ),
-      ),
-      model.backstage === 'collapsed'
-        ? h.empty
-        : model.tab === 'console'
-          ? consoleTabView(model, h)
-          : model.tab === 'lens'
-            ? lensTabView(model, h)
-            : model.tab === 'frames'
-              ? framesTabView(model, h)
-              : model.tab === 'engine'
-                ? engineTabView(model, h)
-                : model.tab === 'app'
-                  ? appTabView(model, h)
-                  : model.tab === 'recording'
-                    ? recordingTabView(model, h)
-                    : networkView(model, h),
-    ],
+    ),
+    model.backstage === 'collapsed'
+      ? h.empty
+      : model.tab === 'console'
+        ? consoleTabView(model, h)
+        : model.tab === 'lens'
+          ? lensTabView(model, h)
+          : model.tab === 'frames'
+            ? framesTabView(model, h)
+            : model.tab === 'engine'
+              ? engineTabView(model, h)
+              : model.tab === 'app'
+                ? appTabView(model, h)
+                : model.tab === 'recording'
+                  ? recordingTabView(model, h)
+                  : networkView(model, h),
+    h,
   )
 
 const modeView = (mode: string, detail: string, h: H): Html =>
