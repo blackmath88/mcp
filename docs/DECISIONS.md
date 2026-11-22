@@ -177,6 +177,10 @@ Owner liked prototype C (a room), asked that MCP be the entrance rather than the
 - Each bench lists "Where the picture simplifies" when the drawing bends the truth.
 - Review of every specimen: `docs/research/2026-11-22-workshop-map-use-cases.md`.
 
+## D22 — Line icons replace the pixel art
+
+Status: owner direction, 2026-11-22. Implemented. The pixel sprites (from the "anime colours" rounds) are removed. One line-icon family, ink on a soft tint, the tint naming the tool's place in the workshop. Black becomes the violet ink of the old pixel outline.
+
 ## Still undecided
 
 Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.

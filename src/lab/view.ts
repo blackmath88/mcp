@@ -868,44 +868,24 @@ const benchToolsView = (model: Model, h: H): Html =>
     ],
   )
 
-const valleyHeadView = (model: Model, h: H): Html => {
-  const index = chapters.findIndex(chapter => chapter.id === model.chapter)
-  const maybeNext = Option.fromNullishOr(chapters[index + 1])
-  return pipe(
-    Option.fromNullishOr(chapters[index]),
-    Option.match({
-      onNone: () => h.empty,
-      onSome: chapter =>
-        h.div(
-          [h.Class('prompt')],
-          [
-            h.div(
-              [],
-              [
-                h.p(
-                  [h.Class('kicker')],
-                  [`The valley · optional walk-through · ${chapter.name}`],
-                ),
-                h.h2([h.Class('question')], [chapter.prompt]),
-              ],
-            ),
-            Option.match(maybeNext, {
-              onNone: () => h.empty,
-              onSome: next =>
-                h.button(
-                  [
-                    h.Type('button'),
-                    h.Class('btn ghost'),
-                    h.OnClick(Message.ClickedChapter({ chapter: next.id })),
-                  ],
-                  [`Walk-through: ${next.name}`],
-                ),
-            }),
-          ],
-        ),
-    }),
+// The route server is the lab's own; it has no upstream anchor in route.json.
+const valleyHeadView = (h: H): Html =>
+  h.div(
+    [h.Class('prompt')],
+    [
+      h.div(
+        [],
+        [
+          h.p([h.Class('kicker')], ['Find or build a route · the lab’s own']),
+          h.h2(
+            [h.Class('question')],
+            ['Does this tool answer a question, or change something?'],
+          ),
+        ],
+      ),
+      h.span([h.Class('pill')], ['Simulated here']),
+    ],
   )
-}
 
 const workbenchView = (model: Model, h: H): Html =>
   h.main(
@@ -923,7 +903,7 @@ const workbenchView = (model: Model, h: H): Html =>
         ],
       ),
       Option.match(findSpecimen(model.station), {
-        onNone: () => valleyHeadView(model, h),
+        onNone: () => valleyHeadView(h),
         onSome: specimen =>
           specimenView(specimen, stationTitle(model.station), h),
       }),

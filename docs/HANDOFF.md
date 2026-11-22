@@ -1,5 +1,16 @@
 # Handoff
 
+## Pixel art removed; one line-icon family in ink and place colours — 2026-11-22
+
+Owner: the pixel art breaks the workshop canvas; remove it all over, use SVG icons, soften the black, keep some of the pixel colour feel. Chose "ink on a soft tint" with violet ink, and asked for smoother icons.
+
+- `src/lab/icons.ts` is now the icon family: line icons on a 24 grid (one stroke weight, round ends), one per tool (34), slot (9) and neighbour (7). `iconView(name, h)` keeps its signature, so every place that showed a sprite now shows the line icon.
+- Colour by place in the workshop, softened from the pixel palette: shelf sky, workbench lemon, phone violet, loading dock orange, desk blush (`.place-*` classes, `--shelf`, `--shelf-t`, …). Colour says where, never success or permission.
+- `--ink` (#2b2350, the pixel art's outline colour) replaces black for every dark block: buttons, story card, AI app, the tools/list board. Dark mode: light ink, story card on a deep violet ground.
+- Deleted: `src/lab/sprites.ts`, `scripts/draw-sprites.mjs`, the `.px-*` paints and shading. Older entries below that mention sprites are history.
+- Also: the route server's header no longer shows the old valley walk-through prompt.
+- Checks: 219 tests, lint, typecheck, build; screenshots of the route bench and the inventory in light and dark.
+
 ## The workshop canvas is the centerpiece of every specimen — 2026-11-22
 
 - `src/lab/mcpmap.ts` now draws the workshop: you and the AI app outside, MCP as the front desk with the tools/list board, the server's room with nine slots, neighbours outside. A call is desk → slot → neighbour; the last tool's line animates.

@@ -27,7 +27,17 @@
   --sans:
     Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
-  --px-ink: #1f1f23;
+  --ink: #2b2350;
+  --shelf: #0b7fa8;
+  --shelf-t: #e3f6fd;
+  --bench: #9a6c00;
+  --bench-t: #fff4c7;
+  --phone: #6b3ad6;
+  --phone-t: #efe7ff;
+  --dock: #c0620a;
+  --dock-t: #ffecd9;
+  --desk: #c23d86;
+  --desk-t: #fde9f3;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -47,7 +57,17 @@
     --sky: #38bdf8;
     --rose: #fb7185;
     --rosesub: rgba(251, 113, 133, 0.1);
-    --px-ink: #0b0b0d;
+    --ink: #d6d0f5;
+    --shelf: #5fd0f5;
+    --shelf-t: #10303c;
+    --bench: #ffd43b;
+    --bench-t: #352c0c;
+    --phone: #b994ff;
+    --phone-t: #2a1f45;
+    --dock: #ffab5c;
+    --dock-t: #3a2512;
+    --desk: #ff8fc9;
+    --desk-t: #3a1a2c;
     --lift:
       inset 0 1px 0 rgba(255, 255, 255, 0.04),
       0 6px 16px -4px rgba(0, 0, 0, 0.4);
@@ -139,7 +159,7 @@ h3 {
   width: 22px;
   height: 22px;
   border-radius: 6px;
-  background: var(--fg);
+  background: var(--ink);
   box-shadow:
     inset 0 0 0 5px var(--fg),
     inset 0 0 0 7px var(--bg);
@@ -448,7 +468,7 @@ h3 {
   min-height: 34px;
   padding: 0 14px;
   border-radius: 8px;
-  background: var(--fg);
+  background: var(--ink);
   color: var(--bg);
   font-size: 13px;
   font-weight: 500;
@@ -798,7 +818,7 @@ h3 {
   background: var(--bg);
 }
 .chip[aria-pressed='true'] {
-  background: var(--fg);
+  background: var(--ink);
   color: var(--bg);
   box-shadow: none;
 }
@@ -826,7 +846,7 @@ h3 {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--fg);
+  background: var(--ink);
 }
 .reading.model::before {
   background: none;
@@ -984,7 +1004,7 @@ h3 {
   background: var(--wash);
 }
 .replay .send {
-  background: var(--fg);
+  background: var(--ink);
   color: var(--bg);
   box-shadow: var(--control);
   order: -1;
@@ -1147,7 +1167,7 @@ tbody th {
 }
 .tag.here {
   color: var(--bg);
-  background: var(--fg);
+  background: var(--ink);
 }
 .cellhead {
   display: flex;
@@ -1457,75 +1477,39 @@ textarea.console-text {
   font: 400 11px var(--mono);
 }
 
-/* Pixel sprites. Letters are materials; colour here never means family,
-   success or permission. */
-.px {
+/* Line icons. Ink on a soft tint; the tint says where a thing sits in the
+   workshop (shelf, bench, phone, dock, desk), never success or permission. */
+.ic {
   width: 40px;
   height: 40px;
   flex: none;
-  image-rendering: pixelated;
+  border-radius: 28%;
+  background: var(--tint, var(--wash));
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
-.px-K {
-  fill: #2b2350;
+.place-shelf {
+  --tint: var(--shelf-t);
+  --hue: var(--shelf);
 }
-.px-P {
-  fill: #fffdf7;
+.place-bench {
+  --tint: var(--bench-t);
+  --hue: var(--bench);
 }
-.px-L {
-  fill: #fff1a8;
+.place-phone {
+  --tint: var(--phone-t);
+  --hue: var(--phone);
 }
-.px-S {
-  fill: #ffd9ea;
+.place-dock {
+  --tint: var(--dock-t);
+  --hue: var(--dock);
 }
-.px-R {
-  fill: #ff4466;
-}
-.px-O {
-  fill: #ff9a2e;
-}
-.px-Y {
-  fill: #ffd43b;
-}
-.px-N {
-  fill: #2fd98b;
-}
-.px-C {
-  fill: #35c8ff;
-}
-.px-B {
-  fill: #4b78ff;
-}
-.px-V {
-  fill: #9a5cff;
-}
-.px-H {
-  fill: #ff6fbf;
-}
-.px-M {
-  fill: #c5d0ea;
-}
-.px-D {
-  fill: #3c3a78;
-}
-.px-G {
-  fill: #b4f1ff;
-}
-.px-lit {
-  fill: #fff;
-  opacity: 0.42;
-}
-.px-shade {
-  fill: #3b1a7a;
-  opacity: 0.26;
-}
-
-@media (prefers-color-scheme: dark) {
-  /* Sprites keep their dark outline, so they sit on a light plate. */
-  .px {
-    background: #ece9f7;
-    border-radius: 5px;
-    outline: 2px solid #ece9f7;
-  }
+.place-desk {
+  --tint: var(--desk-t);
+  --hue: var(--desk);
 }
 
 /* Atlas */
@@ -1636,7 +1620,7 @@ textarea.console-text {
 .obj.kin {
   border: 1px dashed var(--sky);
 }
-.obj .px {
+.obj .ic {
   width: 48px;
   height: 48px;
 }
@@ -1744,7 +1728,7 @@ textarea.console-text {
   border: 1px solid var(--bd);
   flex: none;
 }
-.bigicon .px {
+.bigicon .ic {
   width: 48px;
   height: 48px;
 }
@@ -1798,7 +1782,7 @@ textarea.console-text {
   font-weight: 500;
   vertical-align: middle;
 }
-.toolchip .px {
+.toolchip .ic {
   width: 20px;
   height: 20px;
 }
@@ -2003,7 +1987,7 @@ textarea.console-text {
   width: 20px;
   height: 20px;
   border-radius: 10px;
-  background: var(--fg);
+  background: var(--ink);
   color: var(--bg);
   font-size: 11px;
   font-weight: 600;
@@ -2037,7 +2021,7 @@ textarea.console-text {
     transform 120ms ease,
     box-shadow 120ms ease;
 }
-.tb-tool .px {
+.tb-tool .ic {
   width: 46px;
   height: 46px;
 }
@@ -2238,7 +2222,7 @@ textarea.console-text {
   width: 44px;
   height: 44px;
 }
-.tb-drawer-head .bigicon .px {
+.tb-drawer-head .bigicon .ic {
   width: 36px;
   height: 36px;
 }
@@ -2362,7 +2346,7 @@ textarea.console-text {
     background 200ms ease,
     border-color 200ms ease;
 }
-.flow-stop .px {
+.flow-stop .ic {
   width: 20px;
   height: 20px;
 }
@@ -2484,7 +2468,7 @@ textarea.console-text {
   border: 1px solid var(--fg2);
   background: var(--bg);
 }
-.slotmini .px {
+.slotmini .ic {
   width: 20px;
   height: 20px;
 }
@@ -2543,7 +2527,7 @@ textarea.console-text {
   color: var(--fg);
 }
 .mcp-node.you {
-  background: var(--fg);
+  background: var(--ink);
   border-color: var(--fg);
   color: var(--bd);
 }
@@ -2569,7 +2553,7 @@ textarea.console-text {
   flex-wrap: wrap;
   gap: 4px;
 }
-.mcp-sprites .px {
+.mcp-sprites .ic {
   width: 34px;
   height: 34px;
 }
@@ -2638,7 +2622,7 @@ textarea.console-text {
 .route-step:hover {
   border-color: var(--fg2);
 }
-.route-step .px {
+.route-step .ic {
   width: 36px;
   height: 36px;
   flex: none;
@@ -2670,7 +2654,7 @@ textarea.console-text {
   gap: 8px;
   padding: 12px 14px;
   border-radius: 14px;
-  background: var(--fg);
+  background: var(--ink);
   color: var(--bg);
 }
 .story-top {
@@ -2776,7 +2760,7 @@ textarea.console-text {
   background: var(--bg);
   border: 1px solid var(--bd);
 }
-.slot .px {
+.slot .ic {
   width: 32px;
   height: 32px;
 }
@@ -3116,7 +3100,7 @@ textarea.console-text {
   color: var(--fg);
   cursor: pointer;
 }
-.mm-tool .px {
+.mm-tool .ic {
   width: 18px;
   height: 18px;
   flex: none;
@@ -3621,7 +3605,7 @@ textarea.console-text {
 button.ws-chip {
   cursor: pointer;
 }
-.ws-chip .px {
+.ws-chip .ic {
   width: 20px;
   height: 20px;
 }
@@ -3733,4 +3717,70 @@ button.ws-chip {
 .ws-slot.ghost .ws-ico,
 .ws-nb:not(.lit) .ws-ico {
   stroke: color-mix(in srgb, var(--fg2) 45%, var(--bg));
+}
+
+/* Workshop canvas in ink and place colours */
+.ws-host rect,
+.ws-board rect {
+  fill: var(--ink);
+}
+.ws-board.copy rect {
+  fill: var(--bg);
+  stroke: var(--ink);
+}
+.ws-slot.lit .ws-slot-box,
+.ws-nb.lit circle {
+  fill: var(--tint);
+  stroke: var(--hue);
+}
+.ws-slot.lit .ws-ico,
+.ws-nb.lit .ws-ico {
+  stroke: var(--ink);
+}
+.ws-slot.lit .ws-name,
+.ws-nb.lit .ws-name {
+  fill: var(--ink);
+}
+.ws-badge {
+  fill: var(--hue, var(--pri));
+}
+.ws-slot.active .ws-slot-box {
+  fill: var(--tint);
+  stroke: var(--ink);
+}
+.ws-ico.on {
+  stroke: var(--bg);
+}
+.ws-chip .ic,
+.toolchip .ic {
+  width: 26px;
+  height: 26px;
+}
+
+/* In dark mode the ink is light, so the story card keeps a deep violet ground. */
+@media (prefers-color-scheme: dark) {
+  .story-card {
+    background: #2c2650;
+    color: #f1effa;
+  }
+  .story-card .btn.ghost {
+    color: #f1effa;
+    border-color: rgba(241, 239, 250, 0.35);
+  }
+  .story-card .btn:not(.ghost) {
+    background: #f1effa;
+    color: #2c2650;
+  }
+  .story-dots .dot {
+    background: rgba(241, 239, 250, 0.25);
+  }
+  .story-dots .dot.done {
+    background: rgba(241, 239, 250, 0.6);
+  }
+  .story-do {
+    color: rgba(241, 239, 250, 0.85);
+  }
+  .story-do .fold summary {
+    color: rgba(241, 239, 250, 0.7);
+  }
 }

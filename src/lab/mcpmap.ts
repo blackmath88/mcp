@@ -13,7 +13,13 @@ import {
   placeOf,
 } from '../domain/modules.ts'
 import { beltOf, calledTools } from './belt.ts'
-import { iconView } from './icons.ts'
+import {
+  type Place,
+  iconView,
+  neighbourIcons,
+  placeOfSlot,
+  slotIcons,
+} from './icons.ts'
 import { Message } from './message.ts'
 import { type Model, RunState } from './model.ts'
 import { serverNames } from './names.ts'
@@ -88,62 +94,13 @@ const openingAt: Record<NeighbourId, readonly [number, number]> = {
   world: [ROOM.x + 450, ROOM.y + ROOM.h],
 }
 
-// ICONS: line drawings on a 24 grid, one per slot and per neighbour.
-
-const circle = (cx: number, cy: number, r: number): string =>
-  `M ${cx - r} ${cy} a ${r} ${r} 0 1 0 ${2 * r} 0 a ${r} ${r} 0 1 0 ${-2 * r} 0`
-const ellipse = (cx: number, cy: number, rx: number, ry: number): string =>
-  `M ${cx - rx} ${cy} a ${rx} ${ry} 0 1 0 ${2 * rx} 0 a ${rx} ${ry} 0 1 0 ${-2 * rx} 0`
-const box = (x: number, y: number, w: number, h: number): string =>
-  `M ${x + 2} ${y} h ${w - 4} q 2 0 2 2 v ${h - 4} q 0 2 -2 2 h ${-(w - 4)} q -2 0 -2 -2 v ${-(h - 4)} q 0 -2 2 -2 z`
-
-const slotIcon: Record<ModuleId, ReadonlyArray<string>> = {
-  read: ['M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z', circle(12, 12, 2.6)],
-  ask: [
-    'M4 5h16v11H10l-4 4v-4H4z',
-    'M10 9a2 2 0 1 1 2.6 1.9c-.5.2-.6.6-.6 1.1',
-    'M12 14.2v.1',
-  ],
-  write: ['M4 20h4L19 9l-4-4L4 16z', 'M13 7l4 4'],
-  compute: [box(5, 3, 14, 18), 'M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2'],
-  sequence: [
-    'M4 6h3M4 12h3M4 18h3',
-    'M10 6h10M10 12h10M10 18h10',
-    'M7 6c2 0 1 6 3 6M7 12c2 0 1 6 3 6',
-  ],
-  share: [box(3, 4, 18, 12), 'M8 20h8M12 16v4', 'M8 9l2 3M14 8l2 3'],
-  invent: ['M8 7l-5 5 5 5M16 7l5 5-5 5', 'M13 5l-2 14'],
-  delegate: [
-    circle(7, 8, 3),
-    circle(17, 8, 3),
-    'M2 20c0-3 2.2-5 5-5s5 2 5 5M12 20c0-3 2.2-5 5-5s5 2 5 5',
-  ],
-  act: [
-    'M4 21h8M8 21v-6l5-6 4 3',
-    circle(8, 15, 1.4),
-    circle(13, 9, 1.4),
-    'M17 12v3h3v-3',
-  ],
-}
-
-const neighbourIcon: Record<
-  NeighbourId | 'you' | 'bot',
-  ReadonlyArray<string>
-> = {
-  web: [
-    circle(12, 12, 9),
-    'M3 12h18M12 3c3.5 3.5 3.5 14.5 0 18M12 3c-3.5 3.5-3.5 14.5 0 18',
-  ],
-  files: ['M3 6h7l2 2h9v11H3z', 'M3 10h18'],
-  store: [
-    ellipse(12, 6, 7, 3),
-    'M5 6v12c0 1.7 3 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3 3 7 3s7-1.3 7-3',
-  ],
-  llm: [box(5, 7, 14, 11), 'M12 3v4M9.5 11.5v1M14.5 11.5v1M9 15h6'],
-  program: [box(3, 4, 18, 16), 'M3 8h18M7 12l3 2-3 2M12 16h4'],
-  world: ['M3 8l9-5 9 5v8l-9 5-9-5z', 'M3 8l9 5 9-5M12 13v8'],
-  you: [circle(12, 8, 4), 'M4 21c0-4 3.6-7 8-7s8 3 8 7'],
-  bot: [box(5, 7, 14, 11), 'M12 3v4M9.5 11.5v1M14.5 11.5v1M9 15h6'],
+const neighbourPlace: Record<NeighbourId, Place> = {
+  web: 'shelf',
+  files: 'shelf',
+  store: 'shelf',
+  llm: 'phone',
+  program: 'phone',
+  world: 'dock',
 }
 
 const iconAt = (
@@ -202,7 +159,7 @@ const outsideView = (input: MapInput, h: H): ReadonlyArray<Html> => {
           h.Height('120'),
           h.Rx('16'),
         ]),
-        iconAt(neighbourIcon.bot, 95, y + 38, 1.6, 'ws-ico on', h),
+        iconAt(neighbourIcons.bot, 95, y + 38, 1.6, 'ws-ico on', h),
         label(95, y + 82, 'ws-host-name', name, h),
         label(95, y + 100, 'ws-host-sub', sub, h),
       ],
@@ -213,10 +170,10 @@ const outsideView = (input: MapInput, h: H): ReadonlyArray<Html> => {
   return [
     h.path([h.Class('ws-wire'), h.D('M 95 234 V 300')]),
     h.g(
-      [h.Class(`ws-nb ${asksYou ? 'lit' : ''}`)],
+      [h.Class(`ws-nb place-desk ${asksYou ? 'lit' : ''}`)],
       [
         h.circle([h.Cx('95'), h.Cy('200'), h.R('30')]),
-        iconAt(neighbourIcon.you, 95, 200, 1.17, 'ws-ico', h),
+        iconAt(neighbourIcons.you, 95, 200, 1.17, 'ws-ico', h),
         label(135, 204, 'ws-name', 'you', h, 'start'),
       ],
     ),
@@ -462,7 +419,7 @@ const slotView = (input: MapInput, id: ModuleId, h: H): Html => {
       h.Height(String(SLOT)),
       h.Rx('15'),
     ]),
-    iconAt(slotIcon[id], x, y - 7, 1.25, 'ws-ico', h),
+    iconAt(slotIcons[id], x, y - 7, 1.25, 'ws-ico', h),
     label(x, y + half - 9, 'ws-name', module?.word ?? id, h),
     isLit
       ? h.g(
@@ -485,7 +442,7 @@ const slotView = (input: MapInput, id: ModuleId, h: H): Html => {
         )
       : h.empty,
   ]
-  const className = `ws-slot ${isLit ? 'lit' : 'ghost'} ${isActive ? 'active' : ''} ${isActive && input.isWorking ? 'working' : ''} ${isSelected ? 'picked' : ''}`
+  const className = `ws-slot place-${placeOfSlot(id)} ${isLit ? 'lit' : 'ghost'} ${isActive ? 'active' : ''} ${isActive && input.isWorking ? 'working' : ''} ${isSelected ? 'picked' : ''}`
   const name = `${module?.word ?? id}: ${isLit ? inside.map(tool => tool.label).join(', ') : 'not on this server'}`
   return target === undefined
     ? h.keyed('g')(id, [h.Class(className), h.AriaLabel(name)], body)
@@ -516,14 +473,16 @@ const neighbourView = (input: MapInput, id: NeighbourId, h: H): Html => {
   return h.keyed('g')(
     id,
     [
-      h.Class(`ws-nb ${isLit ? 'lit' : ''} ${isHot ? 'hot' : ''}`),
+      h.Class(
+        `ws-nb place-${neighbourPlace[id]} ${isLit ? 'lit' : ''} ${isHot ? 'hot' : ''}`,
+      ),
       h.AriaLabel(
         `${name}: ${isLit ? `reached by ${reaching.map(tool => tool.label).join(', ')}` : 'not reached'}`,
       ),
     ],
     [
       h.circle([h.Cx(String(x)), h.Cy(String(y)), h.R('30')]),
-      iconAt(neighbourIcon[id], x, y, 1.17, 'ws-ico', h),
+      iconAt(neighbourIcons[id], x, y, 1.17, 'ws-ico', h),
       label(x, y + 48, 'ws-name', short(name, 30), h),
     ],
   )

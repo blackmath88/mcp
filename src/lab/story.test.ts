@@ -8,7 +8,7 @@ import { modules } from '../domain/modules.ts'
 import { Pace } from '../domain/services.ts'
 import { needsApproval } from './approval.ts'
 import { beltOf, calledTools, slotForKey } from './belt.ts'
-import { ICON_SIZE, sprites } from './icons.ts'
+import { toolIcons } from './icons.ts'
 import { Message } from './message.ts'
 import { type Model, Replay, RunState, worldFor } from './model.ts'
 import { route } from './story.ts'
@@ -806,16 +806,20 @@ describe('the belt selects and never executes', () => {
     ).toEqual(['recall'])
   })
 
-  test('every capability has a sprite of the right size and a family', () => {
+  test('every capability has its own line icon and a family', () => {
     for (const capability of catalogue) {
-      const rows = sprites[capability.name]
-      expect(rows).toHaveLength(ICON_SIZE)
-      expect(rows.every(row => row.length === ICON_SIZE)).toBe(true)
+      const paths = toolIcons[capability.name]
+      expect(paths.length).toBeGreaterThan(0)
+      expect(paths.every(path => path.startsWith('M'))).toBe(true)
       expect(families.some(family => family.id === capability.family)).toBe(
         true,
       )
     }
-    expect(sprites.remember).not.toEqual(sprites.recall)
+    expect(toolIcons.remember).not.toEqual(toolIcons.recall)
+    const drawn = catalogue.map(capability =>
+      toolIcons[capability.name].join(' '),
+    )
+    expect(new Set(drawn).size).toBe(drawn.length)
   })
 
   test('opening a capability from the atlas enters its specimen with it selected', () => {
