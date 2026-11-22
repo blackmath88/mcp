@@ -2,10 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "lib": [
-      "ES2022",
-      "DOM"
-    ],
+    "lib": ["ES2022", "DOM"],
     "moduleResolution": "bundler",
     "strict": true,
     "noUncheckedIndexedAccess": true,
@@ -13,9 +10,7 @@
     "esModuleInterop": true,
     "exactOptionalPropertyTypes": true,
     "isolatedModules": true,
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
@@ -24,6 +19,10 @@
   "include": [
     "src/**/*",
     "alchemy.run.ts",
+    "vite.config.ts",
+    "playwright.config.ts",
+    "tests/browser/**/*.ts",
+    "vendor/mcp-apps-quickstart/**/*.ts",
     "scripts/**/*.ts"
   ]
 }

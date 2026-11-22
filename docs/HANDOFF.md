@@ -1,5 +1,13 @@
 # Handoff
 
+## Workbench repair checkpoint · 2026-11-22
+
+A second agent reviewed the committed host at `c634d1d` by reading its diff. The follow-up keeps completed sends distinct from failed writes, reports an accepted version after initialization, retains successful pages when discovery is partial, preserves an active view when replacement fails, and ignores app replies older than the current session evidence. Leaving the page attempts a best-effort release. A fresh discovery in the same tab retires the remembered session. Chromium verified that reload and rediscovery close the old session.
+
+Reviewed the actual Get Time render at 1366, 850 and 390 pixels, including dark mode and keyboard discovery. Corrected inventory icon positioning, made the newest events easier to reach, and kept desktop evidence scrolling inside Backstage. Vitest passed 210 tests. Chromium passed four scenarios against the built preview. TypeScript, lint and the foundation structure checks passed. Python unittest discovery passed 10 checks and skipped three requiring the Observatory checkout.
+
+The documented LastMile hosted SSE endpoint returned HTTP 500 to both a direct request and an SDK connection. No tools were discovered from that endpoint. The official Registry REST service remained reachable. [Hosted SSE documentation](https://github.com/lastmile-ai/mcp-registry-search/blob/6fd52db66d08fd7b6bf327339872010894a6a2a5/README.md#mcp-server)
+
 ## Live workbench checkpoint · 2026-11-22
 
 Integrated the existing Foldkit/Effect/Alchemy work from `98ff8c3` with the current main concept work at `d6f5da1`. The local checkout had no Observatory artifact. Git refs and open pull requests supplied orientation. The upstream application template was inspected at `7b398a7c4d41d8114f8f5a4029506222a9386584`.

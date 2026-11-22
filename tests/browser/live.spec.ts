@@ -77,7 +77,9 @@ test('uses Everything and observes a synthetic denied edit on a narrow screen', 
     .getByRole('textbox', { name: 'Message' })
     .fill('Narrow viewport, real Echo')
   await page.getByRole('button', { name: 'Run tool' }).click()
-  await expect(page.getByText('Echo: Narrow viewport, real Echo', { exact: true })).toBeVisible()
+  await expect(
+    page.getByText('Echo: Narrow viewport, real Echo', { exact: true }),
+  ).toBeVisible()
   const wire = page.getByRole('region', { name: 'Backstage' })
   await expect(
     wire.getByText('mcp-servers/everything · 2.3.1', { exact: true }),
@@ -89,16 +91,18 @@ test('uses Everything and observes a synthetic denied edit on a narrow screen', 
       exact: true,
     })
     .click()
-  await expect(page.getByText('Echo: Narrow viewport, real Echo', { exact: true })).toHaveCount(
-    0,
-  )
+  await expect(
+    page.getByText('Echo: Narrow viewport, real Echo', { exact: true }),
+  ).toHaveCount(0)
   await page.getByRole('button', { name: 'Discover tools' }).click()
   await page.getByRole('button', { name: 'Run tool' }).click()
   const stage = page.getByRole('region', { name: 'Onstage' })
   await expect(stage.getByText(/denied the viewer’s request/)).toBeVisible()
   await page.getByRole('radio', { name: 'Editor' }).check()
   await page.getByRole('button', { name: 'Run tool' }).click()
-  await expect(stage.getByText(/The editor moved the bridge east/)).toBeVisible()
+  await expect(
+    stage.getByText(/The editor moved the bridge east/),
+  ).toBeVisible()
   expect(
     await page.locator('html').evaluate(html => html.scrollWidth),
   ).toBeLessThanOrEqual(390)
@@ -138,4 +142,39 @@ test('displays a failed registry request instead of an empty result', async ({
   await expect(
     page.getByText('The registry returned no matching records.'),
   ).toHaveCount(0)
+})
+
+test('releases the previous MCP session on reload', async ({ page }) => {
+  await page.goto('/live.html')
+  const onstage = page.getByRole('region', { name: 'Onstage' })
+  const connect = onstage.getByRole('button', { name: 'Discover tools' })
+  const discovered = onstage.getByRole('button', { name: 'Open time app' })
+  const discovery = page.waitForResponse(
+    response =>
+      response.url().endsWith('/api/lab/specimen') &&
+      response.request().postDataJSON()?._tag === 'Connect',
+  )
+  await connect.click()
+  const opened = await (await discovery).json()
+  expect(opened.session?.id).toBeTruthy()
+  await expect(discovered).toBeVisible()
+
+  await page.reload()
+  await connect.click()
+  await expect(discovered).toBeVisible()
+  await expect
+    .poll(async () => {
+      const response = await page.request.post('/api/lab/specimen', {
+        headers: { Origin: new URL(page.url()).origin },
+        data: {
+          _tag: 'Call',
+          sessionId: opened.session.id,
+          tool: 'get-time',
+          arguments: {},
+          from: 'learner',
+        },
+      })
+      return (await response.json()).error ?? ''
+    })
+    .toMatch(/expired or is unavailable/)
 })

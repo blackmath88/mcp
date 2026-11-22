@@ -14,7 +14,7 @@ import type {
 } from './contract.ts'
 import { Message } from './message.ts'
 import { AppState, type Model } from './model.ts'
-import { ConnectApp } from './mount.ts'
+import { ConnectApp, WatchSessionExit } from './mount.ts'
 import {
   SpecimenId,
   allowedTools,
@@ -75,7 +75,7 @@ const inventory = (model: Model, h: H): Html => {
                     ],
                     [
                       h.span(
-                        [h.Class('slot-mark'), h.AriaHidden(true)],
+                        [h.Class('shelf-slot-icon'), h.AriaHidden(true)],
                         [
                           id === 'time'
                             ? '◷'
@@ -350,7 +350,10 @@ const mcpOnstage = (model: Model, h: H): Html => {
         onNone: () => h.empty,
         onSome: session =>
           h.div(
-            [h.Class('live-content')],
+            [
+              h.Class('live-content'),
+              h.OnMount(WatchSessionExit({ sessionId: session.id })),
+            ],
             [
               session.state === 'stopped'
                 ? h.p(
@@ -477,40 +480,46 @@ const onstage = (model: Model, h: H): Html =>
     ],
   )
 
-const evidenceView = (events: ReadonlyArray<Evidence>, h: H): Html =>
+const evidenceView = (
+  events: ReadonlyArray<Evidence>,
+  scope: string,
+  h: H,
+): Html =>
   h.ol(
     [h.Class('wire-events')],
-    events.map(event =>
-      h.keyed('li')(
-        String(event.seq),
-        [],
-        [
-          h.details(
-            [],
-            [
-              h.summary(
-                [h.Class(`event-${event.direction}`)],
-                [
-                  h.span(
-                    [],
-                    [
-                      event.direction === 'out'
-                        ? '→'
-                        : event.direction === 'in'
-                          ? '←'
-                          : '·',
-                    ],
-                  ),
-                  h.code([], [event.label]),
-                ],
-              ),
-              h.time([h.Datetime(event.at)], [event.at]),
-              h.pre([], [event.detail]),
-            ],
-          ),
-        ],
+    [...events]
+      .reverse()
+      .map(event =>
+        h.keyed('li')(
+          `${scope}:${event.seq}`,
+          [],
+          [
+            h.details(
+              [],
+              [
+                h.summary(
+                  [h.Class(`event-${event.direction}`)],
+                  [
+                    h.span(
+                      [],
+                      [
+                        event.direction === 'out'
+                          ? '→'
+                          : event.direction === 'in'
+                            ? '←'
+                            : '·',
+                      ],
+                    ),
+                    h.code([], [event.label]),
+                  ],
+                ),
+                h.time([h.Datetime(event.at)], [event.at]),
+                h.pre([], [event.detail]),
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
   )
 
 const profileView = (tool: Tool, h: H): Html =>
@@ -542,6 +551,15 @@ const profileView = (tool: Tool, h: H): Html =>
 
 const backstage = (model: Model, h: H): Html => {
   const specimen = specimens[model.specimen]
+  const scope = Option.match(model.session, {
+    onNone: () => `registry:${model.epoch}`,
+    onSome: session => session.id,
+  })
+  const appScope = Option.match(model.app, {
+    onNone: () => 'no-app',
+    onSome: app => `${scope}:app:${app.run}`,
+  })
+  const appDropped = (model.appEvents[0]?.seq ?? 1) - 1
   return h.section(
     [h.Class('live-backstage'), h.AriaLabel('Backstage')],
     [
@@ -610,10 +628,14 @@ const backstage = (model: Model, h: H): Html => {
                     : 'Host ↔ Specimen',
                 ],
               ),
+              h.p(
+                [h.Class('wire-order')],
+                ['Latest first · → sent · ← received · · host'],
+              ),
               model.dropped
                 ? h.p([], [`${model.dropped} older events omitted.`])
                 : h.empty,
-              evidenceView(model.events, h),
+              evidenceView(model.events, scope, h),
             ],
           )
         : h.p(
@@ -623,7 +645,13 @@ const backstage = (model: Model, h: H): Html => {
       model.appEvents.length
         ? h.div(
             [h.Class('wire-channel')],
-            [h.h3([], ['App ↔ Host']), evidenceView(model.appEvents, h)],
+            [
+              h.h3([], ['App ↔ Host']),
+              appDropped > 0
+                ? h.p([], [`${appDropped} older events omitted.`])
+                : h.empty,
+              evidenceView(model.appEvents, appScope, h),
+            ],
           )
         : h.empty,
     ],

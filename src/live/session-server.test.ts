@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import type { Reply, Request } from './contract.ts'
-import { createSessionHost } from './session-server.ts'
+import { createSessionHost, discoverTools } from './session-server.ts'
 
 let host: ReturnType<typeof createSessionHost>
 beforeEach(() => {
@@ -164,4 +164,56 @@ describe('curated MCP specimens over stdio', () => {
       after: 2,
     })
   })
+})
+
+it('retains the first page when the next page fails', async () => {
+  const tool = { name: 'read_note', inputSchema: { type: 'object' as const } }
+  const listing = await discoverTools({
+    listTools: async params => {
+      if (params?.cursor) {
+        throw new Error('Page unavailable')
+      }
+      return { tools: [tool], nextCursor: 'page-2' }
+    },
+  })
+  expect(listing).toEqual({
+    tools: [tool],
+    partial: true,
+    error: 'Tool discovery is partial. Page unavailable',
+  })
+})
+
+it('keeps the original app grant when the replacement fails', async () => {
+  let original = true
+  const isolated = createSessionHost(async () => {
+    if (!original) {
+      throw new Error('Sandbox unavailable')
+    }
+    return 'http://127.0.0.1:4011/sandbox'
+  })
+  try {
+    const opened = await isolated.execute({ _tag: 'Connect', specimen: 'time' })
+    const sessionId = opened.session?.id ?? ''
+    const invocation = {
+      _tag: 'Call',
+      sessionId,
+      tool: 'get-time',
+      arguments: {},
+      from: 'learner',
+    } as const
+    const first = await isolated.execute(invocation)
+    expect(first.app).toBeDefined()
+    original = false
+    const second = await isolated.execute(invocation)
+    expect(second.error).toBe('Sandbox unavailable')
+    const refresh = await isolated.execute({
+      ...invocation,
+      from: 'app',
+      appRun: first.app?.run,
+    })
+    expect(refresh.invocation?.isError).toBe(false)
+    expect(refresh.error).toBeUndefined()
+  } finally {
+    await isolated.close()
+  }
 })

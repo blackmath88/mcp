@@ -95,8 +95,7 @@ export function connectApp(
   const evidence = createEvidence('MCP Apps')
   let initialized = false
   const deadline = window.setTimeout(() => {
-    callbacks.failed('The MCP App did not initialize within 8 seconds.')
-    dispose()
+    failed(new Error('The MCP App did not initialize within 8 seconds.'))
   }, 8_000)
 
   function failed(error: unknown) {

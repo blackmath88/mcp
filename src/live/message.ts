@@ -17,6 +17,7 @@ export const Message = defineMessageUnion({
   SubmittedSearch: {},
   CompletedRequest: { epoch: Schema.Number, reply: Reply },
   CompletedCloseSession: {},
+  WatchingSessionExit: {},
   ObservedAppEvent: {
     sessionId: Schema.String,
     run: Schema.Number,

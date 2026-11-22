@@ -11,7 +11,11 @@ const application = Runtime.makeApplication({
   view,
   container: document.getElementById('root'),
   devTools: false,
-  slow: false,
+  slow: {
+    onSlow: ({ _tag, durationMs }) => {
+      console.warn(`Live workbench ${_tag} took ${Math.round(durationMs)}ms`)
+    },
+  },
 })
 
 Runtime.run(application)

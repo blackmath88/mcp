@@ -16,6 +16,11 @@ export default defineConfig({
       ),
     },
   },
+  server: {
+    watch: {
+      ignored: ['**/test-output/**', '**/vendor/mcp-apps-quickstart/dist/**'],
+    },
+  },
   optimizeDeps: {
     entries: ['src/entry.ts', 'src/live/entry.ts'],
   },

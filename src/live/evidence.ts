@@ -87,10 +87,9 @@ export function observeTransport(
       source.onclose = () => transport.onclose?.()
       return source.start()
     },
-    send: (message, options) => {
-      const sending = source.send(message, options)
+    send: async (message, options) => {
+      await source.send(message, options)
       observe('out', message)
-      return sending
     },
     close: () => source.close(),
   }

@@ -111,6 +111,9 @@ function currentApp(model: Model, sessionId: string, run: number): boolean {
 function received(model: Model, reply: Reply): Model {
   const known = model.events.at(-1)?.seq ?? 0
   const observed = reply.events.at(-1)?.seq ?? 0
+  if (reply.session && observed < known) {
+    return model
+  }
   return modifyFields(model, {
     session: previous =>
       reply.session && observed >= known
@@ -243,10 +246,14 @@ export const update = (model: Model, message: Message): UpdateReturn =>
       }
     },
     CompletedCloseSession: () => ({ model }),
+    WatchingSessionExit: () => ({ model }),
     ObservedAppEvent: ({ sessionId, run, event }) => ({
       model: currentApp(model, sessionId, run)
         ? modifyFields(model, {
-            appEvents: previous => [...previous.slice(-79), event],
+            appEvents: previous => [
+              ...previous.filter(item => item.seq < event.seq).slice(-79),
+              event,
+            ],
           })
         : model,
     }),

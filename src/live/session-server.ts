@@ -10,6 +10,7 @@ import {
   isToolVisibilityAppOnly,
   isToolVisibilityModelOnly,
 } from '@modelcontextprotocol/ext-apps/app-bridge'
+import { EXTENSION_ID } from '@modelcontextprotocol/ext-apps/server'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import {
@@ -95,25 +96,35 @@ const listedTool = (
   }
 }
 
-const discoverTools = async (session: ActiveSession) => {
+export async function discoverTools(client: Pick<Client, 'listTools'>) {
   const tools = new Map<string, McpTool>()
   const cursors = new Set<string>()
   let cursor: string | undefined
+  let error: string | undefined
   for (let page = 0; page < 5; page += 1) {
-    const listing = await session.client.listTools(
-      cursor === undefined ? {} : { cursor },
-      options,
-    )
-    listing.tools.forEach(tool => tools.set(tool.name, tool))
-    cursor = listing.nextCursor
-    if (cursor === undefined || cursors.has(cursor) || tools.size >= 120) {
+    try {
+      const listing = await client.listTools(
+        cursor === undefined ? {} : { cursor },
+        options,
+      )
+      listing.tools.forEach(tool => tools.set(tool.name, tool))
+      cursor = listing.nextCursor
+      if (cursor === undefined || cursors.has(cursor) || tools.size >= 120) {
+        break
+      }
+      cursors.add(cursor)
+    } catch (cause) {
+      if (page === 0) {
+        throw cause
+      }
+      error = 'Tool discovery is partial. ' + errorMessage(cause)
       break
     }
-    cursors.add(cursor)
   }
   return {
     tools: [...tools.values()].slice(0, 120),
     partial: cursor !== undefined || tools.size > 120,
+    error,
   }
 }
 
@@ -175,7 +186,14 @@ export function createSessionHost(getSandboxUrl: () => Promise<string>) {
       maxBufferSize: 1_048_576,
     })
     const evidence = createEvidence('MCP stdio')
-    const client = new Client({ name: hostName, version: hostVersion })
+    const client = new Client(
+      { name: hostName, version: hostVersion },
+      {
+        capabilities: {
+          extensions: { [EXTENSION_ID]: { mimeTypes: [RESOURCE_MIME_TYPE] } },
+        },
+      },
+    )
     const session: ActiveSession = {
       specimen,
       client,
@@ -194,7 +212,7 @@ export function createSessionHost(getSandboxUrl: () => Promise<string>) {
       },
     }
     sessions.set(id, session)
-    let initializationId: string | number | undefined
+    let acceptedProtocol = 'Unknown'
     client.onerror = error =>
       evidence.record(
         'local',
@@ -217,27 +235,12 @@ export function createSessionHost(getSandboxUrl: () => Promise<string>) {
       await client.connect(
         observeTransport(transport, (direction, frame) => {
           evidence.record(direction, frameLabel(frame), frame)
-          if (
-            direction === 'out' &&
-            'id' in frame &&
-            'method' in frame &&
-            frame.method === 'initialize'
-          ) {
-            initializationId = frame.id
-          }
-          if (
-            direction === 'in' &&
-            'result' in frame &&
-            frame.id === initializationId
-          ) {
+          if (direction === 'in' && 'result' in frame) {
             const initialization = InitializeResultSchema.safeParse(
               frame.result,
             )
             if (initialization.success) {
-              session.data = {
-                ...session.data,
-                protocol: initialization.data.protocolVersion,
-              }
+              acceptedProtocol = initialization.data.protocolVersion
             }
           }
         }),
@@ -248,14 +251,24 @@ export function createSessionHost(getSandboxUrl: () => Promise<string>) {
         ...session.data,
         server: serverInfo?.name ?? 'Unknown',
         version: serverInfo?.version ?? 'Unknown',
+        protocol: acceptedProtocol,
       }
-      const inventory = await discoverTools(session)
+      const inventory = await discoverTools(client)
       session.data = {
         ...session.data,
         tools: inventory.tools
           .filter(tool => !isToolVisibilityAppOnly(tool))
           .map(tool => listedTool(tool, evidence)),
         partial: inventory.partial,
+      }
+      if (inventory.error) {
+        evidence.record(
+          'local',
+          'Tool listing incomplete',
+          inventory.error,
+          'Host',
+        )
+        return snapshot(session, { error: inventory.error })
       }
       return snapshot(session)
     } catch (error) {
@@ -293,9 +306,6 @@ export function createSessionHost(getSandboxUrl: () => Promise<string>) {
         throw new Error('This app has no active grant for the requested tool.')
       }
       evidenceForCall(session, request)
-      if (from === 'learner') {
-        session.activeApp = undefined
-      }
       const result = await session.client.callTool(
         { name: tool, arguments: args },
         undefined,
