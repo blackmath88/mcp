@@ -14,17 +14,10 @@ import {
   hintDefaults,
   parseListing,
 } from '../domain/foreign.ts'
-import { ladder } from '../domain/ladder.ts'
 import { fingerprintOf, listedFromCatalogue, profile } from '../domain/lens.ts'
 import { moduleOf, modules } from '../domain/modules.ts'
-import {
-  BELT_SLOTS,
-  beltOf,
-  calledTools,
-  findCapability,
-  isAdvertisedNow,
-} from './belt.ts'
-import { iconView } from './icons.ts'
+import { findCapability, isAdvertisedNow } from './belt.ts'
+import { iconView, lineIcon, slotIcons } from './icons.ts'
 import { allMap, foreignMap, mcpMapView } from './mcpmap.ts'
 import { Message } from './message.ts'
 import type { Model, Station } from './model.ts'
@@ -524,32 +517,33 @@ const ladderView = (model: Model, h: H): Html =>
       h.p(
         [h.Class('mode')],
         [
-          h.b([], ['Thirteen distinctions']),
-          ' · each is one question the lab lets you ask, with the tools that answer it. An index for the curious, not an order to follow. A tool can sit under several.',
+          h.b([], ['Nine slots']),
+          ' · every kind of thing a tool can be, from a read to a physical action, with the tools in this lab that sit there.',
         ],
       ),
       h.ol(
         [h.Class('ladder')],
-        Array.map(ladder, rung =>
+        Array.map(modules, module =>
           h.keyed('li')(
-            `${rung.step}`,
+            module.id,
             [h.Class('rungrow')],
             [
-              h.span([h.Class('rung-n')], [`${rung.step}`]),
+              lineIcon(slotIcons[module.id], `ic place-${module.place}`, h),
               h.div(
                 [],
                 [
-                  h.b([], [rung.name]),
-                  h.p([h.Class('rung-d')], [rung.distinction]),
+                  h.b([], [module.word]),
+                  h.p([h.Class('rung-d')], [module.means]),
                 ],
               ),
               h.div(
                 [h.Class('chiprow')],
-                Array.flatMap(rung.capabilities, name =>
-                  Option.match(findCapability(name), {
-                    onNone: () => [],
-                    onSome: capability => [toolChip(model, capability, h)],
-                  }),
+                Array.map(
+                  Array.filter(
+                    catalogue,
+                    capability => moduleOf(capability.name) === module.id,
+                  ),
+                  capability => toolChip(model, capability, h),
                 ),
               ),
             ],
@@ -637,19 +631,19 @@ const detailView = (model: Model, h: H): Html =>
         h.p(
           [],
           [
-            'Each object is one thing a server can hand over. Pick any of them; there is no order.',
+            'Every tool of every server in one workshop. Each sits in the slot that says what kind of thing it is; lines show what it reaches outside the walls.',
           ],
         ),
         h.p(
           [],
           [
-            'The ground groups objects by what they do. These groups are this lab’s teaching aid, not categories of the protocol. Where an object sits is a hand-made arrangement; distance measures nothing.',
+            'Select a tool to see which server offers it and to open that server’s step of the route.',
           ],
         ),
         h.p(
-          [],
+          [h.Class('tb-note')],
           [
-            'A server is not a place. Select an object and lines show what else the same server exposes, often across the ground.',
+            'Slots, places and neighbours are this lab’s teaching aid, not categories of the protocol.',
           ],
         ),
       ],
@@ -803,7 +797,7 @@ export const atlasScreenView = (model: Model, h: H): Html =>
           h.div(
             [],
             [
-              h.p([h.Class('kicker')], ['Capability atlas']),
+              h.p([h.Class('kicker')], ['All tools']),
               h.h1(
                 [h.Class('home-title')],
                 ['What can a connection hand you?'],
@@ -819,7 +813,7 @@ export const atlasScreenView = (model: Model, h: H): Html =>
                 [
                   ['map', 'Map'],
                   ['list', 'Full inventory'],
-                  ['ladder', 'Thirteen questions'],
+                  ['ladder', 'Nine slots'],
                   ['yours', 'Your server'],
                 ],
                 view => Message.SelectedAtlasView({ view }),
@@ -842,67 +836,63 @@ export const atlasScreenView = (model: Model, h: H): Html =>
         ],
       ),
       h.div(
-        [h.Class('primer')],
+        [h.Class('atlas-doors')],
         [
-          h.div(
-            [h.Class('primer-cards')],
-            [
-              primerCard(
-                '1',
-                'A server hands your AI tools',
-                'Each tool is a name, the inputs it takes and a description. That list is all the AI is told.',
-                h,
-              ),
-              primerCard(
-                '2',
-                'The host decides what runs',
-                'The app around the AI chooses which tools it sees and whether to ask you first. MCP leaves that to the host.',
-                h,
-              ),
-              primerCard(
-                '3',
-                'Behind each tool is something real',
-                'A file, a page, a ledger, another model. The list does not show it. Here you can open it and watch.',
-                h,
-              ),
-            ],
-          ),
           h.details(
-            [h.Class('fold glossary')],
+            [h.Class('pop')],
             [
-              h.summary([], ['Seven words you will meet here']),
-              h.dl(
-                [h.Class('facts')],
-                Array.map(glossary, ([word, meaning]) =>
-                  h.keyed('div')(
-                    word,
-                    [],
-                    [h.dt([], [word]), h.dd([], [meaning])],
+              h.summary([h.Class('pop-btn')], ['MCP in three sentences']),
+              h.div(
+                [h.Class('pop-panel primer-pop')],
+                [
+                  primerCard(
+                    '1',
+                    'A server hands your AI tools',
+                    'Each tool is a name, the inputs it takes and a description. That list is all the AI is told.',
+                    h,
                   ),
-                ),
+                  primerCard(
+                    '2',
+                    'The host decides what runs',
+                    'The app around the AI chooses which tools it sees and whether to ask you first. MCP leaves that to the host.',
+                    h,
+                  ),
+                  primerCard(
+                    '3',
+                    'Behind each tool is something real',
+                    'A file, a page, a ledger, another model. The list does not show it. Here you can open it and watch.',
+                    h,
+                  ),
+                  h.h4([], ['Seven words you will meet here']),
+                  h.dl(
+                    [h.Class('facts')],
+                    Array.map(glossary, ([word, meaning]) =>
+                      h.keyed('div')(
+                        word,
+                        [],
+                        [h.dt([], [word]), h.dd([], [meaning])],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          h.div(
-            [h.Class('primer-doors')],
+          h.button(
             [
-              h.button(
-                [
-                  h.Type('button'),
-                  h.Class('btn'),
-                  h.OnClick(Message.ClickedOpenSpecimen({ name: 'remember' })),
-                ],
-                ['First time? Open the Memory bench'],
-              ),
-              h.button(
-                [
-                  h.Type('button'),
-                  h.Class('btn ghost'),
-                  h.OnClick(Message.ClickedNerdEntry()),
-                ],
-                ['Straight to the wire: raw JSON-RPC'],
-              ),
+              h.Type('button'),
+              h.Class('pop-btn plain'),
+              h.OnClick(Message.SelectedStation({ station: 'fetch' })),
             ],
+            ['Start the route at step 01'],
+          ),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('pop-btn plain'),
+              h.OnClick(Message.ClickedNerdEntry()),
+            ],
+            ['Straight to the wire: raw JSON-RPC'],
           ),
         ],
       ),
@@ -930,120 +920,3 @@ export const atlasScreenView = (model: Model, h: H): Html =>
       ),
     ],
   )
-
-// BELT
-
-const sourceText = (source: 'server' | 'catalogue'): string =>
-  source === 'server'
-    ? 'its answer to tools/list, just now'
-    : 'per the lab’s catalogue · the server has not been asked'
-
-export const beltView = (model: Model, h: H): Html => {
-  const belt = beltOf(model)
-  const called = calledTools(model.frames)
-  const shown = belt.tools.slice(0, BELT_SLOTS)
-  const hidden = belt.tools.length - shown.length
-  const maybeSelected = pipe(
-    selectedCapability(model),
-    Option.filter(capability =>
-      belt.tools.some(tool => tool.name === capability.name),
-    ),
-  )
-  return h.section(
-    [h.Class('belt'), h.AriaLabel('Tool belt')],
-    [
-      h.div(
-        [h.Class('belt-owner')],
-        Option.match(belt.owner, {
-          onNone: () => [
-            h.b([], ['Tool belt']),
-            h.span(
-              [],
-              ['Select something and its server’s tools appear here.'],
-            ),
-          ],
-          onSome: station => [
-            h.b([], [`Exposed by the ${serverNames[station]}`]),
-            h.span([], [sourceText(belt.source)]),
-          ],
-        }),
-      ),
-      h.div(
-        [h.Class('belt-slots'), h.Role('group'), h.AriaLabel('Slots')],
-        [
-          ...Array.map(shown, (capability, index) =>
-            h.button(
-              [
-                h.Type('button'),
-                h.Class(
-                  `slot ${called.includes(capability.name) ? 'called' : ''}`,
-                ),
-                h.AriaPressed(
-                  Option.contains(model.maybeSelected, capability.name)
-                    ? 'true'
-                    : 'false',
-                ),
-                h.AriaLabel(
-                  `Slot ${index + 1}: ${capability.title}. Select to inspect.`,
-                ),
-                h.OnClick(
-                  Message.SelectedCapability({ name: capability.name }),
-                ),
-              ],
-              [
-                h.span(
-                  [h.Class('slot-key'), h.AriaHidden(true)],
-                  [`${index + 1}`],
-                ),
-                iconView(capability.name, h),
-                called.includes(capability.name)
-                  ? h.span(
-                      [h.Class('slot-mark'), h.AriaHidden(true)],
-                      ['called'],
-                    )
-                  : h.empty,
-              ],
-            ),
-          ),
-          hidden > 0
-            ? h.button(
-                [
-                  h.Type('button'),
-                  h.Class('slot more'),
-                  h.OnClick(Message.ClickedOpenInventory()),
-                ],
-                [`+${hidden} more`],
-              )
-            : h.empty,
-        ],
-      ),
-      h.p(
-        [h.Class('belt-selected'), h.AriaLive('polite')],
-        Option.match(maybeSelected, {
-          onNone: () => [
-            h.span(
-              [],
-              [
-                Array.isReadonlyArrayEmpty(shown)
-                  ? ''
-                  : 'Press 1 to 9 or click a slot to inspect it. Selecting never runs anything.',
-              ],
-            ),
-          ],
-          onSome: capability => [
-            h.b([], [capability.title]),
-            h.span([], [capability.description]),
-          ],
-        }),
-      ),
-      h.button(
-        [
-          h.Type('button'),
-          h.Class('btn ghost small'),
-          h.OnClick(Message.ClickedOpenInventory()),
-        ],
-        [`Full inventory (${catalogue.length})`],
-      ),
-    ],
-  )
-}

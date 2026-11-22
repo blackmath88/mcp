@@ -4067,3 +4067,85 @@ button.ws-chip {
   top: auto;
   bottom: calc(100% + 6px);
 }
+
+/* All tools in the shared shell */
+.ide.shell-atlas {
+  grid-template-columns: 236px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'side title'
+    'side work'
+    'status status';
+}
+.shell-atlas .atlas-main {
+  grid-area: work;
+  background: var(--bg);
+}
+@media (max-width: 1100px) {
+  .ide.shell-atlas {
+    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+  }
+}
+@media (max-width: 720px) {
+  .ide.shell-atlas .atlas-main {
+    order: 1;
+  }
+}
+.nav-top {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--bd);
+}
+.nav-row.top {
+  border-left-color: transparent;
+  padding-left: 10px;
+  font-weight: 500;
+}
+.nav-row.top[aria-current='page'] {
+  border-left-color: var(--ink);
+}
+.atlas-doors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pop-btn.plain::after {
+  display: none;
+}
+.primer-pop {
+  width: min(520px, 86vw);
+}
+.primer-pop .primer-card {
+  border: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+.ladder .rungrow .ic {
+  width: 34px;
+  height: 34px;
+}
+.shell-atlas .intro {
+  grid-area: work;
+  max-width: none;
+  margin: 0;
+  background: var(--bg);
+}
+.shell-atlas .intro > * {
+  max-width: 1120px;
+}
+.ladder .rungrow > .ic {
+  width: 34px;
+  height: 34px;
+}
+.ladder .rungrow .chiprow .ic {
+  width: 26px;
+  height: 26px;
+}
+.kicker,
+.eyebrow {
+  color: color-mix(in srgb, var(--ink) 75%, var(--bg));
+}

@@ -10,7 +10,6 @@ import { NO_ARTIFACT } from '../domain/world.ts'
 import recording from '../recordings/entrances.json'
 import {
   atlasScreenView,
-  beltView,
   evidenceView,
   placeOnAtlas,
   toolChip,
@@ -262,20 +261,27 @@ export const view = (model: Model, h: H): Document => ({
   body:
     model.screen === 'intro'
       ? h.div(
-          [h.Class('ide home')],
+          [h.Class('ide shell-atlas')],
           [
             titlebarView(model, h),
+            h.nav(
+              [h.Class('sidebar'), h.AriaLabel('Specimens')],
+              [journeyView(model, h)],
+            ),
             introView(model, h),
             statusbarView(model, h),
           ],
         )
       : model.screen === 'home'
         ? h.div(
-            [h.Class('ide home')],
+            [h.Class('ide shell-atlas')],
             [
               titlebarView(model, h),
+              h.nav(
+                [h.Class('sidebar'), h.AriaLabel('Specimens')],
+                [journeyView(model, h)],
+              ),
               atlasScreenView(model, h),
-              beltView(model, h),
               statusbarView(model, h),
             ],
           )
@@ -313,7 +319,6 @@ const titlebarView = (model: Model, h: H): Html =>
   h.header(
     [h.Class('titlebar')],
     [
-      model.screen === 'bench' ? h.empty : brandView(h),
       h.p(
         [h.Class('location'), h.AriaLabel('Current location')],
         model.screen === 'intro'
@@ -429,6 +434,29 @@ const journeyView = (model: Model, h: H): Html =>
     [h.Class('journey-groups')],
     [
       brandView(h),
+      h.div(
+        [h.Class('nav-top')],
+        [
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('nav-row top'),
+              h.AriaCurrent(model.screen === 'intro' ? 'page' : 'false'),
+              h.OnClick(Message.ClickedIntro()),
+            ],
+            [h.span([h.Class('nav-t')], ['What is MCP?'])],
+          ),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('nav-row top'),
+              h.AriaCurrent(model.screen === 'home' ? 'page' : 'false'),
+              h.OnClick(Message.ClickedHome()),
+            ],
+            [h.span([h.Class('nav-t')], ['All tools and your server'])],
+          ),
+        ],
+      ),
       h.nav(
         [h.Class('nav'), h.AriaLabel('The route')],
         [

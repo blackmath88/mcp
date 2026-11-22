@@ -460,17 +460,8 @@ describe('the home screen and touchable benches', () => {
       expect(text('the front desk')).toExist(),
       expect(text('shelf · records')).toExist(),
       expect(text('loading dock')).toExist(),
-      expect(
-        text('Select something and its server’s tools appear here.'),
-      ).toExist(),
       click(role('button', { name: /^Recall, recall, Memory server/ })),
-      expect(text('Exposed by the Memory server')).toExist(),
-      expect(
-        text('per the lab’s catalogue · the server has not been asked'),
-      ).toExist(),
-      expect(
-        role('button', { name: 'Slot 1: Remember. Select to inspect.' }),
-      ).toExist(),
+      expect(text('Return everything stored about an entity.')).toExist(),
       expect(text('this simulation never checks who is calling')).toExist(),
       expect(text('no approval step exists here')).toExist(),
       click(role('button', { name: 'Open “Memory”' })),
@@ -480,7 +471,7 @@ describe('the home screen and touchable benches', () => {
       ).toExist(),
       click(role('button', { name: 'All tools' })),
       expect(text('What can a connection hand you?')).toExist(),
-      expect(text('Exposed by the Memory server')).toExist(),
+      expect(text('Return everything stored about an entity.')).toExist(),
     )
   })
 
@@ -627,13 +618,13 @@ describe('segment 13 and the thirteen questions', () => {
     )
   })
 
-  test('the thirteen questions list every segment with a tool to try', () => {
+  test('the nine slots list every kind of tool with tools to try', () => {
     scene(
       { update, view },
       given({ ...initialModel, screen: 'home', atlasView: 'ladder' }),
-      expect(text('Inspect the inspector')).toExist(),
-      expect(text('Claims versus the grounds for believing them')).toExist(),
-      expect(text('Resume')).toExist(),
+      expect(text('Nine slots')).toExist(),
+      expect(text('moves something outside the computer')).toExist(),
+      expect(role('button', { name: 'Move the crate' })).toExist(),
       expect(role('button', { name: 'Profile itself' })).toExist(),
     )
   })

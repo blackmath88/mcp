@@ -1,5 +1,16 @@
 # Handoff
 
+## One shell and one style across the platform — 2026-11-22
+
+Owner: "implement this style all over the whole platform".
+
+- Every screen now uses the same shell: title bar, the left route navigation, the main area, the status bar. The front page and All tools gained the left nav; the nav has two rows above the route, "What is MCP?" and "All tools and your server". The duplicate logo in the title bar is gone.
+- All tools: the three primer cards and the glossary moved into an "MCP in three sentences" popover; the doors are now "Start the route at step 01" and "Straight to the wire: raw JSON-RPC" (the old "Open the Memory bench" predated the route). The "How to read this" panel describes the workshop, not the old atlas ground.
+- "Thirteen questions" (the old 13-step ontology ladder) is replaced in the UI by "Nine slots": each slot's icon, what it means, and the tools that sit there. `src/domain/ladder.ts` remains as an authoring index and keeps its test.
+- The pixel-era tool belt at the bottom of All tools is deleted (`beltView`). `beltOf` stays: the bench and the keyboard shortcuts use it.
+- Kickers and eyebrows are muted ink instead of green; green remains for calls and success.
+- Checks: 220 tests, lint, typecheck, build; screenshots of front door, All tools, Nine slots; no horizontal overflow at 390 px.
+
 ## Full-window map — 2026-11-22
 
 - A "Full window" button on the workshop canvas (bench and All tools) opens it over the whole window; "Close · Esc" or the Escape key closes it. Model field `canvasFull`, message `ClickedCanvasFull`, subscription `canvasEscape`. Tool chips and "How to read the map" stay available inside.
