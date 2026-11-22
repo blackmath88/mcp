@@ -1,5 +1,11 @@
 # Handoff
 
+## Full-window map — 2026-11-22
+
+- A "Full window" button on the workshop canvas (bench and All tools) opens it over the whole window; "Close · Esc" or the Escape key closes it. Model field `canvasFull`, message `ClickedCanvasFull`, subscription `canvasEscape`. Tool chips and "How to read the map" stay available inside.
+- It is a CSS overlay, not the browser's Fullscreen API, so it also works inside the claude.ai viewer.
+- Checks: 220 tests, lint, typecheck, build; looked at at 1440×900, Escape closes it.
+
 ## UI pass: a calmer route nav, secondary things behind popovers — 2026-11-22
 
 Owner: "adjust the left navigation … general UI pass … still busy, trim some things and have stuff behind pop ups".

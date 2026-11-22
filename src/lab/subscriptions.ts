@@ -1,4 +1,4 @@
-import { Option, Stream } from 'effect'
+import { Option, Schema, Stream } from 'effect'
 import { Subscription } from 'foldkit'
 
 import { ASK_EVENT } from '../adapters/in-tab-mcp.ts'
@@ -12,6 +12,19 @@ const isTypingTarget = (target: EventTarget | null): boolean =>
     ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
 
 export const subscriptions = Subscription.make<Model, Message>()(entry => ({
+  canvasEscape: entry(
+    { full: Schema.Boolean },
+    {
+      modelToDependencies: model => ({ full: model.canvasFull }),
+      dependenciesToStream: ({ full }) =>
+        full
+          ? Stream.fromEventListener<KeyboardEvent>(document, 'keydown').pipe(
+              Stream.filter(event => event.key === 'Escape'),
+              Stream.map(() => Message.ClickedCanvasFull({ on: false })),
+            )
+          : Stream.empty,
+    },
+  ),
   serverAsks: entry(
     {},
     {

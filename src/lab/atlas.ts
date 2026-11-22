@@ -910,7 +910,7 @@ export const atlasScreenView = (model: Model, h: H): Html =>
         [h.Class('atlas-body')],
         [
           model.atlasView === 'map'
-            ? mcpMapView(allMap(model), h)
+            ? mcpMapView(allMap(model), h, model.canvasFull)
             : model.atlasView === 'yours'
               ? yoursView(model, h)
               : model.atlasView === 'ladder'

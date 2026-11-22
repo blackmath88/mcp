@@ -824,3 +824,16 @@ describe('the workshop follows the build', () => {
     )
   })
 })
+
+describe('the full-window map', () => {
+  test('the map opens in the full window and closes again', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, station: 'fetch' }),
+      click(role('button', { name: 'Show the map in the full window' })),
+      expect(role('dialog', { name: 'The workshop map' })).toExist(),
+      click(role('button', { name: 'Close the full-window map' })),
+      expect(role('dialog', { name: 'The workshop map' })).toBeAbsent(),
+    )
+  })
+})

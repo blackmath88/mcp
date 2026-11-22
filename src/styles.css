@@ -4015,3 +4015,55 @@ button.ws-chip {
     right: auto;
   }
 }
+
+/* Full-window map */
+.mcpmap {
+  position: relative;
+}
+.ws-full-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  box-shadow: var(--lift);
+}
+.ws-full-btn::after {
+  display: none;
+}
+.mcpmap.full {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: max(12px, env(safe-area-inset-top, 0px))
+    max(16px, env(safe-area-inset-right, 0px))
+    max(12px, env(safe-area-inset-bottom, 0px))
+    max(16px, env(safe-area-inset-left, 0px));
+  background: var(--canvas);
+  overflow: auto;
+}
+.mcpmap.full .ws-full-btn {
+  top: max(20px, calc(env(safe-area-inset-top, 0px) + 8px));
+  right: max(24px, calc(env(safe-area-inset-right, 0px) + 8px));
+}
+.mcpmap.full .ws-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+}
+.mcpmap.full .ws-canvas {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+}
+@media (max-width: 720px) {
+  .mcpmap.full .ws-canvas {
+    min-width: 720px;
+  }
+}
+.mcpmap.full .ws-under .pop-panel {
+  top: auto;
+  bottom: calc(100% + 6px);
+}

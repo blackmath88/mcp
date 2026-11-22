@@ -162,7 +162,7 @@ const mapRowView = (model: Model, story: Html, h: H): Html => {
               : 'the lab’s catalogue, drawn as a workshop · click a slot or a tool to look behind it',
             h,
           ),
-          mcpMapView(serverMap(model), h),
+          mcpMapView(serverMap(model), h, model.canvasFull),
         ],
       ),
     ],

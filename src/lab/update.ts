@@ -267,6 +267,7 @@ export const initialModel: Model = {
   pending: Option.none(),
   declined: '',
   asking: Option.none(),
+  canvasFull: false,
   approvedLast: '',
   watching: false,
   tampered: false,
@@ -1291,6 +1292,10 @@ export const update = (current: Model, message: Message): UpdateReturn => {
           }
         },
       }),
+
+    ClickedCanvasFull: ({ on }) => ({
+      model: modifyFields(model, { canvasFull: () => on }),
+    }),
 
     ClickedToggleBackstage: () => ({
       model: modifyFields(model, {

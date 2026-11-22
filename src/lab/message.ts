@@ -83,6 +83,7 @@ export const Message = defineMessageUnion({
   SelectedApprovalRule: {
     rule: Schema.Literals(['never', 'writes', 'always']),
   },
+  ClickedCanvasFull: { on: Schema.Boolean },
   ClickedApprove: {},
   ServerAsked: { question: Schema.String },
   AnsweredServer: {

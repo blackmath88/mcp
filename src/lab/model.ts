@@ -141,6 +141,7 @@ export const Model = Schema.Struct({
   ),
   declined: Schema.String,
   asking: Schema.Option(Schema.String),
+  canvasFull: Schema.Boolean,
   approvedLast: Schema.String,
   watching: Schema.Boolean,
   pins: Schema.Array(

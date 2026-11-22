@@ -609,10 +609,27 @@ const notesView = (input: MapInput, h: H): Html =>
       ),
   })
 
-export const mcpMapView = (input: MapInput, h: H): Html =>
+export const mcpMapView = (input: MapInput, h: H, isFull = false): Html =>
   h.section(
-    [h.Class(`mcpmap mode-${input.mode}`), h.AriaLabel('The workshop map')],
     [
+      h.Class(`mcpmap mode-${input.mode} ${isFull ? 'full' : ''}`),
+      h.AriaLabel('The workshop map'),
+      ...(isFull ? [h.Role('dialog'), h.AriaModal(true)] : []),
+    ],
+    [
+      h.button(
+        [
+          h.Type('button'),
+          h.Class('pop-btn ws-full-btn'),
+          h.AriaLabel(
+            isFull
+              ? 'Close the full-window map'
+              : 'Show the map in the full window',
+          ),
+          h.OnClick(Message.ClickedCanvasFull({ on: !isFull })),
+        ],
+        [isFull ? 'Close · Esc' : 'Full window'],
+      ),
       canvasView(input, h),
       h.div(
         [h.Class('ws-under')],
