@@ -54,6 +54,7 @@ import {
   maxSpanIn,
   worldFor,
 } from './model.ts'
+import { route, stepOf } from './story.ts'
 
 const APP_LOG_LIMIT = 40
 const REPLAY_STEP_MILLISECONDS = 450
@@ -262,7 +263,7 @@ export const initialModel: Model = {
 }
 
 export const init: Runtime.ApplicationInit<Model, Message> = () => ({
-  model: modifyFields(initialModel, { screen: () => 'home' }),
+  model: modifyFields(initialModel, { screen: () => 'intro' }),
   commands: [
     EnterDomain({
       world: initialModel.world,
@@ -993,6 +994,18 @@ export const update = (current: Model, message: Message): UpdateReturn => {
         pastedTools: () => CHANGED_EXAMPLE_LISTING,
       }),
     }),
+
+    ClickedIntro: () => ({
+      model: modifyFields(model, { screen: () => 'intro' }),
+    }),
+
+    ClickedRouteStep: ({ direction }) => {
+      const here = stepOf(model.station)
+      const next = route[here + (direction === 'next' ? 1 : -1)]
+      return next === undefined
+        ? { model }
+        : update(model, Message.SelectedStation({ station: next.station }))
+    },
 
     ClickedWatch: () => {
       const rewound = update(model, Message.ClickedReplayFromStart())

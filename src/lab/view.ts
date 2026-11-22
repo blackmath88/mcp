@@ -23,6 +23,7 @@ import { calledToolOf, findCapability } from './belt.ts'
 import { benchView, bendView } from './benches.ts'
 import { flowOf } from './flow.ts'
 import { iconView } from './icons.ts'
+import { introView, storyCardView } from './intro.ts'
 import { lensTabView } from './lens-view.ts'
 import { Message } from './message.ts'
 import {
@@ -34,6 +35,7 @@ import {
   type Station,
 } from './model.ts'
 import { serverNames, stationNames } from './names.ts'
+import { stepOf } from './story.ts'
 import { toolbenchView } from './toolbench.ts'
 import { finishedRecord } from './update.ts'
 
@@ -491,30 +493,39 @@ const fiveAnswers = (model: Model): ReadonlyArray<Answer> => {
 export const view = (model: Model, h: H): Document => ({
   title: 'MCP Lab',
   body:
-    model.screen === 'home'
+    model.screen === 'intro'
       ? h.div(
           [h.Class('ide home')],
           [
             titlebarView(model, h),
-            atlasScreenView(model, h),
-            beltView(model, h),
+            introView(model, h),
             statusbarView(model, h),
           ],
         )
-      : h.div(
-          [h.Class(`ide backstage-${model.backstage}`)],
-          [
-            titlebarView(model, h),
-            h.nav(
-              [h.Class('sidebar'), h.AriaLabel('Specimens')],
-              [journeyView(model, h)],
-            ),
-            workbenchView(model, h),
-            inspectorView(model, h),
-            backstageView(model, h),
-            statusbarView(model, h),
-          ],
-        ),
+      : model.screen === 'home'
+        ? h.div(
+            [h.Class('ide home')],
+            [
+              titlebarView(model, h),
+              atlasScreenView(model, h),
+              beltView(model, h),
+              statusbarView(model, h),
+            ],
+          )
+        : h.div(
+            [h.Class(`ide backstage-${model.backstage}`)],
+            [
+              titlebarView(model, h),
+              h.nav(
+                [h.Class('sidebar'), h.AriaLabel('Specimens')],
+                [journeyView(model, h)],
+              ),
+              workbenchView(model, h),
+              inspectorView(model, h),
+              backstageView(model, h),
+              statusbarView(model, h),
+            ],
+          ),
 })
 
 const brandView = (h: H): Html =>
@@ -522,8 +533,8 @@ const brandView = (h: H): Html =>
     [
       h.Type('button'),
       h.Class('brand'),
-      h.AriaLabel('MCP Lab, back to the atlas'),
-      h.OnClick(Message.ClickedHome()),
+      h.AriaLabel('MCP Lab, back to the start'),
+      h.OnClick(Message.ClickedIntro()),
     ],
     [
       h.span([h.Class('brandmark'), h.AriaHidden(true)], []),
@@ -535,23 +546,50 @@ const titlebarView = (model: Model, h: H): Html =>
   h.header(
     [h.Class('titlebar')],
     [
-      model.screen === 'home' ? brandView(h) : h.empty,
+      model.screen === 'bench' ? h.empty : brandView(h),
       h.p(
         [h.Class('location'), h.AriaLabel('Current location')],
-        model.screen === 'home'
-          ? [h.b([], ['Atlas'])]
-          : [
-              h.button(
-                [
-                  h.Type('button'),
-                  h.Class('crumb'),
-                  h.OnClick(Message.ClickedShowOnAtlas()),
-                ],
-                ['← Atlas'],
-              ),
-              ' / ',
-              h.b([], [stationTitle(model.station)]),
-            ],
+        model.screen === 'intro'
+          ? [h.b([], ['What is MCP?'])]
+          : model.screen === 'home'
+            ? [
+                h.button(
+                  [
+                    h.Type('button'),
+                    h.Class('crumb'),
+                    h.OnClick(Message.ClickedIntro()),
+                  ],
+                  ['← What is MCP?'],
+                ),
+                ' / ',
+                h.b([], ['All tools']),
+              ]
+            : [
+                h.button(
+                  [
+                    h.Type('button'),
+                    h.Class('crumb'),
+                    h.OnClick(Message.ClickedIntro()),
+                  ],
+                  ['← What is MCP?'],
+                ),
+                ' / ',
+                h.button(
+                  [
+                    h.Type('button'),
+                    h.Class('crumb'),
+                    h.OnClick(Message.ClickedShowOnAtlas()),
+                  ],
+                  ['All tools'],
+                ),
+                ' / ',
+                h.b(
+                  [],
+                  [
+                    `${String(stepOf(model.station)).padStart(2, '0')} · ${stationTitle(model.station)}`,
+                  ],
+                ),
+              ],
       ),
       h.span(
         [h.Class('simtag')],
@@ -599,8 +637,9 @@ const stationButton = (model: Model, station: Station, h: H): Html =>
         ],
         [],
       ),
+      h.span([h.Class('n')], [String(stepOf(station)).padStart(2, '0')]),
       h.span([h.Class('t')], [stationTitle(station)]),
-      h.span([h.Class('n')], [toolCount(station)]),
+      h.span([h.Class('k')], [toolCount(station)]),
     ],
   )
 
@@ -612,7 +651,7 @@ const journeyView = (model: Model, h: H): Html =>
       h.section(
         [h.Class('side-section')],
         [
-          h.h2([h.Class('side-title')], ['Specimens · any order']),
+          h.h2([h.Class('side-title')], ['The route · easy to strange']),
           h.ol(
             [h.Class('journey')],
             Array.map(stations, station =>
@@ -1053,6 +1092,7 @@ const workbenchView = (model: Model, h: H): Html =>
             : runPill(model.run, h),
         ],
       ),
+      storyCardView(model, h),
       Option.match(findSpecimen(model.station), {
         onNone: () => valleyHeadView(model, h),
         onSome: specimen =>

@@ -146,6 +146,12 @@ Status: owner go-ahead ("take 100 minutes … build"), 2026-11-21. Implemented.
 
 Each station reads the same way: what the server hands you (and what it does not), what those instruments work on, what comes back, and what stays changed. The bench is computed from the real run record and its replay cursor rather than played as an animation. The host's approval rule is real model state; nothing is sent while a call waits, and a denied call never reaches the server.
 
+## D19 — The story leads: "What is MCP?", then the agreed route
+
+Status: owner direction, 2026-11-22. Implemented. Revises D16.
+
+The lab opens on the question it exists to answer and walks the route from easy to strange (valley, specimens 01–12 in their numbered order, inspector). Each station is a step with one idea, one thing to try and one thing to notice. The atlas remains as the free way in, but no longer the first screen.
+
 ## Still undecided
 
 Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.

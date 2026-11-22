@@ -1,5 +1,16 @@
 # Handoff
 
+## The story is the front door again: "What is MCP?" and the agreed route — 2026-11-22
+
+Owner: "it doesn't tell the story … what is an MCP is the main question … the specimens should be in order from easy to complex … remember the order we agreed".
+
+- The lab opens on **What is MCP?** (`src/lab/intro.ts`): one definition, a picture (you → AI app, the host → MCP → server → tools → what is behind them), three facts, and the route listed in order with one idea per step. "Start at step 00" or "Or explore all tools freely" (the atlas).
+- **The agreed route** is data (`src/lab/story.ts`): the valley first, then the specimens in their `specimens/route.json` numbers, the inspector last. A test checks the order against `route.json`.
+- Every station shows a **story card**: "Step NN of 13", progress dots, the MCP idea, *Try this* (a real button on that bench), *What to notice*, Back / Next.
+- Sidebar is "The route · easy to strange" with step numbers again. Breadcrumb: ← What is MCP? / All tools / NN · station. The MCP Lab mark returns to the front door.
+- Note: this reverses part of D16 ("no course"). The atlas stays as the free way in; the route is the default way in.
+- Checks: 199 tests, lint, typecheck, build; browser screenshots of the front door and steps 00 and 02; no horizontal overflow on a phone.
+
 ## Pin a pasted listing and compare it later — 2026-11-21
 
 - "Your server" can pin a listing (name, fingerprint, description per tool). A later paste marks each tool same / changed / new, shows the old description struck through above the new one, and lists tools that are gone. "The same example, later" loads a changed version of the invented server: `save_note` gains an instruction to email notes to an outside address, `get_weather` disappears, `delete_notes` appears.

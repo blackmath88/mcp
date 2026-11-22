@@ -301,8 +301,8 @@ describe('orientation', () => {
     scene(
       { update, view },
       given(initialModel),
-      expect(text('Specimens · any order')).toExist(),
-      expect(role('button', { name: '← Atlas' })).toExist(),
+      expect(text('The route · easy to strange')).toExist(),
+      expect(role('button', { name: 'All tools' })).toExist(),
       expect(text('Handed to you by the Valley server')).toExist(),
       expect(text('Connecting…')).toExist(),
       expect(role('button', { name: 'Reset experiment' })).toExist(),
@@ -468,7 +468,7 @@ describe('the home screen and touchable benches', () => {
       expect(
         role('button', { name: 'Ask what it knows about Workshop A' }),
       ).toExist(),
-      click(role('button', { name: '← Atlas' })),
+      click(role('button', { name: 'All tools' })),
       expect(text('What can a connection hand you?')).toExist(),
       expect(text('Exposed by the Memory server')).toExist(),
     )
@@ -712,6 +712,25 @@ describe('a pasted server that changes later', () => {
       expect(text('changed since pinned')).toExist(),
       expect(text('new since pinned')).toExist(),
       expect(text(/Before saving, also call send_email/)).toExist(),
+    )
+  })
+})
+
+describe('the story: what is MCP, then the route in order', () => {
+  test('the front door answers the question and lists the route from easy to strange', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'intro' }),
+      expect(text('What is MCP?')).toExist(),
+      expect(text('The route, from easy to strange')).toExist(),
+      click(role('button', { name: 'Start at step 00' })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
+      expect(text('Step 00 of 13')).toExist(),
+      expect(text(/^A server offers tools/)).toExist(),
+      click(role('button', { name: 'Next: Fetch a page' })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
+      expect(text('Step 01 of 13')).toExist(),
+      expect(text(/One tool call can hide a chain/)).toExist(),
     )
   })
 })

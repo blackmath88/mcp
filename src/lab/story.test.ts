@@ -2,6 +2,7 @@ import { Effect, Option } from 'effect'
 import { Command, given, message, model, story } from 'foldkit/story'
 import { describe, expect, test } from 'vitest'
 
+import routeSpecimens from '../../specimens/route.json'
 import { catalogue, families, runOn } from '../domain/capabilities.ts'
 import { Pace } from '../domain/services.ts'
 import { needsApproval } from './approval.ts'
@@ -9,6 +10,7 @@ import { beltOf, calledTools, slotForKey } from './belt.ts'
 import { ICON_SIZE, sprites } from './icons.ts'
 import { Message } from './message.ts'
 import { type Model, Replay, RunState, worldFor } from './model.ts'
+import { route } from './story.ts'
 import {
   EnterDomain,
   RunCapability,
@@ -895,5 +897,15 @@ describe('the host asks before a call runs', () => {
     expect(needsApproval('writes', 'recall')).toBe(false)
     expect(needsApproval('writes', 'run_python')).toBe(true)
     expect(needsApproval('always', 'recall')).toBe(true)
+  })
+})
+
+describe('the route is the agreed order', () => {
+  test('valley first, then the specimens in their numbered order, inspector last', () => {
+    const numbered = routeSpecimens.specimens
+      .slice()
+      .sort((a, b) => a.number - b.number)
+      .map(specimen => specimen.id)
+    expect(route.map(step => step.station)).toEqual(['valley', ...numbered])
   })
 })
