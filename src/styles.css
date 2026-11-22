@@ -3784,3 +3784,234 @@ button.ws-chip {
     color: rgba(241, 239, 250, 0.7);
   }
 }
+
+/* UI PASS: the route navigation */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.nav-title {
+  margin: 0;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg2);
+}
+.nav-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-stage.aside {
+  padding-top: 8px;
+  border-top: 1px solid var(--bd);
+}
+.nav-stage-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.side-ic {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+}
+.nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 19px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.nav-row {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 10px 5px 12px;
+  border-radius: 8px;
+  border-left: 2px solid var(--bd);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  text-align: left;
+  font-size: 13.5px;
+  line-height: 1.3;
+  color: var(--fg3);
+}
+.nav-row:hover {
+  background: var(--wash);
+  color: var(--fg);
+}
+.nav-row[aria-current='page'] {
+  border-left-color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 8%, var(--bg));
+  color: var(--ink);
+  font-weight: 600;
+}
+.nav-row:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+.nav-n {
+  flex: none;
+  font: 400 10.5px var(--mono);
+  color: var(--fg2);
+  opacity: 0.7;
+}
+.nav-t {
+  min-width: 0;
+}
+.nav-row.visited .nav-t::after {
+  content: ' ·';
+  color: var(--pri);
+  font-weight: 700;
+}
+
+/* UI PASS: popovers (details/summary) for secondary content */
+.pop {
+  position: relative;
+}
+.pop > summary {
+  list-style: none;
+}
+.pop > summary::-webkit-details-marker {
+  display: none;
+}
+.pop-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 1px solid var(--bd);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--fg3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pop-btn::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  opacity: 0.6;
+}
+.pop[open] > .pop-btn {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.pop-btn .muted {
+  color: var(--fg2);
+  font-weight: 400;
+}
+.pop-panel {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  width: min(440px, 86vw);
+  max-height: min(60vh, 520px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: var(--lift);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--fg3);
+}
+.pop.right .pop-panel {
+  left: auto;
+  right: 0;
+}
+.pop-panel h4 {
+  margin: 4px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg2);
+}
+.pop-panel p {
+  margin: 0;
+}
+
+/* Specimen header: the popover sits under the status pill */
+.specimen {
+  position: relative;
+}
+.specimen > .pop.about {
+  align-self: flex-start;
+}
+.specimen > .pop.about .pop-panel {
+  width: min(560px, 86vw);
+}
+
+/* Under the canvas: chips on the left, how-to-read on the right */
+.ws-under {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+.ws-under .ws-chips {
+  margin-top: 0;
+}
+.ws-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+.ws-notes {
+  padding: 8px 12px;
+  font-size: 12.5px;
+}
+
+/* Bend, reset and host on one row */
+.tb-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+.tb-controls > .benchtools {
+  flex: 1 1 auto;
+  margin: 0;
+}
+
+/* Right column: the last run folds */
+.fold-card > summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.fold-card[open] > summary {
+  margin-bottom: 8px;
+}
+@media (max-width: 720px) {
+  .pop.right .pop-panel {
+    left: 0;
+    right: auto;
+  }
+}

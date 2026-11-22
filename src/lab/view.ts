@@ -3,11 +3,7 @@ import { type Document, type Html, type HtmlBuilder } from 'foldkit/html'
 
 import route from '../../specimens/route.json'
 import { STAGE_PAUSE_MILLISECONDS } from '../adapters/in-process.ts'
-import {
-  type Capability,
-  type RunRecord,
-  catalogue,
-} from '../domain/capabilities.ts'
+import { type Capability, type RunRecord } from '../domain/capabilities.ts'
 import { pathLabel } from '../domain/memory.ts'
 import type { ComponentId, EngineEvent } from '../domain/services.ts'
 import { NO_ARTIFACT } from '../domain/world.ts'
@@ -28,77 +24,31 @@ import {
   componentsOf,
 } from './components.ts'
 import { flowOf } from './flow.ts'
-import { iconView } from './icons.ts'
+import {
+  iconView,
+  lineIcon,
+  neighbourIcons,
+  placeOfSlot,
+  slotIcons,
+} from './icons.ts'
 import { introView, storyCardView } from './intro.ts'
 import { lensTabView } from './lens-view.ts'
 import { Message } from './message.ts'
 import {
   type BackstageTab,
-  type Chapter,
   type Model,
   Replay,
   RunState,
   type Station,
 } from './model.ts'
 import { serverNames, stationNames } from './names.ts'
-import { stageNames, stepNumber, route as storyRoute } from './story.ts'
+import { type StoryStep, stepNumber, route as storyRoute } from './story.ts'
 import { toolbenchView } from './toolbench.ts'
 import { finishedRecord } from './update.ts'
 
 type H = HtmlBuilder<Message>
 
 // CONTENT
-
-type ChapterInfo = Readonly<{
-  id: Chapter
-  name: string
-  prompt: string
-}>
-
-const chapters: ReadonlyArray<ChapterInfo> = [
-  {
-    id: 'discover',
-    name: 'Discover the kit',
-    prompt:
-      'You have entered the valley. Four items are on offer. Pick one to see what it really is.',
-  },
-  {
-    id: 'inspect',
-    name: 'Inspect an item',
-    prompt:
-      'The route finder only answers questions. Read its card: what can you observe, request, change?',
-  },
-  {
-    id: 'use',
-    name: 'Use it',
-    prompt:
-      'The path builder changes the map. Use it and watch the revision and the artifact.',
-  },
-  {
-    id: 'trace',
-    name: 'Follow the trace',
-    prompt:
-      'Backstage lists what the engine did in your last run. Step through it one event at a time.',
-  },
-  {
-    id: 'program',
-    name: 'Run a program',
-    prompt:
-      'This item is a program. Give it a goal, not an instruction, and see what machinery it brings.',
-  },
-  {
-    id: 'bend',
-    name: 'Bend it',
-    prompt:
-      'A storm lowers the span limit. Same goal, same item. Find out which part refuses, and what was left undone.',
-  },
-  {
-    id: 'entrances',
-    name: 'Other entrances',
-    prompt:
-      'The same engine has a CLI and an MCP server. Backstage shows a real recorded exchange with each.',
-  },
-]
 
 type Specimen = (typeof route.specimens)[number]
 
@@ -423,117 +373,93 @@ const titlebarView = (model: Model, h: H): Html =>
 
 // SIDEBAR
 
-const toolCount = (station: Station): string => {
-  const count = Array.filter(
-    catalogue,
-    capability => capability.specimen === station,
-  ).length
-  return count === 1 ? '1 tool' : `${count} tools`
+// THE ROUTE, as a calm list grouped by the slot each step lights.
+
+const stageLabels: Record<StoryStep['module'], string> = {
+  read: 'Read',
+  ask: 'Ask',
+  write: 'Write',
+  compute: 'Compute',
+  sequence: 'Sequence',
+  share: 'Share',
+  invent: 'Invent',
+  delegate: 'Delegate',
+  act: 'Act',
+  around: 'Side trips',
+  yours: 'Your own server',
 }
+
+const stageIcon = (stage: StoryStep['module'], h: H): Html =>
+  stage === 'around'
+    ? lineIcon(neighbourIcons.program, 'ic side-ic place-phone', h)
+    : stage === 'yours'
+      ? lineIcon(neighbourIcons.files, 'ic side-ic place-shelf', h)
+      : lineIcon(slotIcons[stage], `ic side-ic place-${placeOfSlot(stage)}`, h)
+
+const wasVisited = (model: Model, station: Station): boolean =>
+  model.savedRuns.some(
+    entry =>
+      entry.station === station && !RunState.isAnyOf(['Idle'])(entry.run),
+  )
 
 const stationButton = (model: Model, station: Station, h: H): Html =>
   h.button(
     [
       h.Type('button'),
-      h.Class('rung'),
-      h.AriaCurrent(station === model.station ? 'page' : 'false'),
+      h.Class(`nav-row ${wasVisited(model, station) ? 'visited' : ''}`),
+      h.AriaCurrent(
+        station === model.station && model.screen === 'bench'
+          ? 'page'
+          : 'false',
+      ),
       h.OnClick(Message.SelectedStation({ station })),
     ],
     [
-      h.span(
-        [
-          h.Class(
-            model.savedRuns.some(
-              entry =>
-                entry.station === station &&
-                !RunState.isAnyOf(['Idle'])(entry.run),
-            ) || station === model.station
-              ? 'dot seen'
-              : 'dot',
-          ),
-        ],
-        [],
-      ),
-      h.span([h.Class('n')], [stepNumber(station)]),
-      h.span([h.Class('t')], [stationTitle(station)]),
-      h.span([h.Class('k')], [toolCount(station)]),
+      h.span([h.Class('nav-n')], [stepNumber(station)]),
+      h.span([h.Class('nav-t')], [stationTitle(station)]),
     ],
   )
+
+const stagesInOrder: ReadonlyArray<StoryStep['module']> = Array.dedupe(
+  Array.map(storyRoute, step => step.module),
+)
 
 const journeyView = (model: Model, h: H): Html =>
   h.div(
     [h.Class('journey-groups')],
     [
       brandView(h),
-      h.section(
-        [h.Class('side-section')],
+      h.nav(
+        [h.Class('nav'), h.AriaLabel('The route')],
         [
-          h.h2([h.Class('side-title')], ['The route · up the ladder']),
-          h.ol(
-            [h.Class('journey')],
-            Array.map(storyRoute, (step, index) => {
-              const station = step.station
-              const isNewStage = storyRoute[index - 1]?.module !== step.module
-              return h.keyed('li')(
-                station,
-                [],
-                [
-                  isNewStage
-                    ? h.span([h.Class('side-stage')], [stageNames[step.module]])
-                    : h.empty,
-                  stationButton(model, station, h),
-                  station === 'valley' && model.station === 'valley'
-                    ? h.details(
-                        [h.Class('fold walk')],
-                        [
-                          h.summary([], ['Optional walk-through']),
-                          h.ol(
-                            [h.Class('journey steps')],
-                            Array.map(chapters, (chapter, index) =>
-                              h.keyed('li')(
-                                chapter.id,
-                                [],
-                                [
-                                  h.button(
-                                    [
-                                      h.Type('button'),
-                                      h.Class('rung'),
-                                      h.AriaCurrent(
-                                        model.chapter === chapter.id
-                                          ? 'step'
-                                          : 'false',
-                                      ),
-                                      h.OnClick(
-                                        Message.ClickedChapter({
-                                          chapter: chapter.id,
-                                        }),
-                                      ),
-                                    ],
-                                    [
-                                      h.span([h.Class('n')], [`${index + 1}`]),
-                                      h.span([h.Class('t')], [chapter.name]),
-                                      h.span(
-                                        [h.Class('k')],
-                                        [
-                                          model.completedChapters.includes(
-                                            chapter.id,
-                                          )
-                                            ? 'done'
-                                            : '',
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    : h.empty,
-                ],
-              )
-            }),
+          h.p([h.Class('nav-title')], ['The route']),
+          ...Array.map(stagesInOrder, stage =>
+            h.keyed('section')(
+              stage,
+              [
+                h.Class(
+                  `nav-stage ${stage === 'around' || stage === 'yours' ? 'aside' : ''}`,
+                ),
+              ],
+              [
+                h.div(
+                  [h.Class('nav-stage-head')],
+                  [stageIcon(stage, h), h.span([], [stageLabels[stage]])],
+                ),
+                h.ul(
+                  [h.Class('nav-list')],
+                  Array.map(
+                    Array.filter(storyRoute, step => step.module === stage),
+                    step =>
+                      h.keyed('li')(
+                        step.station,
+                        [],
+                        [stationButton(model, step.station, h)],
+                      ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -612,10 +538,10 @@ const inspectorView = (model: Model, h: H): Html =>
       Option.match(finishedRecord(model.run), {
         onNone: () => h.empty,
         onSome: () =>
-          h.div(
-            [h.Class('card')],
+          h.details(
+            [h.Class('card fold-card')],
             [
-              h.h3([], ['About your last run']),
+              h.summary([], ['About your last run']),
               Option.match(
                 Option.flatMap(finishedRecord(model.run), record =>
                   findCapability(record.capability),
@@ -790,50 +716,53 @@ const specimenView = (specimen: Specimen, title: string, h: H): Html =>
         ],
       ),
       h.details(
-        [h.Class('fold')],
+        [h.Class('pop about')],
         [
-          h.summary([], [`Anchor: ${specimen.anchor.repo}`]),
-          h.p([], [specimen.anchor.note]),
-          ...Array.map(specimen.diversions, diversion =>
-            h.p(
-              [],
-              [h.b([], [`Diversion, ${diversion.repo}: `]), diversion.note],
-            ),
-          ),
-        ],
-      ),
-      h.details(
-        [h.Class('fold')],
-        [
-          h.summary([], ['Where it bends, and the experiment']),
-          h.p([], [specimen.bent]),
-          h.p([], [h.b([], ['Experiment: ']), specimen.experiment]),
-        ],
-      ),
-      h.details(
-        [h.Class('fold')],
-        [
-          h.summary(
-            [],
+          h.summary([h.Class('pop-btn')], ['About this specimen']),
+          h.div(
+            [h.Class('pop-panel')],
             [
-              `Sources (${specimen.sources.length}), ${'checked' in specimen ? 'read, not pinned' : 'unverified'}`,
-            ],
-          ),
-          'checked' in specimen ? h.p([], [specimen.checked]) : h.empty,
-          h.ul(
-            [h.Class('sources')],
-            Array.map(specimen.sources, source =>
-              h.keyed('li')(
-                source,
+              h.h4([], ['Anchor']),
+              h.p(
+                [],
+                [h.b([], [`${specimen.anchor.repo}. `]), specimen.anchor.note],
+              ),
+              ...Array.map(specimen.diversions, diversion =>
+                h.p(
+                  [],
+                  [h.b([], [`Diversion, ${diversion.repo}: `]), diversion.note],
+                ),
+              ),
+              h.h4([], ['Where it bends']),
+              h.p([], [specimen.bent]),
+              h.p([], [h.b([], ['Experiment: ']), specimen.experiment]),
+              h.h4(
                 [],
                 [
-                  h.a(
-                    [h.Href(source), h.Target('_blank'), h.Rel('noreferrer')],
-                    [source.replace('https://github.com/', '')],
-                  ),
+                  `Sources (${specimen.sources.length}), ${'checked' in specimen ? 'read, not pinned' : 'unverified'}`,
                 ],
               ),
-            ),
+              'checked' in specimen ? h.p([], [specimen.checked]) : h.empty,
+              h.ul(
+                [h.Class('sources')],
+                Array.map(specimen.sources, source =>
+                  h.keyed('li')(
+                    source,
+                    [],
+                    [
+                      h.a(
+                        [
+                          h.Href(source),
+                          h.Target('_blank'),
+                          h.Rel('noreferrer'),
+                        ],
+                        [source.replace('https://github.com/', '')],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

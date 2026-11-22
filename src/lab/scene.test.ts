@@ -311,7 +311,7 @@ describe('orientation', () => {
     scene(
       { update, view },
       given(atValley),
-      expect(text('The route · up the ladder')).toExist(),
+      expect(role('navigation', { name: 'The route' })).toExist(),
       expect(role('button', { name: 'All tools' })).toExist(),
       expect(text('What the Route server hands the AI')).toExist(),
       expect(text('Connecting…')).toExist(),

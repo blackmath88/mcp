@@ -106,34 +106,44 @@ const stepLabel = (n: string, title: string, note: string, h: H): Html =>
     ],
   )
 
-const hostView = (model: Model, h: H): Html =>
-  h.div(
-    [h.Class('tb-host')],
+const hostView = (model: Model, h: H): Html => {
+  const rule = approvalRules.find(entry => entry.id === model.approval)
+  return h.details(
+    [h.Class('pop right host-pop')],
     [
-      h.span(
-        [h.Class('tb-host-text')],
-        [h.b([], ['Host ']), 'asks you before a call:'],
+      h.summary(
+        [h.Class('pop-btn')],
+        [h.span([h.Class('muted')], ['Host: ']), rule?.label ?? ''],
       ),
       h.div(
-        [h.Class('seg'), h.Role('group'), h.AriaLabel('Approval rule')],
-        Array.map(approvalRules, rule =>
-          h.button(
+        [h.Class('pop-panel')],
+        [
+          h.p(
+            [],
             [
-              h.Type('button'),
-              h.AriaPressed(model.approval === rule.id ? 'true' : 'false'),
-              h.Title(rule.means),
-              h.OnClick(Message.SelectedApprovalRule({ rule: rule.id })),
+              h.b([], ['Does the AI app ask you before a call? ']),
+              'MCP leaves this to the app. Pick its rule:',
             ],
-            [rule.label],
           ),
-        ),
-      ),
-      h.span(
-        [h.Class('tb-note')],
-        [approvalRules.find(rule => rule.id === model.approval)?.means ?? ''],
+          h.div(
+            [h.Class('seg'), h.Role('group'), h.AriaLabel('Approval rule')],
+            Array.map(approvalRules, entry =>
+              h.button(
+                [
+                  h.Type('button'),
+                  h.AriaPressed(model.approval === entry.id ? 'true' : 'false'),
+                  h.OnClick(Message.SelectedApprovalRule({ rule: entry.id })),
+                ],
+                [entry.label],
+              ),
+            ),
+          ),
+          h.p([h.Class('tb-note')], [rule?.means ?? '']),
+        ],
       ),
     ],
   )
+}
 
 const mapRowView = (model: Model, story: Html, h: H): Html => {
   const belt = beltOf(model)
@@ -397,8 +407,7 @@ export const toolbenchView = (model: Model, parts: BenchParts, h: H): Html =>
     [h.Class('toolbench'), h.AriaLabel('Toolbench')],
     [
       mapRowView(model, parts.story, h),
-      parts.controls,
-      hostView(model, h),
+      h.div([h.Class('tb-controls')], [parts.controls, hostView(model, h)]),
       drawerView(model, h),
       h.div(
         [h.Class('tb-main')],

@@ -614,30 +614,60 @@ export const mcpMapView = (input: MapInput, h: H): Html =>
     [h.Class(`mcpmap mode-${input.mode}`), h.AriaLabel('The workshop map')],
     [
       canvasView(input, h),
-      chipsView(input, h),
-      notesView(input, h),
-      h.p(
-        [h.Class('ws-legend')],
+      h.div(
+        [h.Class('ws-under')],
         [
-          h.span([h.Class('ws-key lit')], ['offered']),
-          h.span([h.Class('ws-key ghost')], ['not offered']),
-          h.span([h.Class('ws-key flow')], ['a call']),
-          h.span(
-            [h.Class('ws-key back')],
-            ['back out to you / a rule in the wall'],
-          ),
-          h.span(
-            [h.Class('ws-source')],
+          chipsView(input, h),
+          h.details(
+            [h.Class('pop right')],
             [
-              input.mode === 'foreign'
-                ? 'slots guessed from the pasted list'
-                : input.mode === 'empty'
-                  ? 'no server yet'
-                  : 'slots and neighbours placed by the lab from its own source',
+              h.summary([h.Class('pop-btn')], ['How to read the map']),
+              h.div(
+                [h.Class('pop-panel')],
+                [
+                  h.p(
+                    [h.Class('ws-legend')],
+                    [
+                      h.span(
+                        [h.Class('ws-key lit')],
+                        ['offered by this server'],
+                      ),
+                      h.span([h.Class('ws-key ghost')], ['not offered']),
+                      h.span(
+                        [h.Class('ws-key flow')],
+                        ['a call: desk → slot → what it reaches'],
+                      ),
+                      h.span(
+                        [h.Class('ws-key back')],
+                        [
+                          'something going back out to you, or a rule in the wall',
+                        ],
+                      ),
+                    ],
+                  ),
+                  h.p(
+                    [],
+                    [
+                      'You and the AI app stay outside. MCP is the front desk: the board is the tools/list answer, all the AI is shown. Behind it is the server’s workshop; outside its walls, what the tools reach.',
+                    ],
+                  ),
+                  h.p(
+                    [h.Class('ws-source')],
+                    [
+                      input.mode === 'foreign'
+                        ? 'Slots guessed from the pasted list.'
+                        : input.mode === 'empty'
+                          ? 'No server yet.'
+                          : 'Slots and neighbours placed by the lab from its own source. The protocol itself has no such groups.',
+                    ],
+                  ),
+                ],
+              ),
             ],
           ),
         ],
       ),
+      notesView(input, h),
     ],
   )
 

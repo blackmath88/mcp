@@ -1,5 +1,15 @@
 # Handoff
 
+## UI pass: a calmer route nav, secondary things behind popovers — 2026-11-22
+
+Owner: "adjust the left navigation … general UI pass … still busy, trim some things and have stuff behind pop ups".
+
+- Left nav (`journeyView` in `src/lab/view.ts`): grouped by the slot each step lights, each group headed by its line icon in place colours (Read, Ask, … Act, then Side trips and Your own server). Rows show only a small step number and the title; the current row has an ink bar and tint; visited rows get a green dot. Removed: tool counts, the dots column, the valley walk-through fold.
+- Popovers (`details.pop` with `.pop-panel`): "About this specimen" (anchor, diversions, where it bends, sources) replaces three folds under the question; "How to read the map" holds the canvas legend; "Host: Never ask" holds the approval rule. Bend, reset and host now share one row.
+- "About your last run" in the right column folds closed.
+- Popovers are plain details elements: they close by clicking their button again, not by clicking outside.
+- Checks: 219 tests, lint, typecheck, build; screenshots at 1440 and 390 px (no horizontal overflow).
+
 ## Pixel art removed; one line-icon family in ink and place colours — 2026-11-22
 
 Owner: the pixel art breaks the workshop canvas; remove it all over, use SVG icons, soften the black, keep some of the pixel colour feel. Chose "ink on a soft tint" with violet ink, and asked for smoother icons.
