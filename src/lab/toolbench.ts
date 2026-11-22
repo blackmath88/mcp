@@ -148,8 +148,8 @@ const mapRowView = (model: Model, story: Html, h: H): Html => {
             '1',
             `What the ${serverNames[model.station]} hands the AI`,
             belt.source === 'server'
-              ? 'its tools/list answer, drawn as a map · click a tool to look behind it'
-              : 'the lab’s catalogue, drawn as a map · click a tool to look behind it',
+              ? 'its tools/list answer, drawn as a workshop · click a slot or a tool to look behind it'
+              : 'the lab’s catalogue, drawn as a workshop · click a slot or a tool to look behind it',
             h,
           ),
           mcpMapView(serverMap(model), h),
@@ -385,6 +385,7 @@ const drawerView = (model: Model, h: H): Html =>
 
 export type BenchParts = Readonly<{
   story: Html
+  controls: Html
   material: ReadonlyArray<Html>
   result: Html
   happened: Html
@@ -395,8 +396,9 @@ export const toolbenchView = (model: Model, parts: BenchParts, h: H): Html =>
   h.section(
     [h.Class('toolbench'), h.AriaLabel('Toolbench')],
     [
-      hostView(model, h),
       mapRowView(model, parts.story, h),
+      parts.controls,
+      hostView(model, h),
       drawerView(model, h),
       h.div(
         [h.Class('tb-main')],

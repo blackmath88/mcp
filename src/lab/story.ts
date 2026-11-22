@@ -18,12 +18,12 @@ export const stageNames: Record<StoryStep['module'], string> = {
   read: '1 · A read',
   ask: '2 · An interaction',
   write: '3 · A read and a write',
-  operate: '4 · An operation',
-  workflow: '5 · A workflow',
-  app: '6 · An application',
+  compute: '4 · An operation',
+  sequence: '5 · A workflow',
+  share: '6 · An application',
   invent: '7 · A way to invent a tool',
   delegate: '8 · Another intelligence',
-  world: '9 · A physical action',
+  act: '9 · A physical action',
   around: 'Around the ladder: where tools run, what they see',
   yours: 'Finally: your own server',
 }
@@ -67,7 +67,7 @@ export const route: ReadonlyArray<StoryStep> = [
   },
   {
     station: 'valley',
-    module: 'operate',
+    module: 'compute',
     idea: 'Two tools on one server: one only works out an answer, the other changes the map.',
     tryThis: 'Press “Read the map”, then find a route, then build a path.',
     notice:
@@ -75,7 +75,7 @@ export const route: ReadonlyArray<StoryStep> = [
   },
   {
     station: 'thinking',
-    module: 'operate',
+    module: 'compute',
     idea: 'The same tool name can hide very different insides.',
     tryThis: 'Ask it to plan. Then bend “What is inside” and ask again.',
     notice:
@@ -83,7 +83,7 @@ export const route: ReadonlyArray<StoryStep> = [
   },
   {
     station: 'iteration',
-    module: 'workflow',
+    module: 'sequence',
     idea: 'A tool can keep working on its own, over many steps.',
     tryThis: 'Press “Run the loop”. Then “Crash it mid-loop, then resume”.',
     notice:
@@ -91,7 +91,7 @@ export const route: ReadonlyArray<StoryStep> = [
   },
   {
     station: 'apps',
-    module: 'app',
+    module: 'share',
     idea: 'A tool can hand back an app that a person then uses.',
     tryThis:
       'Open the map. Move it to the Dock. Then ask the app where it is looking.',
@@ -117,7 +117,7 @@ export const route: ReadonlyArray<StoryStep> = [
   },
   {
     station: 'arm',
-    module: 'world',
+    module: 'act',
     idea: 'A tool call can move something. Nothing physical moves here; the crane is simulated.',
     tryThis:
       'Bend it to “Something in the way”, then move the crate to the ship. Then read the sensor.',

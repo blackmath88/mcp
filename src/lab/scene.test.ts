@@ -145,7 +145,8 @@ describe('the route of specimens', () => {
       expect(text('Succeeded')).toExist(),
       expect(text('What came back')).toExist(),
       expect(role('button', { name: /^Page fetcher, fetch_page/ })).toExist(),
-      expect(text('A read')).toExist(),
+      expect(text('robots.txt, first URL only')).toExist(),
+      expect(text('valley.test pages')).toExist(),
       click(role('button', { name: 'Inspect run' })),
       expect(
         text(
@@ -348,7 +349,7 @@ describe('orientation', () => {
       expect(role('button', { name: /^Recall, recall/ })).toExist(),
       expect(
         text(
-          'its tools/list answer, drawn as a map · click a tool to look behind it',
+          'its tools/list answer, drawn as a workshop · click a slot or a tool to look behind it',
         ),
       ).toExist(),
       expect(role('button', { name: /^Remember, remember/ })).toBeAbsent(),
@@ -456,9 +457,9 @@ describe('the home screen and touchable benches', () => {
       { update, view },
       given({ ...initialModel, screen: 'home', maybeSelected: Option.none() }),
       expect(text('What can a connection hand you?')).toExist(),
-      expect(text('A read')).toExist(),
-      expect(text('An interaction')).toExist(),
-      expect(text('A physical action')).toExist(),
+      expect(text('the front desk')).toExist(),
+      expect(text('shelf · records')).toExist(),
+      expect(text('loading dock')).toExist(),
       expect(
         text('Select something and its server’s tools appear here.'),
       ).toExist(),
@@ -644,9 +645,8 @@ describe('the toolbench', () => {
       { update, view },
       given({ ...initialModel, station: 'code-mode', approval: 'writes' }),
       expect(text('What the Ledger server hands the AI')).toExist(),
-      expect(
-        text('not on this server · looks something up and hands it back'),
-      ).toExist(),
+      expect(text('the ledger, no undo')).toExist(),
+      expect(text('→ a program the AI wrote')).toExist(),
       click(role('button', { name: /^Write one entry, write_entry/ })),
       expect(
         text(
@@ -752,12 +752,12 @@ describe('the map and the new rungs', () => {
       given({ ...initialModel, station: 'arm' }),
       expect(text('Step 11 of 16 · 9 · A physical action')).toExist(),
       expect(text('What the Crane server hands the AI')).toExist(),
-      expect(text('2 tools in 2 of 9 slots')).toExist(),
+      expect(text('crane at the dock (simulated)')).toExist(),
+      expect(text('nothing checks')).toExist(),
+      expect(text('Where the picture simplifies')).toExist(),
+      expect(text('Nothing physical moves. The crane is simulated.')).toExist(),
       expect(role('button', { name: /^Move the crate, move_crate/ })).toExist(),
-      expect(
-        text('only a read tells you whether the movement worked'),
-      ).toExist(),
-      expect(text('Sensor (simulated)')).toExist(),
+      expect(role('button', { name: /^Act: move_crate/ })).toExist(),
     )
   })
 
@@ -785,7 +785,42 @@ describe('the map and the new rungs', () => {
     scene(
       { update, view },
       given({ ...initialModel, screen: 'home' }),
-      expect(text('34 tools from every server, in 9 of 9 slots')).toExist(),
+      expect(text(/Every server’s tools in one room/)).toExist(),
+      expect(
+        role('button', {
+          name: /^Write one entry, write_entry, Ledger server/,
+        }),
+      ).toExist(),
+    )
+  })
+})
+
+describe('the workshop follows the build', () => {
+  test('the same board lands in a different slot when thinking is built differently', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, station: 'thinking' }),
+      expect(role('button', { name: /^Sequence: plan_steps/ })).toExist(),
+      expect(text(/Recording your steps reaches nothing outside/)).toExist(),
+    )
+    scene(
+      { update, view },
+      given({
+        ...initialModel,
+        station: 'thinking',
+        world: worldFor('calm', 'every-hop', 'package-cache', 'consult'),
+      }),
+      expect(role('button', { name: /^Delegate: plan_steps/ })).toExist(),
+      expect(text('expert (stand-in)')).toExist(),
+    )
+  })
+
+  test('a question goes back out through the desk', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, station: 'ask' }),
+      expect(text('← elicitation/create to you')).toExist(),
+      expect(text(/a server cannot reach you any other way/)).toExist(),
     )
   })
 })

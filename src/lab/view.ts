@@ -927,11 +927,11 @@ const workbenchView = (model: Model, h: H): Html =>
         onSome: specimen =>
           specimenView(specimen, stationTitle(model.station), h),
       }),
-      benchToolsView(model, h),
       toolbenchView(
         model,
         {
           story: storyCardView(model, h),
+          controls: benchToolsView(model, h),
           material: benchView(model, h),
           result:
             model.station === 'code-mode' &&

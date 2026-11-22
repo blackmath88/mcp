@@ -13,7 +13,7 @@ describe('the map of a tool list', () => {
   })
 
   test('every rung has at least one of the lab’s tools', () => {
-    const used = new Set(catalogue.map(capability => moduleOf[capability.name]))
+    const used = new Set(catalogue.map(capability => moduleOf(capability.name)))
     expect(modules.filter(module => !used.has(module.id))).toEqual([])
   })
 
@@ -22,7 +22,7 @@ describe('the map of a tool list', () => {
       .filter(capability => capability.specimen === 'arm')
       .map(capability => ({
         name: capability.name,
-        module: moduleOf[capability.name],
+        module: moduleOf(capability.name),
         claims:
           profile([listedFromCatalogue(capability)]).tools[0]?.claims ?? [],
       }))
@@ -53,6 +53,6 @@ describe('the map of a tool list', () => {
         family: 'change',
         familyBasis: 'not declared read-only',
       }).module,
-    ).toBe('world')
+    ).toBe('act')
   })
 })

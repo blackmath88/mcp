@@ -3381,3 +3381,356 @@ textarea.console-text {
   font-size: 20px;
   color: var(--amber);
 }
+
+/* THE WORKSHOP CANVAS */
+.ws-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--bd);
+  border-radius: 16px;
+  background: var(--bg);
+}
+.ws-canvas {
+  display: block;
+  width: 100%;
+  min-width: 720px;
+  height: auto;
+}
+.ws-yard {
+  fill: var(--canvas);
+}
+.ws-host rect {
+  fill: var(--fg);
+}
+.ws-ico {
+  fill: none;
+  stroke: var(--bd);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.ws-ico.on {
+  stroke: var(--bg);
+  stroke-width: 1.5;
+}
+.ws-host-name {
+  font: 600 14px var(--sans);
+  fill: var(--bg);
+}
+.ws-host-sub {
+  font: 400 10.5px var(--sans);
+  fill: var(--bg);
+  opacity: 0.7;
+}
+.ws-wire {
+  stroke: var(--bd);
+  stroke-width: 2;
+  fill: none;
+}
+.ws-lobby {
+  fill: var(--bg);
+  stroke: var(--bd);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 5;
+}
+.ws-zone {
+  font: 600 11px var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: var(--fg2);
+}
+.ws-sub {
+  font: 400 10.5px var(--sans);
+  fill: var(--fg2);
+}
+.ws-board rect {
+  fill: var(--fg);
+}
+.ws-board-head {
+  font: 600 10px var(--mono);
+  fill: #34d399;
+}
+.ws-board-item {
+  font: 400 10px var(--mono);
+  fill: var(--bg);
+}
+.ws-board.copy rect {
+  fill: var(--bg);
+  stroke: var(--fg2);
+  stroke-dasharray: 3 3;
+}
+.ws-board.copy .ws-board-item,
+.ws-board.copy .ws-board-head {
+  fill: var(--fg2);
+}
+.ws-desk-msg {
+  font: 500 10.5px var(--mono);
+  fill: var(--amber);
+}
+.ws-wall {
+  fill: none;
+  stroke: var(--fg2);
+  stroke-width: 3;
+}
+.ws-furn {
+  fill: var(--canvas);
+  stroke: var(--bd);
+  stroke-width: 1.5;
+}
+.ws-furn-label {
+  font: 500 11px var(--sans);
+  fill: var(--fg2);
+}
+.ws-flow {
+  fill: none;
+  stroke: var(--pri);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 6 7;
+  opacity: 0.55;
+}
+.ws-flow.out {
+  stroke-dasharray: 2 6;
+  stroke-width: 2;
+}
+.ws-flow.back {
+  stroke: var(--amber);
+}
+.ws-flow.hot {
+  opacity: 1;
+  stroke-width: 3.5;
+  animation: ws-run 1.1s linear infinite;
+}
+@keyframes ws-run {
+  to {
+    stroke-dashoffset: -26;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ws-flow.hot {
+    animation: none;
+  }
+}
+.ws-gate {
+  fill: var(--amber);
+}
+.ws-gate-label {
+  font: 500 10.5px var(--sans);
+  fill: var(--amber);
+}
+.ws-slot-box {
+  fill: var(--bg);
+  stroke: var(--bd);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+.ws-name {
+  font: 500 12px var(--sans);
+  fill: var(--fg2);
+}
+.ws-slot.ghost .ws-name {
+  fill: var(--bd);
+}
+.ws-slot.lit .ws-slot-box {
+  stroke: var(--pri);
+  stroke-dasharray: none;
+  fill: color-mix(in srgb, var(--pri) 10%, var(--bg));
+}
+.ws-slot.lit .ws-ico {
+  stroke: var(--fg);
+}
+.ws-slot.lit .ws-name {
+  fill: var(--fg);
+}
+.ws-slot[role='button'] {
+  cursor: pointer;
+}
+.ws-slot[role='button']:focus-visible .ws-slot-box {
+  stroke-width: 3;
+}
+.ws-slot.picked .ws-slot-box {
+  stroke-width: 3;
+}
+.ws-slot.active .ws-slot-box {
+  stroke-width: 3;
+  fill: color-mix(in srgb, var(--pri) 22%, var(--bg));
+}
+.ws-slot.working .ws-slot-box {
+  animation: ws-pulse 1s ease-in-out infinite;
+}
+@keyframes ws-pulse {
+  50% {
+    stroke-width: 6;
+  }
+}
+.ws-badge {
+  fill: var(--pri);
+}
+.ws-count {
+  font: 600 10px var(--mono);
+  fill: var(--bg);
+}
+.ws-nb circle {
+  fill: var(--bg);
+  stroke: var(--bd);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 4;
+}
+.ws-nb .ws-name {
+  fill: var(--bd);
+}
+.ws-nb.lit circle {
+  stroke: var(--pri);
+  stroke-dasharray: none;
+  fill: color-mix(in srgb, var(--pri) 10%, var(--bg));
+}
+.ws-nb.lit .ws-ico {
+  stroke: var(--fg);
+}
+.ws-nb.lit .ws-name {
+  fill: var(--fg);
+}
+.ws-nb.hot circle {
+  stroke-width: 3;
+}
+.ws-fog {
+  fill: var(--fg);
+  opacity: 0.07;
+}
+.ws-fog-text {
+  font: 600 18px var(--sans);
+  fill: var(--fg2);
+}
+.ws-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.ws-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px 3px 4px;
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  background: var(--bg);
+  font: 12px var(--mono);
+  color: var(--fg);
+}
+button.ws-chip {
+  cursor: pointer;
+}
+.ws-chip .px {
+  width: 20px;
+  height: 20px;
+}
+.ws-chip[aria-pressed='true'] {
+  border-color: var(--pri);
+  background: var(--prisub);
+}
+.ws-chip.active {
+  border-color: var(--pri);
+  box-shadow: 0 0 0 2px var(--prisub);
+}
+.ws-chip-slot {
+  font: 500 11px var(--sans);
+  color: var(--fg2);
+}
+.ws-noicon {
+  width: 18px;
+  text-align: center;
+  color: var(--fg2);
+}
+.ws-notes {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--amber);
+  background: var(--ambersub);
+  border-radius: 0 10px 10px 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fg3);
+}
+.ws-notes-head {
+  font-weight: 600;
+  color: var(--amber);
+  font-size: 12px;
+}
+.ws-notes ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+.ws-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  color: var(--fg2);
+}
+.ws-key::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  margin-right: 5px;
+  vertical-align: -1px;
+  border-radius: 3px;
+}
+.ws-key.lit::before {
+  border: 1.5px solid var(--pri);
+}
+.ws-key.ghost::before {
+  border: 1.5px dashed var(--fg2);
+}
+.ws-key.flow::before {
+  height: 0;
+  border-top: 2px dashed var(--pri);
+}
+.ws-key.back::before {
+  height: 0;
+  border-top: 2px dashed var(--amber);
+}
+.ws-source {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+
+/* Canvas text sized for a bench column (the canvas is drawn at 1240 units). */
+.ws-host-name {
+  font-size: 17px;
+}
+.ws-host-sub,
+.ws-sub,
+.ws-zone {
+  font-size: 13px;
+}
+.ws-board-head,
+.ws-board-item,
+.ws-desk-msg {
+  font-size: 12.5px;
+}
+.ws-furn-label,
+.ws-name {
+  font-size: 14px;
+}
+.ws-gate-label {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.ws-count {
+  font-size: 12px;
+}
+.ws-fog-text {
+  font-size: 22px;
+}
+.ws-slot.ghost .ws-name,
+.ws-nb:not(.lit) .ws-name {
+  fill: color-mix(in srgb, var(--fg2) 55%, var(--bg));
+}
+.ws-slot.ghost .ws-ico,
+.ws-nb:not(.lit) .ws-ico {
+  stroke: color-mix(in srgb, var(--fg2) 45%, var(--bg));
+}

@@ -164,6 +164,19 @@ Owner: "keep the map … the whole thing we are trying to do is a modular look o
 - Two new servers fill the empty rungs: the cart server (rung 2) asks over real MCP elicitation; the crane server (rung 9) is a labelled simulation. No garden toy.
 - Proposed, not decided: whether a tool may sit in two slots (reserve_cart both asks and writes).
 
+## D21 — The workshop canvas is the centerpiece of every specimen
+
+Status: owner direction, 2026-11-22. Implemented. Replaces D20's staircase drawing; keeps its nine slots and route.
+
+Owner liked prototype C (a room), asked that MCP be the entrance rather than the room, that the things tools reach be drawn outside, and that the canvas be the centerpiece of each specimen, with disclaimer notes where the picture is not correct.
+
+- You and the AI app outside. MCP is the front desk; its board is the tools/list answer. Everything else crossing the desk is listed under it (roots in, elicitation and app views out, a program carried in).
+- The server's workshop: Read and Write on the shelf, Compute, Sequence and Invent on the bench, Delegate at the phone, Act at the loading dock, Ask and Share by the desk because they go back out to you.
+- Neighbours outside, named per server; rules in wall openings drawn as gates (robots.txt, allowed folders, the partial view, the sensor).
+- Slots can depend on the build (thinking, cart). Building variants: a copy of the board (CLI), two visitors (local/remote), several rooms behind one desk (gateway), a fogged room (a pasted list).
+- Each bench lists "Where the picture simplifies" when the drawing bends the truth.
+- Review of every specimen: `docs/research/2026-11-22-workshop-map-use-cases.md`.
+
 ## Still undecided
 
 Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.

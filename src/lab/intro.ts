@@ -100,7 +100,7 @@ export const introView = (model: Model, h: H): Html =>
             [h.Class('intro-map-cap')],
             [
               h.b([], ['The first thing a server does is hand over a list. ']),
-              'The AI app asks “what tools do you have?” (tools/list) and the server answers with names, inputs and descriptions. This lab draws that answer as a map with nine slots, one for each kind of thing a tool can be, from a simple read to a physical action. Every server lights the slots it offers; the rest stay empty. Learn the shape once, and every server after that reads at a glance.',
+              'The AI app asks “what tools do you have?” (tools/list) and the server answers with names, inputs and descriptions. Here every server is drawn as the same building: you and the AI app outside, MCP as the front desk where that list hangs, and behind it the server’s workshop with nine places a tool can be, from reading a record to moving something in the world. Outside its walls is everything the tools reach. Each step of the route lights up one server.',
             ],
           ),
           mcpMapView(emptyMap(), h),

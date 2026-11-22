@@ -47,7 +47,7 @@ const familyMeans = (family: Family): string =>
   )
 
 export const placeOnAtlas = (capability: Capability): string => {
-  const module = modules.find(entry => entry.id === moduleOf[capability.name])
+  const module = modules.find(entry => entry.id === moduleOf(capability.name))
   return module === undefined ? '' : `slot ${module.rung}, ${module.name}`
 }
 

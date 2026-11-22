@@ -1,378 +1,682 @@
-import { Array, Option, pipe } from 'effect'
+import { Array, Option } from 'effect'
 import { type Html, type HtmlBuilder } from 'foldkit/html'
 
 import { type CapabilityName, catalogue } from '../domain/capabilities.ts'
 import type { ForeignTool } from '../domain/foreign.ts'
-import { listedFromCatalogue, profile } from '../domain/lens.ts'
 import {
-  type Interaction,
   type ModuleId,
-  cannotSeeInList,
+  type NeighbourId,
   guessModule,
-  interactionsOf,
-  moduleOf,
   modules,
+  neighbourIds,
+  neighbourNames,
+  placeOf,
 } from '../domain/modules.ts'
-import type { ComponentId } from '../domain/services.ts'
 import { beltOf, calledTools } from './belt.ts'
-import { componentNames, componentsOf } from './components.ts'
-import { flowOf } from './flow.ts'
 import { iconView } from './icons.ts'
 import { Message } from './message.ts'
 import { type Model, RunState } from './model.ts'
 import { serverNames } from './names.ts'
-import { finishedRecord } from './update.ts'
+import { type Scene, allScene, darkScene, sceneOf } from './scenes.ts'
 
 type H = HtmlBuilder<Message>
 
-// THE MAP
+// THE WORKSHOP CANVAS
 //
-// One fixed canvas for every server: the nine modules of the ladder, laid out
-// as a staircase that forks after the application. A server's tool list
-// lights the modules it offers; the others stay as blurred outlines, so the
-// shape of a server shows at a glance and the next one can be compared with
-// it. Lines between lit modules say what the combination can do.
+// You and the AI app outside on the left. MCP is the front desk, its board
+// the tools/list answer. Behind it the server's workshop: nine slots where
+// you would expect them. Outside the walls, the neighbours the tools reach.
+// A call is drawn as desk → slot → neighbour. Amber marks a rule in a wall
+// opening, or something that goes back out to you through the desk.
 
 export type MapTool = Readonly<{
   key: string
   label: string
+  title: string
   icon: Option.Option<CapabilityName>
-  module: ModuleId
-  note: string
+  slot: ModuleId
+  reach: ReadonlyArray<NeighbourId>
   aria: string
   message: Option.Option<Message>
   isSelected: boolean
   isCalled: boolean
   isActive: boolean
-  isKin?: boolean
-}>
-
-export type MapBehind = Readonly<{
-  name: string
-  reached: boolean
-  changed: boolean
-  failed: boolean
 }>
 
 export type MapInput = Readonly<{
   mode: 'server' | 'all' | 'foreign' | 'empty'
   title: string
-  source: string
   tools: ReadonlyArray<MapTool>
-  interactions: ReadonlyArray<Interaction>
-  behind: Option.Option<ReadonlyArray<MapBehind>>
+  scene: Scene
   isWorking: boolean
 }>
 
-// LAYOUT, in canvas units. Position carries no measurement.
+// GEOMETRY, in canvas units. Places carry meaning, not measurement.
 
-const WIDTH = 1180
-const HEIGHT = 720
-const CARD_W = 150
-const CARD_H = 168
+const VIEW = { w: 1240, h: 800 }
+const ROOM = { x: 380, y: 130, w: 600, h: 530 }
+const SLOT = 64
+const DOOR = { x: 300, y: 360 }
 
-const at: Record<ModuleId, Readonly<{ x: number; y: number }>> = {
-  read: { x: 10, y: 530 },
-  ask: { x: 170, y: 460 },
-  write: { x: 330, y: 390 },
-  operate: { x: 490, y: 320 },
-  workflow: { x: 650, y: 250 },
-  app: { x: 810, y: 180 },
-  invent: { x: 1020, y: 10 },
-  delegate: { x: 1020, y: 262 },
-  world: { x: 1020, y: 514 },
+const slotAt: Record<ModuleId, readonly [number, number]> = {
+  read: [ROOM.x + 160, ROOM.y + 66],
+  write: [ROOM.x + 420, ROOM.y + 66],
+  compute: [ROOM.x + 230, ROOM.y + 260],
+  sequence: [ROOM.x + 320, ROOM.y + 260],
+  invent: [ROOM.x + 410, ROOM.y + 260],
+  delegate: [ROOM.x + ROOM.w - 38, ROOM.y + 220],
+  ask: [ROOM.x + 120, ROOM.y + 180],
+  share: [ROOM.x + 120, ROOM.y + 330],
+  act: [ROOM.x + 450, ROOM.y + ROOM.h - 90],
 }
 
-const percent = (value: number, of: number): string =>
-  `${((value / of) * 100).toFixed(3)}%`
+const neighbourAt: Record<NeighbourId, readonly [number, number]> = {
+  web: [ROOM.x + 80, 50],
+  files: [ROOM.x + 240, 50],
+  store: [ROOM.x + 420, 50],
+  llm: [1120, ROOM.y + 140],
+  program: [1120, ROOM.y + 330],
+  world: [ROOM.x + 450, 740],
+}
 
-const centre = (id: ModuleId) => ({
-  x: at[id].x + CARD_W / 2,
-  y: at[id].y + CARD_H / 2,
-})
+const openingAt: Record<NeighbourId, readonly [number, number]> = {
+  web: [ROOM.x + 80, ROOM.y],
+  files: [ROOM.x + 240, ROOM.y],
+  store: [ROOM.x + 420, ROOM.y],
+  llm: [ROOM.x + ROOM.w, ROOM.y + 220],
+  program: [ROOM.x + ROOM.w, ROOM.y + 220],
+  world: [ROOM.x + 450, ROOM.y + ROOM.h],
+}
 
-const ladderOrder: ReadonlyArray<ModuleId> = [
-  'read',
-  'ask',
-  'write',
-  'operate',
-  'workflow',
-  'app',
-]
+// ICONS: line drawings on a 24 grid, one per slot and per neighbour.
 
-const groundView = (input: MapInput, h: H): Html => {
-  const steps = Array.zip(ladderOrder, ladderOrder.slice(1))
-  const forks: ReadonlyArray<ModuleId> = ['invent', 'delegate', 'world']
-  return h.svg(
+const circle = (cx: number, cy: number, r: number): string =>
+  `M ${cx - r} ${cy} a ${r} ${r} 0 1 0 ${2 * r} 0 a ${r} ${r} 0 1 0 ${-2 * r} 0`
+const ellipse = (cx: number, cy: number, rx: number, ry: number): string =>
+  `M ${cx - rx} ${cy} a ${rx} ${ry} 0 1 0 ${2 * rx} 0 a ${rx} ${ry} 0 1 0 ${-2 * rx} 0`
+const box = (x: number, y: number, w: number, h: number): string =>
+  `M ${x + 2} ${y} h ${w - 4} q 2 0 2 2 v ${h - 4} q 0 2 -2 2 h ${-(w - 4)} q -2 0 -2 -2 v ${-(h - 4)} q 0 -2 2 -2 z`
+
+const slotIcon: Record<ModuleId, ReadonlyArray<string>> = {
+  read: ['M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z', circle(12, 12, 2.6)],
+  ask: [
+    'M4 5h16v11H10l-4 4v-4H4z',
+    'M10 9a2 2 0 1 1 2.6 1.9c-.5.2-.6.6-.6 1.1',
+    'M12 14.2v.1',
+  ],
+  write: ['M4 20h4L19 9l-4-4L4 16z', 'M13 7l4 4'],
+  compute: [box(5, 3, 14, 18), 'M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2'],
+  sequence: [
+    'M4 6h3M4 12h3M4 18h3',
+    'M10 6h10M10 12h10M10 18h10',
+    'M7 6c2 0 1 6 3 6M7 12c2 0 1 6 3 6',
+  ],
+  share: [box(3, 4, 18, 12), 'M8 20h8M12 16v4', 'M8 9l2 3M14 8l2 3'],
+  invent: ['M8 7l-5 5 5 5M16 7l5 5-5 5', 'M13 5l-2 14'],
+  delegate: [
+    circle(7, 8, 3),
+    circle(17, 8, 3),
+    'M2 20c0-3 2.2-5 5-5s5 2 5 5M12 20c0-3 2.2-5 5-5s5 2 5 5',
+  ],
+  act: [
+    'M4 21h8M8 21v-6l5-6 4 3',
+    circle(8, 15, 1.4),
+    circle(13, 9, 1.4),
+    'M17 12v3h3v-3',
+  ],
+}
+
+const neighbourIcon: Record<
+  NeighbourId | 'you' | 'bot',
+  ReadonlyArray<string>
+> = {
+  web: [
+    circle(12, 12, 9),
+    'M3 12h18M12 3c3.5 3.5 3.5 14.5 0 18M12 3c-3.5 3.5-3.5 14.5 0 18',
+  ],
+  files: ['M3 6h7l2 2h9v11H3z', 'M3 10h18'],
+  store: [
+    ellipse(12, 6, 7, 3),
+    'M5 6v12c0 1.7 3 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3 3 7 3s7-1.3 7-3',
+  ],
+  llm: [box(5, 7, 14, 11), 'M12 3v4M9.5 11.5v1M14.5 11.5v1M9 15h6'],
+  program: [box(3, 4, 18, 16), 'M3 8h18M7 12l3 2-3 2M12 16h4'],
+  world: ['M3 8l9-5 9 5v8l-9 5-9-5z', 'M3 8l9 5 9-5M12 13v8'],
+  you: [circle(12, 8, 4), 'M4 21c0-4 3.6-7 8-7s8 3 8 7'],
+  bot: [box(5, 7, 14, 11), 'M12 3v4M9.5 11.5v1M14.5 11.5v1M9 15h6'],
+}
+
+const iconAt = (
+  paths: ReadonlyArray<string>,
+  x: number,
+  y: number,
+  scale: number,
+  className: string,
+  h: H,
+): Html =>
+  h.g(
     [
-      h.Class('mm-ground'),
-      h.ViewBox(`0 0 ${WIDTH} ${HEIGHT}`),
-      h.PreserveAspectRatio('none'),
-      h.AriaHidden(true),
-    ],
-    [
-      ...Array.map(steps, ([from, to]) =>
-        h.line([
-          h.Class('mm-stair'),
-          h.X1(String(at[from].x + CARD_W)),
-          h.Y1(String(at[from].y + 24)),
-          h.X2(String(at[to].x)),
-          h.Y2(String(at[to].y + 24)),
-        ]),
-      ),
-      ...Array.map(forks, to =>
-        h.path([
-          h.Class('mm-fork'),
-          h.D(
-            `M ${at.app.x + CARD_W} ${at.app.y + CARD_H / 2} C ${at.app.x + CARD_W + 40} ${at.app.y + CARD_H / 2}, ${at[to].x - 40} ${at[to].y + CARD_H / 2}, ${at[to].x} ${at[to].y + CARD_H / 2}`,
-          ),
-        ]),
-      ),
-      ...Array.map(input.interactions, edge =>
-        h.line([
-          h.Class(`mm-edge ${edge.isWarning ? 'warn' : ''}`),
-          h.X1(String(centre(edge.from).x)),
-          h.Y1(String(centre(edge.from).y)),
-          h.X2(String(centre(edge.to).x)),
-          h.Y2(String(centre(edge.to).y)),
-        ]),
+      h.Class(className),
+      h.Transform(
+        `translate(${x - 12 * scale} ${y - 12 * scale}) scale(${scale})`,
       ),
     ],
+    Array.map(paths, d => h.path([h.D(d)])),
   )
+
+const label = (
+  x: number,
+  y: number,
+  className: string,
+  value: string,
+  h: H,
+  anchor: 'start' | 'middle' | 'end' = 'middle',
+): Html =>
+  h.text(
+    [h.X(String(x)), h.Y(String(y)), h.Class(className), h.TextAnchor(anchor)],
+    [value],
+  )
+
+const curve = (
+  a: readonly [number, number],
+  b: readonly [number, number],
+): string => {
+  const mx = (a[0] + b[0]) / 2
+  return `M ${a[0]} ${a[1]} C ${mx} ${a[1]}, ${mx} ${b[1]}, ${b[0]} ${b[1]}`
 }
 
-const toolView = (input: MapInput, tool: MapTool, h: H): Html => {
-  const body = [
-    Option.match(tool.icon, {
-      onNone: () => h.span([h.Class('mm-noicon'), h.AriaHidden(true)], ['?']),
-      onSome: name => iconView(name, h),
-    }),
-    input.mode === 'all'
-      ? h.empty
-      : h.span([h.Class('mm-tname')], [tool.label.replaceAll('_', '_\u200b')]),
+const short = (value: string, max: number): string =>
+  value.length > max ? `${value.slice(0, max - 1)}…` : value
+
+// PARTS
+
+const outsideView = (input: MapInput, h: H): ReadonlyArray<Html> => {
+  const host = (y: number, name: string, sub: string) =>
+    h.g(
+      [h.Class('ws-host')],
+      [
+        h.rect([
+          h.X('20'),
+          h.Y(String(y)),
+          h.Width('150'),
+          h.Height('120'),
+          h.Rx('16'),
+        ]),
+        iconAt(neighbourIcon.bot, 95, y + 38, 1.6, 'ws-ico on', h),
+        label(95, y + 82, 'ws-host-name', name, h),
+        label(95, y + 100, 'ws-host-sub', sub, h),
+      ],
+    )
+  const asksYou = input.tools.some(
+    tool => tool.slot === 'ask' || tool.slot === 'share',
+  )
+  return [
+    h.path([h.Class('ws-wire'), h.D('M 95 234 V 300')]),
+    h.g(
+      [h.Class(`ws-nb ${asksYou ? 'lit' : ''}`)],
+      [
+        h.circle([h.Cx('95'), h.Cy('200'), h.R('30')]),
+        iconAt(neighbourIcon.you, 95, 200, 1.17, 'ws-ico', h),
+        label(135, 204, 'ws-name', 'you', h, 'start'),
+      ],
+    ),
+    host(300, 'AI app', 'the model stays here'),
+    input.scene.building === 'shared'
+      ? host(470, 'AI app B', 'another visitor')
+      : h.empty,
   ]
-  const className = `mm-tool ${tool.isActive ? 'active' : ''} ${tool.isCalled ? 'called' : ''} ${tool.isKin === true ? 'kin' : ''}`
-  return Option.match(tool.message, {
-    onNone: () =>
-      h.keyed('span')(
-        tool.key,
-        [h.Class(className), h.Title(`${tool.label} · ${tool.note}`)],
-        body,
-      ),
-    onSome: message =>
-      h.keyed('button')(
-        tool.key,
-        [
-          h.Type('button'),
-          h.Class(className),
-          h.Title(`${tool.label} · ${tool.note}`),
-          h.AriaLabel(tool.aria),
-          h.AriaPressed(tool.isSelected ? 'true' : 'false'),
-          h.OnClick(message),
-        ],
-        body,
-      ),
-  })
 }
 
-const moduleView = (input: MapInput, id: ModuleId, h: H): Html => {
-  const module = Option.getOrThrow(
-    Array.findFirst(modules, entry => entry.id === id),
-  )
-  const inside = Array.filter(input.tools, tool => tool.module === id)
-  const isLit = inside.length > 0
-  const isActive = inside.some(tool => tool.isActive)
-  const unseen = input.mode === 'foreign' ? cannotSeeInList[id] : undefined
-  return h.keyed('div')(
-    id,
+const boardView = (
+  x: number,
+  y: number,
+  names: ReadonlyArray<string>,
+  head: string,
+  className: string,
+  h: H,
+): Html => {
+  const shown = names.slice(0, 12)
+  const extra = names.length - shown.length
+  return h.g(
+    [h.Class(className)],
     [
-      h.Class(
-        `mm-mod ${isLit ? 'lit' : 'ghost'} ${isActive ? 'active' : ''} ${isActive && input.isWorking ? 'working' : ''} ${unseen === undefined ? '' : 'unseen'}`,
-      ),
-      h.Style({
-        left: percent(at[id].x, WIDTH),
-        top: percent(at[id].y, HEIGHT),
-        width: percent(CARD_W, WIDTH),
-        height: percent(CARD_H, HEIGHT),
-      }),
-      h.AriaLabel(
-        `${module.rung}, ${module.name}: ${isLit ? `${inside.length} tool${inside.length === 1 ? '' : 's'}` : 'not on this server'}`,
-      ),
-    ],
-    [
-      h.div(
-        [h.Class('mm-head')],
-        [
-          h.span([h.Class('mm-rung')], [String(module.rung)]),
-          h.b([], [module.name]),
-        ],
-      ),
-      h.p([h.Class('mm-q')], [module.question]),
-      isLit
-        ? h.div(
-            [h.Class(`mm-tools ${input.mode === 'all' ? 'icons' : ''}`)],
-            Array.map(inside, tool => toolView(input, tool, h)),
-          )
-        : h.p(
-            [h.Class('mm-off')],
-            [
-              unseen ??
-                (input.mode === 'empty'
-                  ? module.means
-                  : `not on this server · ${module.means}`),
-            ],
-          ),
-    ],
-  )
-}
-
-const branchLabels = (h: H): ReadonlyArray<Html> =>
-  Array.flatMap(modules, module =>
-    module.branch === ''
-      ? []
-      : [
-          h.span(
-            [
-              h.Class('mm-branch'),
-              h.Style({
-                right: percent(WIDTH - at[module.id].x - CARD_W, WIDTH),
-                top: percent(at[module.id].y + CARD_H + 4, HEIGHT),
-              }),
-            ],
-            [module.branch],
-          ),
-        ],
-  )
-
-const chainView = (input: MapInput, h: H): Html =>
-  h.div(
-    [h.Class('mm-chain'), h.AriaLabel('Where this map sits')],
-    [
-      h.span([h.Class('mm-link you')], ['You']),
-      h.span([h.Class('mm-arrow'), h.AriaHidden(true)], ['→']),
-      h.span([h.Class('mm-link host')], ['AI app · the host']),
-      h.span([h.Class('mm-arrow'), h.AriaHidden(true)], ['→ MCP →']),
-      h.span([h.Class('mm-link server')], [input.title]),
-      h.span(
-        [h.Class('mm-arrow'), h.AriaHidden(true)],
-        ['answers tools/list with'],
-      ),
-      h.span([h.Class('mm-link list')], ['this map']),
-      h.span([h.Class('mm-arrow'), h.AriaHidden(true)], ['→']),
-      h.span([h.Class('mm-link behind')], ['what is behind it']),
-    ],
-  )
-
-const behindView = (input: MapInput, h: H): Html =>
-  h.div(
-    [h.Class('mm-behind')],
-    [
-      h.span([h.Class('eyebrow')], ['Behind the list']),
-      ...Option.match(input.behind, {
-        onNone: () => [
-          h.span(
-            [h.Class('mm-unknown')],
-            [
-              input.mode === 'foreign'
-                ? 'Unknown. A tool list does not say what runs behind it.'
-                : input.mode === 'empty'
-                  ? 'Each server has its own parts. Open one to see them.'
-                  : 'Pick a server to see its parts.',
-            ],
-          ),
-        ],
-        onSome: parts =>
-          Array.map(parts, (part, index) =>
-            h.keyed('span')(
-              `${index}-${part.name}`,
-              [
-                h.Class(
-                  `mm-part ${part.reached ? 'reached' : ''} ${part.changed ? 'changed' : ''} ${part.failed ? 'failed' : ''}`,
-                ),
-              ],
-              [part.name],
-            ),
-          ),
-      }),
-    ],
-  )
-
-const legendView = (input: MapInput, h: H): Html =>
-  h.div(
-    [h.Class('mm-legend')],
-    [
-      h.span([h.Class('mm-key lit')], ['offered']),
-      h.span([h.Class('mm-key ghost')], ['not offered']),
-      h.span([h.Class('mm-key edge')], ['can combine']),
-      h.span([h.Class('mm-key edge warn')], ['combination to watch']),
-      h.span([h.Class('mm-source')], [input.source]),
-    ],
-  )
-
-const edgeListView = (input: MapInput, h: H): Html =>
-  Array.match(input.interactions, {
-    onEmpty: () => h.empty,
-    onNonEmpty: edges =>
-      h.ul(
-        [h.Class('mm-edges')],
-        Array.map(edges, edge =>
-          h.keyed('li')(
-            `${edge.rule}-${edge.from}-${edge.to}`,
-            [h.Class(edge.isWarning ? 'warn' : '')],
-            [
-              h.b([], [`${moduleName(edge.from)} + ${moduleName(edge.to)}: `]),
-              edge.label,
-              h.span([h.Class('mm-rule')], [` · ${edge.rule}, inferred`]),
-            ],
-          ),
+      h.rect([
+        h.X(String(x)),
+        h.Y(String(y)),
+        h.Width('162'),
+        h.Height(String(34 + shown.length * 17 + (extra > 0 ? 17 : 0))),
+        h.Rx('6'),
+      ]),
+      label(x + 10, y + 20, 'ws-board-head', head, h, 'start'),
+      ...Array.map(shown, (name, index) =>
+        label(
+          x + 10,
+          y + 40 + index * 17,
+          'ws-board-item',
+          short(name, 20),
+          h,
+          'start',
         ),
       ),
-  })
-
-const moduleName = (id: ModuleId): string =>
-  pipe(
-    modules,
-    Array.findFirst(module => module.id === id),
-    Option.match({ onNone: () => id, onSome: module => module.name }),
-  )
-
-const summaryView = (input: MapInput, h: H): Html => {
-  const lit = Array.dedupe(Array.map(input.tools, tool => tool.module))
-  return h.div(
-    [h.Class('mm-summary')],
-    [
-      h.p(
-        [h.Class('mm-count')],
-        [
-          input.mode === 'empty'
-            ? 'Nine slots. Nothing lit yet.'
-            : input.mode === 'all'
-              ? `${input.tools.length} tools from every server, in ${lit.length} of 9 slots`
-              : `${input.tools.length} tool${input.tools.length === 1 ? '' : 's'} in ${lit.length} of 9 slots`,
-        ],
-      ),
-      legendView(input, h),
-      edgeListView(input, h),
-      behindView(input, h),
+      extra > 0
+        ? label(
+            x + 10,
+            y + 40 + shown.length * 17,
+            'ws-board-item',
+            `+${extra} more`,
+            h,
+            'start',
+          )
+        : h.empty,
     ],
   )
 }
+
+const deskView = (input: MapInput, h: H): ReadonlyArray<Html> => {
+  const names = Array.map(input.tools, tool => tool.label)
+  return [
+    h.rect([
+      h.Class('ws-lobby'),
+      h.X('205'),
+      h.Y('170'),
+      h.Width('175'),
+      h.Height('450'),
+      h.Rx('4'),
+    ]),
+    label(292, 196, 'ws-zone', 'MCP', h),
+    label(292, 212, 'ws-sub', 'the front desk', h),
+    boardView(
+      211,
+      226,
+      Array.isReadonlyArrayEmpty(names) ? ['(nothing yet)'] : names,
+      'tools/list',
+      'ws-board',
+      h,
+    ),
+    ...Array.map(input.scene.desk, (message, index) =>
+      label(292, 530 + index * 18, 'ws-desk-msg', message, h),
+    ),
+    label(292, 604, 'ws-sub', 'the AI sees only the board', h),
+    h.path([h.Class('ws-flow'), h.D(`M 170 360 H ${DOOR.x}`)]),
+    input.scene.building === 'shared'
+      ? h.path([
+          h.Class('ws-flow'),
+          h.D(`M 170 530 C 240 530, 240 ${DOOR.y}, ${DOOR.x} ${DOOR.y}`),
+        ])
+      : h.empty,
+    input.scene.building === 'copy'
+      ? h.g(
+          [],
+          [
+            boardView(
+              28,
+              470,
+              [...names.slice(0, 3), '(schema at copy time)'],
+              'generated CLI',
+              'ws-board copy',
+              h,
+            ),
+            label(98, 580, 'ws-sub', 'a copy, taken away', h),
+          ],
+        )
+      : h.empty,
+  ]
+}
+
+const roomView = (input: MapInput, h: H): ReadonlyArray<Html> => {
+  const { x, y, w, h: height } = ROOM
+  const furniture: ReadonlyArray<readonly [number, number, number, number]> = [
+    [x + 30, y + 46, w - 60, 40],
+    [x + 170, y + 200, 300, 120],
+    [x + w - 60, y + 140, 44, 160],
+    [x + 330, y + height - 24, 240, 14],
+  ]
+  return [
+    h.path([
+      h.Class('ws-wall'),
+      h.D(
+        [
+          `M ${x} ${y + 200} V ${y} H ${x + 40}`,
+          `M ${x + 120} ${y} H ${x + 200}`,
+          `M ${x + 280} ${y} H ${x + 380}`,
+          `M ${x + 460} ${y} H ${x + w} V ${y + 140}`,
+          `M ${x + w} ${y + 300} V ${y + height} H ${x + 490}`,
+          `M ${x + 410} ${y + height} H ${x} V ${y + 290}`,
+        ].join(' '),
+      ),
+    ]),
+    label(
+      x + 16,
+      y + height - 14,
+      'ws-zone',
+      input.scene.building === 'mall'
+        ? 'Several servers behind one desk'
+        : `${input.title} · its workshop`,
+      h,
+      'start',
+    ),
+    ...Array.map(furniture, ([fx, fy, fw, fh]) =>
+      h.rect([
+        h.Class('ws-furn'),
+        h.X(String(fx)),
+        h.Y(String(fy)),
+        h.Width(String(fw)),
+        h.Height(String(fh)),
+        h.Rx('8'),
+      ]),
+    ),
+    label(x + w / 2, y + 108, 'ws-furn-label', 'shelf · records', h),
+    label(x + 320, y + 340, 'ws-furn-label', 'workbench', h),
+    label(x + w - 38, y + 318, 'ws-furn-label', 'phone', h),
+    label(x + 450, y + height - 32, 'ws-furn-label', 'loading dock', h),
+    label(x + 120, y + 400, 'ws-furn-label', 'back out through the desk', h),
+  ]
+}
+
+type Line = Readonly<{ d: string; className: string; key: string }>
+
+const linesOf = (input: MapInput): ReadonlyArray<Line> => {
+  const slots = Array.dedupe(Array.map(input.tools, tool => tool.slot))
+  const hotSlots = Array.dedupe(
+    Array.flatMap(input.tools, tool => (tool.isActive ? [tool.slot] : [])),
+  )
+  const inLines = Array.map(slots, slot => ({
+    key: `in-${slot}`,
+    d: curve([DOOR.x, DOOR.y], slotAt[slot]),
+    className: `ws-flow ${slot === 'ask' || slot === 'share' ? 'back' : ''} ${hotSlots.includes(slot) ? 'hot' : ''}`,
+  }))
+  const pairs = Array.flatMap(slots, slot =>
+    Array.map(
+      Array.dedupe(
+        Array.flatMap(input.tools, tool =>
+          tool.slot === slot ? tool.reach : [],
+        ),
+      ),
+      neighbour => ({ slot, neighbour }),
+    ),
+  )
+  const outLines = Array.map(pairs, pair => {
+    const [sx, sy] = slotAt[pair.slot]
+    const [nx, ny] = neighbourAt[pair.neighbour]
+    const hot = input.tools.some(
+      tool =>
+        tool.isActive &&
+        tool.slot === pair.slot &&
+        tool.reach.includes(pair.neighbour),
+    )
+    return {
+      key: `out-${pair.slot}-${pair.neighbour}`,
+      d: `M ${sx} ${sy} L ${nx} ${ny}`,
+      className: `ws-flow out ${hot ? 'hot' : ''}`,
+    }
+  })
+  return [...inLines, ...outLines]
+}
+
+const gatesView = (input: MapInput, h: H): ReadonlyArray<Html> =>
+  Array.flatMap(neighbourIds, neighbour => {
+    const text = input.scene.gates[neighbour]
+    if (
+      text === undefined ||
+      !input.tools.some(tool => tool.reach.includes(neighbour))
+    ) {
+      return []
+    }
+    const [gx, gy] = openingAt[neighbour]
+    const across = gy === ROOM.y || gy === ROOM.y + ROOM.h
+    return [
+      h.rect([
+        h.Class('ws-gate'),
+        h.X(String(across ? gx - 30 : gx - 5)),
+        h.Y(String(across ? gy - 5 : gy - 30)),
+        h.Width(across ? '60' : '10'),
+        h.Height(across ? '10' : '60'),
+        h.Rx('3'),
+      ]),
+      label(
+        across ? gx + 36 : gx - 10,
+        across ? gy + (gy === ROOM.y ? -10 : -12) : gy - 38,
+        'ws-gate-label',
+        text,
+        h,
+        across ? 'start' : 'end',
+      ),
+    ]
+  })
+
+const slotView = (input: MapInput, id: ModuleId, h: H): Html => {
+  const module = modules.find(entry => entry.id === id)
+  const inside = Array.filter(input.tools, tool => tool.slot === id)
+  const isLit = inside.length > 0
+  const isActive = inside.some(tool => tool.isActive)
+  const isSelected = inside.some(tool => tool.isSelected)
+  const [x, y] = slotAt[id]
+  const half = SLOT / 2
+  const target = inside.find(tool => Option.isSome(tool.message))
+  const body = [
+    h.rect([
+      h.Class('ws-slot-box'),
+      h.X(String(x - half)),
+      h.Y(String(y - half)),
+      h.Width(String(SLOT)),
+      h.Height(String(SLOT)),
+      h.Rx('15'),
+    ]),
+    iconAt(slotIcon[id], x, y - 7, 1.25, 'ws-ico', h),
+    label(x, y + half - 9, 'ws-name', module?.word ?? id, h),
+    isLit
+      ? h.g(
+          [],
+          [
+            h.circle([
+              h.Class('ws-badge'),
+              h.Cx(String(x + half - 4)),
+              h.Cy(String(y - half + 4)),
+              h.R('10'),
+            ]),
+            label(
+              x + half - 4,
+              y - half + 7.5,
+              'ws-count',
+              String(inside.length),
+              h,
+            ),
+          ],
+        )
+      : h.empty,
+  ]
+  const className = `ws-slot ${isLit ? 'lit' : 'ghost'} ${isActive ? 'active' : ''} ${isActive && input.isWorking ? 'working' : ''} ${isSelected ? 'picked' : ''}`
+  const name = `${module?.word ?? id}: ${isLit ? inside.map(tool => tool.label).join(', ') : 'not on this server'}`
+  return target === undefined
+    ? h.keyed('g')(id, [h.Class(className), h.AriaLabel(name)], body)
+    : h.keyed('g')(
+        id,
+        [
+          h.Class(className),
+          h.Role('button'),
+          h.Tabindex(0),
+          h.AriaLabel(`${name}. Select to look behind it.`),
+          ...Option.match(target.message, {
+            onNone: () => [],
+            onSome: message => [h.OnClick(message)],
+          }),
+        ],
+        body,
+      )
+}
+
+const neighbourView = (input: MapInput, id: NeighbourId, h: H): Html => {
+  const reaching = input.tools.filter(tool => tool.reach.includes(id))
+  const isLit = reaching.length > 0
+  const isHot = reaching.some(tool => tool.isActive)
+  const [x, y] = neighbourAt[id]
+  const name = isLit
+    ? (input.scene.names[id] ?? neighbourNames[id])
+    : neighbourNames[id]
+  return h.keyed('g')(
+    id,
+    [
+      h.Class(`ws-nb ${isLit ? 'lit' : ''} ${isHot ? 'hot' : ''}`),
+      h.AriaLabel(
+        `${name}: ${isLit ? `reached by ${reaching.map(tool => tool.label).join(', ')}` : 'not reached'}`,
+      ),
+    ],
+    [
+      h.circle([h.Cx(String(x)), h.Cy(String(y)), h.R('30')]),
+      iconAt(neighbourIcon[id], x, y, 1.17, 'ws-ico', h),
+      label(x, y + 48, 'ws-name', short(name, 30), h),
+    ],
+  )
+}
+
+const canvasView = (input: MapInput, h: H): Html =>
+  h.div(
+    [h.Class('ws-scroll')],
+    [
+      h.svg(
+        [
+          h.Class(`ws-canvas mode-${input.mode}`),
+          h.ViewBox(`0 0 ${VIEW.w} ${VIEW.h}`),
+          h.Role('group'),
+          h.AriaLabel(`The workshop of ${input.title}`),
+        ],
+        [
+          h.rect([
+            h.Class('ws-yard'),
+            h.X('4'),
+            h.Y('4'),
+            h.Width(String(VIEW.w - 8)),
+            h.Height(String(VIEW.h - 8)),
+            h.Rx('14'),
+          ]),
+          ...outsideView(input, h),
+          ...deskView(input, h),
+          ...roomView(input, h),
+          input.scene.building === 'dark'
+            ? h.g(
+                [],
+                [
+                  h.rect([
+                    h.Class('ws-fog'),
+                    h.X(String(ROOM.x + 4)),
+                    h.Y(String(ROOM.y + 4)),
+                    h.Width(String(ROOM.w - 8)),
+                    h.Height(String(ROOM.h - 8)),
+                    h.Rx('6'),
+                  ]),
+                  label(
+                    ROOM.x + ROOM.w / 2,
+                    ROOM.y + ROOM.h - 64,
+                    'ws-fog-text',
+                    'Unknown room',
+                    h,
+                  ),
+                ],
+              )
+            : h.empty,
+          ...Array.map(linesOf(input), line =>
+            h.keyed('path')(
+              line.key,
+              [h.Class(line.className), h.D(line.d)],
+              [],
+            ),
+          ),
+          ...gatesView(input, h),
+          ...Array.map(modules, module => slotView(input, module.id, h)),
+          ...Array.map(neighbourIds, id => neighbourView(input, id, h)),
+        ],
+      ),
+    ],
+  )
+
+const chipsView = (input: MapInput, h: H): Html =>
+  Array.match(input.tools, {
+    onEmpty: () => h.empty,
+    onNonEmpty: tools =>
+      h.div(
+        [h.Class('ws-chips'), h.AriaLabel('The tools on the board')],
+        Array.map(tools, tool => {
+          const body = [
+            Option.match(tool.icon, {
+              onNone: () => h.span([h.Class('ws-noicon')], ['?']),
+              onSome: name => iconView(name, h),
+            }),
+            h.span([h.Class('ws-chip-name')], [tool.label]),
+            h.span(
+              [h.Class('ws-chip-slot')],
+              [modules.find(m => m.id === tool.slot)?.word ?? ''],
+            ),
+          ]
+          const className = `ws-chip ${tool.isActive ? 'active' : ''} ${tool.isCalled ? 'called' : ''}`
+          return Option.match(tool.message, {
+            onNone: () =>
+              h.keyed('span')(
+                tool.key,
+                [h.Class(className), h.Title(tool.aria)],
+                body,
+              ),
+            onSome: message =>
+              h.keyed('button')(
+                tool.key,
+                [
+                  h.Type('button'),
+                  h.Class(className),
+                  h.AriaLabel(tool.aria),
+                  h.AriaPressed(tool.isSelected ? 'true' : 'false'),
+                  h.OnClick(message),
+                ],
+                body,
+              ),
+          })
+        }),
+      ),
+  })
+
+const notesView = (input: MapInput, h: H): Html =>
+  Array.match(input.scene.notes, {
+    onEmpty: () => h.empty,
+    onNonEmpty: notes =>
+      h.div(
+        [h.Class('ws-notes')],
+        [
+          h.span([h.Class('ws-notes-head')], ['Where the picture simplifies']),
+          h.ul(
+            [],
+            Array.map(notes, (note, index) =>
+              h.keyed('li')(`${index}`, [], [note]),
+            ),
+          ),
+        ],
+      ),
+  })
 
 export const mcpMapView = (input: MapInput, h: H): Html =>
   h.section(
+    [h.Class(`mcpmap mode-${input.mode}`), h.AriaLabel('The workshop map')],
     [
-      h.Class(`mcpmap mode-${input.mode}`),
-      h.AriaLabel('The map of a tool list'),
-    ],
-    [
-      chainView(input, h),
-      h.div(
-        [h.Class('mm-canvas')],
+      canvasView(input, h),
+      chipsView(input, h),
+      notesView(input, h),
+      h.p(
+        [h.Class('ws-legend')],
         [
-          groundView(input, h),
-          summaryView(input, h),
-          ...branchLabels(h),
-          ...Array.map(modules, module => moduleView(input, module.id, h)),
+          h.span([h.Class('ws-key lit')], ['offered']),
+          h.span([h.Class('ws-key ghost')], ['not offered']),
+          h.span([h.Class('ws-key flow')], ['a call']),
+          h.span(
+            [h.Class('ws-key back')],
+            ['back out to you / a rule in the wall'],
+          ),
+          h.span(
+            [h.Class('ws-source')],
+            [
+              input.mode === 'foreign'
+                ? 'slots guessed from the pasted list'
+                : input.mode === 'empty'
+                  ? 'no server yet'
+                  : 'slots and neighbours placed by the lab from its own source',
+            ],
+          ),
         ],
       ),
     ],
@@ -392,147 +696,88 @@ const activeName = (model: Model): Option.Option<string> =>
 export const emptyMap = (): MapInput => ({
   mode: 'empty',
   title: 'a server',
-  source: 'empty: no server yet',
   tools: [],
-  interactions: [],
-  behind: Option.none(),
+  scene: { names: {}, gates: {}, desk: [], building: 'room', notes: [] },
   isWorking: false,
 })
-
-const claimsOf = (name: CapabilityName) =>
-  pipe(
-    catalogue,
-    Array.findFirst(capability => capability.name === name),
-    Option.match({
-      onNone: () => [],
-      onSome: capability =>
-        profile([listedFromCatalogue(capability)]).tools[0]?.claims ?? [],
-    }),
-  )
 
 export const serverMap = (model: Model): MapInput => {
   const belt = beltOf(model)
   const called = calledTools(model.frames)
   const active = activeName(model)
-  const tools: ReadonlyArray<MapTool> = Array.map(belt.tools, capability => ({
-    key: capability.name,
-    label: capability.name,
-    icon: Option.some(capability.name),
-    module: moduleOf[capability.name],
-    note: capability.title,
-    aria: `${capability.title}, ${capability.name}`,
-    message: Option.some(Message.SelectedCapability({ name: capability.name })),
-    isSelected: Option.contains(model.maybeSelected, capability.name),
-    isCalled: called.includes(capability.name),
-    isActive: Option.contains(active, capability.name),
-  }))
-  const lit = Array.map(belt.tools, capability => ({
-    name: capability.name,
-    module: moduleOf[capability.name],
-    claims: claimsOf(capability.name),
-  }))
-  const maybeRecord = finishedRecord(model.run)
-  const reached: ReadonlyArray<
-    Readonly<{ component: ComponentId; changed: boolean; failed: boolean }>
-  > = Option.match(maybeRecord, {
-    onNone: () => [],
-    onSome: record => flowOf(record, record.events),
-  })
-  const parts = Array.filter(
-    componentsOf(model.station),
-    component => component !== 'adapter' && component !== 'catalogue',
-  )
   return {
     mode: 'server',
     title: `the ${serverNames[model.station]}`,
-    source:
-      belt.source === 'server'
-        ? 'lit from its tools/list answer in this tab · modules placed by the lab'
-        : 'lit from the lab’s catalogue · modules placed by the lab',
-    tools,
-    interactions: interactionsOf(lit),
-    behind: Option.some(
-      Array.map(parts, component => {
-        const stop = reached.find(entry => entry.component === component)
-        return {
-          name: componentNames[component],
-          reached: stop !== undefined,
-          changed: stop?.changed ?? false,
-          failed: stop?.failed ?? false,
-        }
-      }),
-    ),
+    tools: Array.map(belt.tools, capability => {
+      const place = placeOf(capability.name, model.world)
+      return {
+        key: capability.name,
+        label: capability.name,
+        title: capability.title,
+        icon: Option.some(capability.name),
+        slot: place.slot,
+        reach: place.reach,
+        aria: `${capability.title}, ${capability.name}`,
+        message: Option.some(
+          Message.SelectedCapability({ name: capability.name }),
+        ),
+        isSelected: Option.contains(model.maybeSelected, capability.name),
+        isCalled: called.includes(capability.name),
+        isActive: Option.contains(active, capability.name),
+      }
+    }),
+    scene: sceneOf(model.station, model.world),
     isWorking: RunState.isAnyOf(['Running'])(model.run),
   }
 }
 
 export const allMap = (model: Model): MapInput => {
   const called = calledTools(model.frames)
-  const selectedServer = pipe(
-    model.maybeSelected,
-    Option.flatMap(name =>
-      Array.findFirst(catalogue, capability => capability.name === name),
-    ),
-    Option.map(capability => capability.specimen),
-  )
   return {
     mode: 'all',
-    title: 'every server in the lab',
-    source:
-      'all servers at once · modules placed by the lab · select a tool to outline the rest of its server',
-    tools: Array.map(catalogue, capability => ({
-      key: capability.name,
-      label: capability.name,
-      icon: Option.some(capability.name),
-      module: moduleOf[capability.name],
-      note: `${capability.title}, ${serverNames[capability.specimen]}`,
-      aria: `${capability.title}, ${capability.name}, ${serverNames[capability.specimen]}`,
-      message: Option.some(
-        Message.SelectedCapability({ name: capability.name }),
-      ),
-      isSelected: Option.contains(model.maybeSelected, capability.name),
-      isCalled: called.includes(capability.name),
-      isActive: false,
-      isKin:
-        !Option.contains(model.maybeSelected, capability.name) &&
-        Option.contains(selectedServer, capability.specimen),
-    })),
-    interactions: [],
-    behind: Option.none(),
+    title: 'every server',
+    tools: Array.map(catalogue, capability => {
+      const place = placeOf(capability.name, model.world)
+      return {
+        key: capability.name,
+        label: capability.name,
+        title: capability.title,
+        icon: Option.some(capability.name),
+        slot: place.slot,
+        reach: place.reach,
+        aria: `${capability.title}, ${capability.name}, ${serverNames[capability.specimen]}`,
+        message: Option.some(
+          Message.SelectedCapability({ name: capability.name }),
+        ),
+        isSelected: Option.contains(model.maybeSelected, capability.name),
+        isCalled: called.includes(capability.name),
+        isActive: false,
+      }
+    }),
+    scene: allScene,
     isWorking: false,
   }
 }
 
-export const foreignMap = (tools: ReadonlyArray<ForeignTool>): MapInput => {
-  const placed = Array.map(tools, tool => ({
-    tool,
-    guess: guessModule(tool),
-  }))
-  return {
-    mode: 'foreign',
-    title: 'your server',
-    source:
-      'lit from the pasted listing · modules are guesses, each names its basis',
-    tools: Array.map(placed, ({ tool, guess }) => ({
+export const foreignMap = (tools: ReadonlyArray<ForeignTool>): MapInput => ({
+  mode: 'foreign',
+  title: 'your server',
+  tools: Array.map(tools, tool => {
+    const guess = guessModule(tool)
+    return {
       key: tool.name,
       label: tool.name,
+      title: tool.title,
       icon: Option.none(),
-      module: guess.module,
-      note: `guessed: ${guess.basis}`,
+      slot: guess.module,
+      reach: [],
       aria: `${tool.name}, guessed: ${guess.basis}`,
       message: Option.none(),
       isSelected: false,
       isCalled: false,
       isActive: false,
-    })),
-    interactions: interactionsOf(
-      Array.map(placed, ({ tool, guess }) => ({
-        name: tool.name,
-        module: guess.module,
-        claims: tool.claims,
-      })),
-    ),
-    behind: Option.none(),
-    isWorking: false,
-  }
-}
+    }
+  }),
+  scene: darkScene,
+  isWorking: false,
+})

@@ -1,5 +1,14 @@
 # Handoff
 
+## The workshop canvas is the centerpiece of every specimen — 2026-11-22
+
+- `src/lab/mcpmap.ts` now draws the workshop: you and the AI app outside, MCP as the front desk with the tools/list board, the server's room with nine slots, neighbours outside. A call is desk → slot → neighbour; the last tool's line animates.
+- `src/domain/modules.ts`: slots renamed to one word each (Read, Ask, Write, Compute, Sequence, Share, Invent, Delegate, Act), neighbours, `placeOf(tool, world)` (thinking and cart move with the build), `moduleOf` is now a function.
+- `src/lab/scenes.ts`: per server, neighbour names, gates, desk traffic, building variant and the disclaimer notes ("Where the picture simplifies").
+- On each bench: story card, then the canvas, then the tool chips and notes, then the bend and the host rule, then the drawer and the bench. The front door shows the empty building; All tools shows every tool; Your server shows a fogged room with guessed slots.
+- Removed from the canvas: the inferred combination lines and the "behind the list" component strip (components remain in "How it happened").
+- Checks: 219 tests, lint, typecheck, build; screenshots of front door, fetch, ask, network; no horizontal overflow on a phone (the canvas scrolls inside its own frame below 720 px).
+
 ## The map is back, and the route climbs the owner's ladder — 2026-11-22
 
 Owner: "where did the map go … keep the map … every MCP you see, you know exactly: these modules are on, these are off … why is the first one called the Valley … fetch a page first". Plus a nine-rung ladder (read → physical action). Decisions: rung 9 may be a simulated arm; garden: only real specimens.
