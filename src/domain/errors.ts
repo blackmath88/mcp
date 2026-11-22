@@ -110,7 +110,24 @@ export class UnknownServer extends Schema.TaggedError<UnknownServer>()(
   { server: Schema.String },
 ) {}
 
+export class NobodyToAsk extends Schema.TaggedError<NobodyToAsk>()(
+  'NobodyToAsk',
+  { reason: Schema.String },
+) {}
+
+export class Declined extends Schema.TaggedError<Declined>()('Declined', {
+  action: Schema.String,
+}) {}
+
+export class NotArrived extends Schema.TaggedError<NotArrived>()('NotArrived', {
+  to: Schema.String,
+  at: Schema.String,
+}) {}
+
 export type DomainError =
+  | NobodyToAsk
+  | Declined
+  | NotArrived
   | UnknownServer
   | NotOffered
   | PartialFailure
@@ -136,6 +153,14 @@ export type DomainError =
 export const describeError = (error: DomainError): string =>
   Match.value(error).pipe(
     Match.tagsExhaustive({
+      NobodyToAsk: ({ reason }) =>
+        `The server wanted to ask which cart you mean, but nobody could be asked: ${reason}.`,
+      Declined: ({ action }) =>
+        action === 'cancel'
+          ? 'You closed the question without answering. Nothing was reserved.'
+          : 'You declined to answer. Nothing was reserved.',
+      NotArrived: ({ to, at }) =>
+        `The arm was sent to the ${to}, but the sensor reports the crate at: ${at}.`,
       RobotsDisallowed: ({ url, hop }) =>
         `robots.txt disallows ${url} (hop ${hop}).`,
       TooManyRedirects: ({ url }) =>

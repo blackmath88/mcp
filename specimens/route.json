@@ -330,6 +330,40 @@
         "https://github.com/modelcontextprotocol/inspector"
       ],
       "number": 13
+    },
+    {
+      "id": "ask",
+      "title": "A tool that asks you",
+      "status": "simulated",
+      "question": "Who answers when a tool needs to know which one you mean?",
+      "anchor": {
+        "repo": "MCP specification",
+        "path": "client/elicitation",
+        "note": "Elicitation: during a request, a server can ask the person for structured input through the client, which may accept, decline or cancel. Named from the author's knowledge of the protocol; the specification page was not read for this station."
+      },
+      "diversions": [],
+      "bent": "The tool list looks the same whether the server asks or guesses. Whether anyone is asked depends on the server's build and on whether the client declared that it can be asked.",
+      "experiment": "Reserve a cart with a server that asks, answer, decline and close the question. Then use a build that picks by itself and compare the results.",
+      "sources": [
+        "https://modelcontextprotocol.io/specification/2025-06-18/client/elicitation"
+      ],
+      "number": 14
+    },
+    {
+      "id": "arm",
+      "title": "A tool that moves something",
+      "status": "simulated",
+      "question": "When a tool call moves something, what tells you it arrived?",
+      "anchor": {
+        "repo": "no upstream server",
+        "path": "",
+        "note": "The lab's own simulation. No robot, controller or sensor project was read or run for this station; the crane, its controller and its sensor are made up."
+      },
+      "diversions": [],
+      "bent": "A controller can accept a command that the world does not carry out. A result that says “Moved.” reports the command, not the crate.",
+      "experiment": "Put something in the way, move the crate, then read the sensor. Repeat with a server that checks the sensor before it answers.",
+      "sources": [],
+      "number": 15
     }
   ]
 }

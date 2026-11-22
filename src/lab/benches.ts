@@ -13,6 +13,7 @@ import { clients, gatewayPlaces } from '../domain/gateway.ts'
 import { inventoryOf } from '../domain/later.ts'
 import { observations, pathLabel } from '../domain/memory.ts'
 import { controls } from '../domain/perception.ts'
+import { spotName } from '../domain/reach.ts'
 import { callerThoughts } from '../domain/thinking.ts'
 import {
   LAUNCH_DIRECTORIES,
@@ -339,6 +340,30 @@ const bendOf = (model: Model): Bend => {
       ]),
     }
   }
+  if (model.station === 'ask') {
+    return {
+      label: 'Server build',
+      choices: setting(world.ask.build, 'asking', [
+        ['asks', 'Asks you'],
+        ['guesses', 'Picks one itself'],
+      ]),
+    }
+  }
+  if (model.station === 'arm') {
+    return {
+      label: 'At the dock',
+      choices: [
+        ...setting(world.arm.obstacle, 'obstacle', [
+          ['none', 'Way is clear'],
+          ['blocked', 'Something in the way'],
+        ]),
+        ...setting(world.arm.confirm, 'confirm', [
+          ['trust', 'Server trusts the controller'],
+          ['sensor', 'Server checks the sensor'],
+        ]),
+      ],
+    }
+  }
   if (model.station === 'inspector') {
     return {
       label: 'Subject',
@@ -372,6 +397,8 @@ const bendLabels: Record<Station, string> = {
   iteration: 'Criteria contradict',
   network: 'Name collision',
   inspector: 'Listing changed since pinned',
+  ask: 'Server picks itself',
+  arm: 'Something in the way',
 }
 
 export const bendLabel = (station: Station): string => bendLabels[station]
@@ -1908,6 +1935,251 @@ const inspectorBench = (model: Model, h: H): ReadonlyArray<Html> => {
   ]
 }
 
+// ASK
+
+const askBench = (model: Model, h: H): ReadonlyArray<Html> => {
+  const maybeReserved = Option.flatMap(lastOutput(model), output =>
+    output._tag === 'CartReserved' ? Option.some(output) : Option.none(),
+  )
+  return [
+    row(
+      [
+        h.span([h.Class('eyebrow')], ['The model asks for “a cart”']),
+        action(model, 'List the carts', run('list_carts', {}), h),
+        action(model, 'Reserve a cart', run('reserve_cart', {}), h, 'primary'),
+      ],
+      h,
+    ),
+    strip(
+      [
+        cell(
+          'The carts at the forge',
+          'one list, everyone sees the same',
+          [
+            lines(
+              Array.map(model.world.ask.carts, cart =>
+                cart.reservedBy === ''
+                  ? `${cart.name} · free`
+                  : `${cart.name} · reserved by ${cart.reservedBy}`,
+              ),
+              'none',
+              h,
+            ),
+          ],
+          false,
+          h,
+        ),
+        cell(
+          'The question',
+          model.world.ask.build === 'asks'
+            ? 'sent by the server, mid-call, as elicitation/create'
+            : 'this build never asks',
+          [
+            Option.match(model.asking, {
+              onNone: () =>
+                h.p(
+                  [h.Class('none')],
+                  [
+                    model.world.ask.build === 'asks'
+                      ? 'No question open. It appears only while “Reserve a cart” is running.'
+                      : 'Nothing will be asked. The server decides.',
+                  ],
+                ),
+              onSome: question => askCard(question, h),
+            }),
+          ],
+          Option.isSome(model.asking),
+          h,
+          Option.isSome(model.asking)
+            ? { text: 'waiting for you', tone: 'warn' as const }
+            : undefined,
+        ),
+        cell(
+          'Who chose',
+          'the result says it',
+          [
+            lines(
+              Option.match(maybeReserved, {
+                onNone: () => [],
+                onSome: reserved => [
+                  `${reserved.cart}, chosen by ${reserved.chosenBy}.`,
+                ],
+              }),
+              'Nothing reserved yet.',
+              h,
+            ),
+          ],
+          false,
+          h,
+          Option.match(maybeReserved, {
+            onNone: () => undefined,
+            onSome: reserved =>
+              reserved.chosenBy === 'you'
+                ? { text: 'you were asked', tone: 'ok' as const }
+                : { text: 'nobody was asked', tone: 'warn' as const },
+          }),
+        ),
+      ],
+      h,
+    ),
+  ]
+}
+
+export const askCard = (question: string, h: H): Html =>
+  h.div(
+    [h.Class('ask-card'), h.Role('group'), h.AriaLabel('The server asks you')],
+    [
+      h.p([h.Class('ask-q')], [question]),
+      h.div(
+        [h.Class('ctl')],
+        [
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('btn'),
+              h.OnClick(Message.AnsweredServer({ answer: 'small' })),
+            ],
+            ['The small cart'],
+          ),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('btn'),
+              h.OnClick(Message.AnsweredServer({ answer: 'long' })),
+            ],
+            ['The long cart'],
+          ),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('btn ghost small'),
+              h.OnClick(Message.AnsweredServer({ answer: 'decline' })),
+            ],
+            ['Decline'],
+          ),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('btn ghost small'),
+              h.OnClick(Message.AnsweredServer({ answer: 'cancel' })),
+            ],
+            ['Close'],
+          ),
+        ],
+      ),
+      h.p(
+        [h.Class('note')],
+        [
+          'The model does not see this question or choose the answer. The server asked the client, and the client asked you.',
+        ],
+      ),
+    ],
+  )
+
+// ACT IN THE WORLD
+
+const CRANE_SPOTS: ReadonlyArray<readonly [string, string]> = [
+  ['quay', 'Quay'],
+  ['cart', 'Cart'],
+  ['ship', 'Ship'],
+]
+
+const armBench = (model: Model, h: H): ReadonlyArray<Html> => {
+  const crate = model.world.arm.crate
+  const maybeMoved = Option.flatMap(lastOutput(model), output =>
+    output._tag === 'CrateMoved' ? Option.some(output) : Option.none(),
+  )
+  return [
+    row(
+      [
+        h.span([h.Class('eyebrow')], ['Move the crate to']),
+        action(model, 'the cart', run('move_crate', { to: 'cart' }), h),
+        action(
+          model,
+          'the ship',
+          run('move_crate', { to: 'ship' }),
+          h,
+          'primary',
+        ),
+        action(model, 'back to the quay', run('move_crate', { to: 'quay' }), h),
+        action(model, 'Read the sensor', run('read_sensor', {}), h),
+      ],
+      h,
+    ),
+    h.div(
+      [h.Class('dock'), h.AriaLabel('The dock, simulated')],
+      [
+        ...Array.map(CRANE_SPOTS, ([id, label]) =>
+          h.keyed('div')(
+            id,
+            [h.Class(`dock-spot ${crate === id ? 'has' : ''}`)],
+            [
+              h.span(
+                [h.Class('dock-crate'), h.AriaHidden(true)],
+                [crate === id ? '▣' : ''],
+              ),
+              h.span([], [label]),
+            ],
+          ),
+        ),
+        crate === 'halfway'
+          ? h.div(
+              [h.Class('dock-spot has halfway')],
+              [
+                h.span([h.Class('dock-crate'), h.AriaHidden(true)], ['▣']),
+                h.span([], ['hanging, halfway']),
+              ],
+            )
+          : h.empty,
+      ],
+    ),
+    strip(
+      [
+        cell(
+          'What the server said',
+          'the tool result',
+          [
+            lines(
+              Option.match(maybeMoved, {
+                onNone: () => [],
+                onSome: moved => [moved.reported],
+              }),
+              'No move yet.',
+              h,
+            ),
+          ],
+          false,
+          h,
+        ),
+        cell(
+          'Where the crate is',
+          'what the simulated sensor would see',
+          [lines([spotName[crate]], '', h)],
+          true,
+          h,
+          Option.match(maybeMoved, {
+            onNone: () => undefined,
+            onSome: moved =>
+              crate === 'halfway'
+                ? moved.checked
+                  ? { text: 'caught by the sensor', tone: 'ok' as const }
+                  : { text: 'the result said “Moved.”', tone: 'warn' as const }
+                : { text: 'arrived', tone: 'ok' as const },
+          }),
+        ),
+        cell(
+          'Movements so far',
+          'none of them can be called back',
+          [lines([`${model.world.arm.moves}`], '', h)],
+          false,
+          h,
+        ),
+      ],
+      h,
+    ),
+  ]
+}
+
 // DISPATCH
 
 export const benchView = (model: Model, h: H): ReadonlyArray<Html> => {
@@ -1949,6 +2221,12 @@ export const benchView = (model: Model, h: H): ReadonlyArray<Html> => {
   }
   if (model.station === 'inspector') {
     return inspectorBench(model, h)
+  }
+  if (model.station === 'ask') {
+    return askBench(model, h)
+  }
+  if (model.station === 'arm') {
+    return armBench(model, h)
   }
   return networkBench(model, h)
 }

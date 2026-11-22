@@ -84,6 +84,11 @@ export const Message = defineMessageUnion({
     rule: Schema.Literals(['never', 'writes', 'always']),
   },
   ClickedApprove: {},
+  ServerAsked: { question: Schema.String },
+  AnsweredServer: {
+    answer: Schema.Literals(['small', 'long', 'decline', 'cancel']),
+  },
+  CompletedAnswerServer: {},
   ClickedDeny: {},
   ClickedWatch: {},
   ClickedNerdEntry: {},

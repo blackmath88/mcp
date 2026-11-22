@@ -75,6 +75,18 @@ import {
   takeSnapshot,
 } from './perception.ts'
 import {
+  CartReserved,
+  CartsListed,
+  CrateMoved,
+  SensorRead,
+  askAnswers,
+  craneTargets,
+  listCarts,
+  moveCrate,
+  readSensor,
+  reserveCart,
+} from './reach.ts'
+import {
   type ComponentId,
   EngineEvent,
   Pace,
@@ -117,6 +129,10 @@ export const CapabilityName = Schema.Literals([
   'profile_self',
   'call_tool',
   'write_entry',
+  'list_carts',
+  'reserve_cart',
+  'move_crate',
+  'read_sensor',
 ])
 export type CapabilityName = typeof CapabilityName.Type
 
@@ -194,6 +210,8 @@ export type Specimen =
   | 'iteration'
   | 'network'
   | 'inspector'
+  | 'ask'
+  | 'arm'
 
 export type Capability = Readonly<{
   name: CapabilityName
@@ -216,6 +234,7 @@ export type Capability = Readonly<{
     | 'place'
     | 'tool-name'
     | 'load'
+    | 'crane'
   observe: string
   request: string
   produces: string
@@ -695,6 +714,71 @@ export const catalogue: ReadonlyArray<Capability> = [
     finishes: 'Immediately, or not at all.',
     dependsOn: ['ledger'],
   },
+  {
+    name: 'list_carts',
+    family: 'read',
+    specimen: 'ask',
+    title: 'Carts',
+    affordance: 'readable',
+    description: 'List the carts at the forge and who has reserved them.',
+    input: 'none',
+    observe: 'Each cart and whether it is reserved.',
+    request: 'Nothing.',
+    produces: 'A list of carts.',
+    changes: 'Nothing.',
+    finishes: 'Immediately.',
+    dependsOn: ['cart-store'],
+  },
+  {
+    name: 'reserve_cart',
+    family: 'change',
+    specimen: 'ask',
+    title: 'Reserve a cart',
+    affordance: 'operable',
+    description:
+      'Reserve a cart at the forge for you. If more than one is free, the server may ask you which one.',
+    input: 'none',
+    observe: 'Which cart was reserved, and who chose it.',
+    request:
+      'Nothing from the model. The server may ask the person a question in the middle of the call.',
+    produces: 'A reservation.',
+    changes: 'One cart is reserved. Everyone who lists the carts sees it.',
+    finishes: 'When the person answers, declines, or closes the question.',
+    dependsOn: ['person', 'cart-store'],
+  },
+  {
+    name: 'move_crate',
+    family: 'change',
+    specimen: 'arm',
+    title: 'Move the crate',
+    affordance: 'operable',
+    description:
+      'Move the crate at the dock with the crane: to the cart, the ship or back to the quay.',
+    input: 'crane',
+    observe: 'What the server reports about the move.',
+    request: 'Where the crate should go.',
+    produces: 'A report: “Moved.”, or a confirmation from the sensor.',
+    changes:
+      'Something moves. A movement cannot be undone by another call; only by another movement.',
+    finishes:
+      'When the controller accepts the command, or when the sensor confirms.',
+    dependsOn: ['controller', 'arm', 'sensor'],
+  },
+  {
+    name: 'read_sensor',
+    family: 'perceive',
+    specimen: 'arm',
+    title: 'Sensor',
+    affordance: 'readable',
+    description: 'Ask the sensor at the dock where the crate is.',
+    input: 'none',
+    observe: 'Where the sensor sees the crate.',
+    request: 'Nothing.',
+    produces: 'One place.',
+    changes: 'Nothing.',
+    finishes: 'Immediately.',
+    dependsOn: ['sensor'],
+  },
 ]
 
 export const Endpoints = Schema.Struct({ from: PlaceId, to: PlaceId })
@@ -803,32 +887,41 @@ const loadJsonSchema = {
   additionalProperties: false,
 } as const
 
+const craneJsonSchema = {
+  type: 'object',
+  properties: { to: { type: 'string', enum: craneTargets } },
+  required: ['to'],
+  additionalProperties: false,
+} as const
+
 export const inputJsonSchema = (capability: Capability) =>
-  capability.input === 'load'
-    ? loadJsonSchema
-    : capability.input === 'place'
-      ? placeJsonSchema
-      : capability.input === 'tool-name'
-        ? toolNameJsonSchema
-        : capability.input === 'client'
-          ? clientJsonSchema
-          : capability.input === 'client-place'
-            ? clientPlaceJsonSchema
-            : capability.input === 'path'
-              ? pathJsonSchema
-              : capability.input === 'target'
-                ? targetJsonSchema
-                : capability.input === 'fact'
-                  ? factJsonSchema
-                  : capability.input === 'entity'
-                    ? entityJsonSchema
-                    : capability.input === 'thoughts'
-                      ? thoughtsJsonSchema
-                      : capability.input === 'endpoints'
-                        ? endpointsJsonSchema
-                        : capability.input === 'url'
-                          ? urlJsonSchema
-                          : emptyInputJsonSchema
+  capability.input === 'crane'
+    ? craneJsonSchema
+    : capability.input === 'load'
+      ? loadJsonSchema
+      : capability.input === 'place'
+        ? placeJsonSchema
+        : capability.input === 'tool-name'
+          ? toolNameJsonSchema
+          : capability.input === 'client'
+            ? clientJsonSchema
+            : capability.input === 'client-place'
+              ? clientPlaceJsonSchema
+              : capability.input === 'path'
+                ? pathJsonSchema
+                : capability.input === 'target'
+                  ? targetJsonSchema
+                  : capability.input === 'fact'
+                    ? factJsonSchema
+                    : capability.input === 'entity'
+                      ? entityJsonSchema
+                      : capability.input === 'thoughts'
+                        ? thoughtsJsonSchema
+                        : capability.input === 'endpoints'
+                          ? endpointsJsonSchema
+                          : capability.input === 'url'
+                            ? urlJsonSchema
+                            : emptyInputJsonSchema
 
 // EXECUTION
 
@@ -858,6 +951,10 @@ export const CapabilityOutput = Schema.Union([
   ServerProfiled,
   ToolCalled,
   EntryWritten,
+  CartsListed,
+  CartReserved,
+  CrateMoved,
+  SensorRead,
 ])
 export type CapabilityOutput = typeof CapabilityOutput.Type
 
@@ -941,6 +1038,29 @@ const decodePlace = (input: unknown) =>
     Effect.mapError(invalid('expected { place } naming a place')),
   )
 
+// NOTE: The answer to reserve_cart's question is not the model's to give. The
+// MCP server sets it from the person's reply to elicitation/create; every
+// other path arrives without one, as "nobody".
+const orEmpty = (input: unknown): unknown => input ?? {}
+
+const decodeAnswer = (input: unknown) =>
+  Schema.decodeUnknownEffect(
+    Schema.Struct({ answer: Schema.optional(Schema.Literals(askAnswers)) }),
+  )(orEmpty(input)).pipe(
+    Effect.map(decoded => decoded.answer ?? 'nobody'),
+    Effect.mapError(invalid(`expected an answer of: ${askAnswers.join(', ')}`)),
+  )
+
+const decodeCrane = (input: unknown) =>
+  Schema.decodeUnknownEffect(
+    Schema.Struct({ to: Schema.Literals(craneTargets) }),
+  )(input).pipe(
+    Effect.map(decoded => decoded.to),
+    Effect.mapError(
+      invalid(`expected { to } naming one of: ${craneTargets.join(', ')}`),
+    ),
+  )
+
 const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
   const trace = yield* Trace
   const step = {
@@ -985,7 +1105,13 @@ const resolve = Effect.fnUntraced(function* (name: string, input: unknown) {
         : ''
     const load =
       capability === 'write_entry' ? yield* decodeField('load')(input) : ''
+    const answer =
+      capability === 'reserve_cart' ? yield* decodeAnswer(input) : 'nobody'
+    const crane =
+      capability === 'move_crate' ? yield* decodeCrane(input) : 'quay'
     return {
+      answer,
+      crane,
       capability,
       endpoints,
       url,
@@ -1029,6 +1155,8 @@ export const execute = Effect.fnUntraced(function* (
     place,
     toolName,
     load,
+    answer,
+    crane,
   } = yield* resolve(name, input)
   const { from, to } = endpoints
   const handlers = {
@@ -1065,6 +1193,10 @@ export const execute = Effect.fnUntraced(function* (
     profile_self: () => profileServer('catalogue', SELF),
     call_tool: () => callTool('catalogue', toolName),
     write_entry: () => writeLoad('catalogue', load),
+    list_carts: () => listCarts('catalogue'),
+    reserve_cart: () => reserveCart('catalogue', answer),
+    move_crate: () => moveCrate('catalogue', crane),
+    read_sensor: () => readSensor('catalogue'),
   } satisfies Record<
     CapabilityName,
     () => Effect.Effect<

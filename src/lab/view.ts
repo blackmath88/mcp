@@ -21,6 +21,12 @@ import {
 } from './atlas.ts'
 import { calledToolOf, findCapability } from './belt.ts'
 import { benchView, bendView } from './benches.ts'
+import {
+  asLater,
+  componentNames,
+  componentRoles,
+  componentsOf,
+} from './components.ts'
 import { flowOf } from './flow.ts'
 import { iconView } from './icons.ts'
 import { introView, storyCardView } from './intro.ts'
@@ -35,7 +41,7 @@ import {
   type Station,
 } from './model.ts'
 import { serverNames, stationNames } from './names.ts'
-import { stepOf } from './story.ts'
+import { stageNames, stepNumber, route as storyRoute } from './story.ts'
 import { toolbenchView } from './toolbench.ts'
 import { finishedRecord } from './update.ts'
 
@@ -94,212 +100,7 @@ const chapters: ReadonlyArray<ChapterInfo> = [
   },
 ]
 
-const componentNames: Record<ComponentId, string> = {
-  adapter: 'In-process adapter',
-  catalogue: 'Capability catalogue',
-  map: 'Map engine',
-  planner: 'Planner',
-  validator: 'Validator',
-  'world-store': 'World store',
-  'artifact-store': 'Artifact store',
-  fetcher: 'Fetcher',
-  'robots-policy': 'Robots policy',
-  'synthetic-web': 'Synthetic web',
-  'memory-graph': 'Memory server',
-  disk: 'Disk',
-  'thinking-tool': 'Thinking tool',
-  'expert-model': 'Expert model (stand-in)',
-  'file-server': 'File server',
-  boundary: 'Boundary check',
-  'synthetic-files': 'Synthetic files',
-  'browser-tool': 'Browser tool',
-  'accessibility-tree': 'Accessibility tree',
-  'synthetic-page': 'Synthetic page',
-  'cli-generator': 'CLI generator',
-  'generated-cli': 'Generated CLI',
-  'live-client': 'Live client',
-  'crate-server': 'Crate server',
-  gateway: 'Gateway',
-  'child-process': 'Server process',
-  'map-app': 'Map app server',
-  'app-view': 'App view',
-  ledger: 'Ledger',
-  sandbox: 'Sandbox',
-  'expert-tool': 'Expert tool',
-  evaluator: 'Evaluator (stand-in)',
-  generator: 'Generator (stand-in)',
-  'workflow-engine': 'Workflow engine',
-  federation: 'Federating gateway',
-  'forge-backend': 'Forge backend',
-  'dock-backend': 'Dock backend',
-  lens: 'Lens',
-  'inspected-server': 'Inspected server',
-}
-
-const componentRoles: Record<ComponentId, string> = {
-  adapter:
-    'Hands your request to the engine. It has no approval step of its own.',
-  catalogue: 'Resolves the capability name and checks the shape of the input.',
-  map: 'Reads the map, finds routes and builds single paths.',
-  planner:
-    'Runs the workshop: inspects, proposes a link, sequences the stages.',
-  validator: 'Enforces the span limit and refuses duplicate paths.',
-  'world-store': 'Holds the map and its revision.',
-  'artifact-store': 'Keeps what runs produce.',
-  fetcher:
-    'Follows the URL and every redirect, and decides when to ask the policy.',
-  'robots-policy':
-    'Says whether one URL may be fetched. It only answers when asked.',
-  'synthetic-web': 'Four made-up pages on valley.test. No real network.',
-  'memory-graph': 'Reads and appends facts. Holds nothing between calls.',
-  disk: 'Two made-up folders. Only one is read at a time.',
-  'thinking-tool':
-    'Returns a plan. Where the plan comes from depends on the build.',
-  'expert-model': 'A scripted stand-in for another model. No inference runs.',
-  'file-server': 'Reads a file if the boundary check lets it.',
-  boundary: 'Compares a path with the effective allowed directories.',
-  'synthetic-files': 'Three made-up text files.',
-  'browser-tool': 'Takes snapshots and clicks, by reference or by coordinates.',
-  'accessibility-tree': 'Lists only controls that have a role and a name.',
-  'synthetic-page': 'Four made-up controls. Every click re-renders it.',
-  'cli-generator': 'Reads the tool list once and bakes it into an artifact.',
-  'generated-cli': 'Checks arguments against its embedded schema, then calls.',
-  'live-client': 'Lists the tools before every call.',
-  'crate-server': 'Accepts ship_crates under its current schema only.',
-  gateway:
-    'Bridges network clients to stdio server processes and decides who shares one.',
-  'child-process': 'A stateful server process. It holds one current place.',
-  'map-app': 'Opens the map app and relays questions to it.',
-  'app-view': 'The interactive map on screen. The person can move it.',
-  ledger: 'Appends entries. It cannot undo one.',
-  sandbox: 'Runs a caller-written program in isolation.',
-  'expert-tool': 'Hands a job to another model under one of three contracts.',
-  evaluator: 'Rates a draft. Scripted; no inference runs.',
-  generator: 'Writes a draft. Scripted; no inference runs.',
-  'workflow-engine': 'Runs the refine loop and decides when to stop.',
-  federation:
-    'One entrance in front of two backends. It merges their tool lists.',
-  'forge-backend': 'Offers inspect and ship.',
-  'dock-backend': 'Offers inspect and weigh.',
-  lens: 'Reads a listing and reports claims with their evidence.',
-  'inspected-server': 'The server whose listing is being read.',
-}
-
-const laterComponents: Readonly<
-  Record<LaterStation, ReadonlyArray<ComponentId>>
-> = {
-  apps: ['adapter', 'catalogue', 'map-app', 'app-view'],
-  'code-mode': ['adapter', 'catalogue', 'sandbox', 'ledger'],
-  delegation: [
-    'adapter',
-    'catalogue',
-    'expert-tool',
-    'expert-model',
-    'artifact-store',
-  ],
-  iteration: [
-    'adapter',
-    'catalogue',
-    'workflow-engine',
-    'generator',
-    'evaluator',
-  ],
-  network: [
-    'adapter',
-    'catalogue',
-    'federation',
-    'forge-backend',
-    'dock-backend',
-  ],
-  inspector: ['adapter', 'catalogue', 'lens', 'inspected-server'],
-}
-
-type LaterStation =
-  | 'apps'
-  | 'code-mode'
-  | 'delegation'
-  | 'iteration'
-  | 'network'
-  | 'inspector'
-
-const asLater = (station: Station): Option.Option<LaterStation> =>
-  station === 'apps' ||
-  station === 'code-mode' ||
-  station === 'delegation' ||
-  station === 'iteration' ||
-  station === 'network' ||
-  station === 'inspector'
-    ? Option.some(station)
-    : Option.none()
-
-const componentsOf = (station: Station): ReadonlyArray<ComponentId> =>
-  Option.match(asLater(station), {
-    onSome: later => laterComponents[later],
-    onNone: () => earlierComponentsOf(station),
-  })
-
-const earlierComponentsOf = (station: Station): ReadonlyArray<ComponentId> =>
-  station === 'fetch'
-    ? ['adapter', 'catalogue', 'fetcher', 'robots-policy', 'synthetic-web']
-    : station === 'memory'
-      ? ['adapter', 'catalogue', 'memory-graph', 'disk']
-      : station === 'thinking'
-        ? ['adapter', 'catalogue', 'thinking-tool', 'map', 'expert-model']
-        : station === 'filesystem'
-          ? [
-              'adapter',
-              'catalogue',
-              'file-server',
-              'boundary',
-              'synthetic-files',
-            ]
-          : station === 'cli'
-            ? [
-                'adapter',
-                'catalogue',
-                'cli-generator',
-                'generated-cli',
-                'live-client',
-                'crate-server',
-              ]
-            : station === 'local-remote'
-              ? ['adapter', 'catalogue', 'gateway', 'child-process']
-              : station === 'perception'
-                ? [
-                    'adapter',
-                    'catalogue',
-                    'browser-tool',
-                    'accessibility-tree',
-                    'synthetic-page',
-                  ]
-                : [
-                    'adapter',
-                    'catalogue',
-                    'planner',
-                    'map',
-                    'validator',
-                    'world-store',
-                    'artifact-store',
-                  ]
-
 type Specimen = (typeof route.specimens)[number]
-
-const stations: ReadonlyArray<Station> = [
-  'valley',
-  'fetch',
-  'memory',
-  'thinking',
-  'filesystem',
-  'perception',
-  'cli',
-  'local-remote',
-  'apps',
-  'code-mode',
-  'delegation',
-  'iteration',
-  'network',
-  'inspector',
-]
 
 const stationTitle = (station: Station): string => stationNames[station]
 
@@ -396,6 +197,20 @@ const outcomeText = (record: RunRecord): string => {
   if (output._tag === 'PageFetched') {
     return `Returned “${output.title}” from ${output.finalUrl} after ${output.hops.length} hop(s) and ${output.robotsChecks} robots check(s).`
   }
+  if (output._tag === 'CartsListed') {
+    return output.carts.join(' · ')
+  }
+  if (output._tag === 'CartReserved') {
+    return `Reserved ${output.cart}. Chosen by ${output.chosenBy}.`
+  }
+  if (output._tag === 'CrateMoved') {
+    return output.checked
+      ? `${output.reported}`
+      : `“${output.reported}” The controller accepted the command. Nothing checked where the crate ended up.`
+  }
+  if (output._tag === 'SensorRead') {
+    return `The sensor sees the crate at ${output.crateAt}.`
+  }
   if (output._tag === 'EntryWritten') {
     return `Wrote “${output.load}”. The ledger now has ${output.entriesNow} entr${output.entriesNow === 1 ? 'y' : 'ies'}.`
   }
@@ -411,10 +226,10 @@ const failureOrigin = (record: RunRecord): Option.Option<ComponentId> =>
 
 const askedText = (model: Model, name: string): string =>
   model.approvedLast === name
-    ? 'Yes. The host asked you and you allowed it.'
+    ? 'The host asked you first and you allowed it.'
     : model.approval === 'never'
-      ? 'No. This host’s rule is “never ask”.'
-      : 'No. The host’s rule let it through without asking.'
+      ? 'The host’s own rule is “never ask”.'
+      : 'The host’s rule let it through without asking.'
 
 type Answer = Readonly<{ question: string; answer: string }>
 
@@ -435,21 +250,23 @@ const fiveAnswers = (model: Model): ReadonlyArray<Answer> => {
         : 'You, by pressing a button on the bench. No model is involved on this page.'
     }),
     ask('Was anyone asked?', record =>
-      pipe(
-        record.events,
-        Array.findFirst(
-          event =>
-            event.component === 'validator' ||
-            event.component === 'robots-policy' ||
-            event.component === 'boundary',
-        ),
-        Option.match({
-          onNone: () =>
-            `${askedText(model, record.capability)} No component checked the request.`,
-          onSome: event =>
-            `${askedText(model, record.capability)} The ${componentNames[event.component].toLowerCase()} applied a rule in code.`,
-        }),
-      ),
+      record.events.some(event => event.component === 'person')
+        ? `Yes, by the server: it sent elicitation/create in the middle of the call and waited for your answer. ${askedText(model, record.capability)}`
+        : pipe(
+            record.events,
+            Array.findFirst(
+              event =>
+                event.component === 'validator' ||
+                event.component === 'robots-policy' ||
+                event.component === 'boundary',
+            ),
+            Option.match({
+              onNone: () =>
+                `${model.approvedLast === record.capability ? 'Yes.' : 'No.'} ${askedText(model, record.capability)} No component checked the request.`,
+              onSome: event =>
+                `${model.approvedLast === record.capability ? 'Yes.' : 'No.'} ${askedText(model, record.capability)} The ${componentNames[event.component].toLowerCase()} applied a rule in code.`,
+            }),
+          ),
     ),
     ask(
       'Where did it run?',
@@ -586,7 +403,7 @@ const titlebarView = (model: Model, h: H): Html =>
                 h.b(
                   [],
                   [
-                    `${String(stepOf(model.station)).padStart(2, '0')} · ${stationTitle(model.station)}`,
+                    `${stepNumber(model.station)} · ${stationTitle(model.station)}`,
                   ],
                 ),
               ],
@@ -637,7 +454,7 @@ const stationButton = (model: Model, station: Station, h: H): Html =>
         ],
         [],
       ),
-      h.span([h.Class('n')], [String(stepOf(station)).padStart(2, '0')]),
+      h.span([h.Class('n')], [stepNumber(station)]),
       h.span([h.Class('t')], [stationTitle(station)]),
       h.span([h.Class('k')], [toolCount(station)]),
     ],
@@ -651,14 +468,19 @@ const journeyView = (model: Model, h: H): Html =>
       h.section(
         [h.Class('side-section')],
         [
-          h.h2([h.Class('side-title')], ['The route · easy to strange']),
+          h.h2([h.Class('side-title')], ['The route · up the ladder']),
           h.ol(
             [h.Class('journey')],
-            Array.map(stations, station =>
-              h.keyed('li')(
+            Array.map(storyRoute, (step, index) => {
+              const station = step.station
+              const isNewStage = storyRoute[index - 1]?.module !== step.module
+              return h.keyed('li')(
                 station,
                 [],
                 [
+                  isNewStage
+                    ? h.span([h.Class('side-stage')], [stageNames[step.module]])
+                    : h.empty,
                   stationButton(model, station, h),
                   station === 'valley' && model.station === 'valley'
                     ? h.details(
@@ -710,8 +532,8 @@ const journeyView = (model: Model, h: H): Html =>
                       )
                     : h.empty,
                 ],
-              ),
-            ),
+              )
+            }),
           ),
         ],
       ),
@@ -847,7 +669,7 @@ const cardView = (model: Model, capability: Capability, h: H): Html =>
       h.p(
         [h.Class('side-note')],
         [
-          `Exposed by the ${serverNames[capability.specimen]}. On the atlas: ${placeOnAtlas(capability)}.`,
+          `Exposed by the ${serverNames[capability.specimen]}. On the map: ${placeOnAtlas(capability)}.`,
         ],
       ),
       h.button(
@@ -906,25 +728,29 @@ const statusbarView = (model: Model, h: H): Html =>
       h.span(
         [],
         [
-          Option.isSome(asLater(model.station))
-            ? 'every model here is a scripted stand-in'
-            : model.station === 'valley'
-              ? `${model.weather} valley · map revision ${model.world.revision}`
-              : model.station === 'fetch'
-                ? `robots policy: ${model.world.fetchPolicy}`
-                : model.station === 'memory'
-                  ? `storage: ${pathLabel[model.world.memory.storagePath]} · server start #${model.serverStarts}`
-                  : model.station === 'thinking'
-                    ? `build: ${model.world.thinkingMode}`
-                    : model.station === 'filesystem'
-                      ? `allowed now: ${model.world.files.allowed.join(', ') || 'nothing'}`
-                      : model.station === 'cli'
-                        ? `server schema v${model.world.cli.serverSchema} · CLI embeds ${model.world.cli.artifactSchema === NO_ARTIFACT ? 'nothing yet' : `v${model.world.cli.artifactSchema}`}`
-                        : model.station === 'local-remote'
-                          ? `${model.world.gateway.children.length} server process(es) behind the gateway`
-                          : model.station === 'perception'
-                            ? `page revision ${model.world.page.revision} · ${model.world.page.mode}`
-                            : 'reference only · unverified',
+          model.station === 'ask'
+            ? `server build: ${model.world.ask.build === 'asks' ? 'asks you' : 'picks itself'}`
+            : model.station === 'arm'
+              ? 'simulated crane · nothing physical moves'
+              : Option.isSome(asLater(model.station))
+                ? 'every model here is a scripted stand-in'
+                : model.station === 'valley'
+                  ? `${model.weather} valley · map revision ${model.world.revision}`
+                  : model.station === 'fetch'
+                    ? `robots policy: ${model.world.fetchPolicy}`
+                    : model.station === 'memory'
+                      ? `storage: ${pathLabel[model.world.memory.storagePath]} · server start #${model.serverStarts}`
+                      : model.station === 'thinking'
+                        ? `build: ${model.world.thinkingMode}`
+                        : model.station === 'filesystem'
+                          ? `allowed now: ${model.world.files.allowed.join(', ') || 'nothing'}`
+                          : model.station === 'cli'
+                            ? `server schema v${model.world.cli.serverSchema} · CLI embeds ${model.world.cli.artifactSchema === NO_ARTIFACT ? 'nothing yet' : `v${model.world.cli.artifactSchema}`}`
+                            : model.station === 'local-remote'
+                              ? `${model.world.gateway.children.length} server process(es) behind the gateway`
+                              : model.station === 'perception'
+                                ? `page revision ${model.world.page.revision} · ${model.world.page.mode}`
+                                : 'reference only · unverified',
         ],
       ),
     ],
@@ -944,7 +770,11 @@ const specimenView = (specimen: Specimen, title: string, h: H): Html =>
             [
               h.p(
                 [h.Class('kicker')],
-                [`${title} · after ${specimen.anchor.repo}`],
+                [
+                  specimen.anchor.repo === 'no upstream server'
+                    ? `${title} · the lab’s own`
+                    : `${title} · after ${specimen.anchor.repo}`,
+                ],
               ),
               h.h2([h.Class('question')], [specimen.question]),
             ],
@@ -1092,7 +922,6 @@ const workbenchView = (model: Model, h: H): Html =>
             : runPill(model.run, h),
         ],
       ),
-      storyCardView(model, h),
       Option.match(findSpecimen(model.station), {
         onNone: () => valleyHeadView(model, h),
         onSome: specimen =>
@@ -1102,6 +931,7 @@ const workbenchView = (model: Model, h: H): Html =>
       toolbenchView(
         model,
         {
+          story: storyCardView(model, h),
           material: benchView(model, h),
           result:
             model.station === 'code-mode' &&

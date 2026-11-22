@@ -1,7 +1,7 @@
 import type { Station } from './model.ts'
 
 export const stationNames: Record<Station, string> = {
-  valley: 'The valley',
+  valley: 'Find or build a route',
   fetch: 'Fetch a page',
   memory: 'Memory',
   thinking: 'Thinking as a tool',
@@ -15,12 +15,14 @@ export const stationNames: Record<Station, string> = {
   iteration: 'A loop that refines',
   network: 'The network',
   inspector: 'Inspect the inspector',
+  ask: 'A tool that asks you',
+  arm: 'A tool that moves something',
 }
 
 // The simulated server behind each specimen. A server exposes tools; it is
 // not a family and not a place on the atlas.
 export const serverNames: Record<Station, string> = {
-  valley: 'Valley server',
+  valley: 'Route server',
   fetch: 'Fetch server',
   memory: 'Memory server',
   thinking: 'Thinking server',
@@ -34,4 +36,6 @@ export const serverNames: Record<Station, string> = {
   iteration: 'Workflow server',
   network: 'Gateway',
   inspector: 'Inspector server',
+  ask: 'Cart server',
+  arm: 'Crane server',
 }

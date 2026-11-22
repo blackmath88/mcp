@@ -3,67 +3,24 @@ import { type Html, type HtmlBuilder } from 'foldkit/html'
 
 import { catalogue } from '../domain/capabilities.ts'
 import { iconView } from './icons.ts'
+import { emptyMap, mcpMapView } from './mcpmap.ts'
 import { Message } from './message.ts'
 import type { Model } from './model.ts'
 import { stationNames } from './names.ts'
-import { type StoryStep, route, stepOf } from './story.ts'
+import {
+  type StoryStep,
+  route,
+  stageNames,
+  stepNumber,
+  stepOf,
+} from './story.ts'
 
 type H = HtmlBuilder<Message>
 
 // The front door: what MCP is, in one picture and three sentences, and the
 // route through the lab from easy to strange.
 
-const node = (title: string, note: string, tone: string, h: H): Html =>
-  h.div([h.Class(`mcp-node ${tone}`)], [h.b([], [title]), h.span([], [note])])
-
-const arrow = (label: string, h: H): Html =>
-  h.div(
-    [h.Class('mcp-arrow'), h.AriaHidden(true)],
-    [h.span([], [label]), h.span([h.Class('mcp-line')], [])],
-  )
-
-const pictureView = (h: H): Html =>
-  h.div(
-    [
-      h.Class('mcp-picture'),
-      h.Role('img'),
-      h.AriaLabel(
-        'You talk to an AI app. The app connects to MCP servers. Each server offers tools, and behind each tool is something real.',
-      ),
-    ],
-    [
-      node('You', 'ask for something', 'you', h),
-      arrow('', h),
-      node('AI app', 'the host: the AI and the app around it', 'host', h),
-      arrow('MCP', h),
-      node('Server', 'a program that offers tools', 'server', h),
-      arrow('', h),
-      h.div(
-        [h.Class('mcp-node tools')],
-        [
-          h.b([], ['Tools']),
-          h.span(
-            [h.Class('mcp-sprites')],
-            Array.map(
-              [
-                'read_file',
-                'remember',
-                'take_snapshot',
-                'write_entry',
-                'run_as_program',
-                'ask_expert',
-              ] as const,
-              name => iconView(name, h),
-            ),
-          ),
-        ],
-      ),
-      arrow('', h),
-      node('Behind them', 'a file, a page, a ledger, another AI', 'behind', h),
-    ],
-  )
-
-const stepRow = (model: Model, step: StoryStep, index: number, h: H): Html => {
+const stepRow = (model: Model, step: StoryStep, h: H): Html => {
   const first = catalogue.find(
     capability => capability.specimen === step.station,
   )
@@ -74,13 +31,11 @@ const stepRow = (model: Model, step: StoryStep, index: number, h: H): Html => {
       h.button(
         [
           h.Type('button'),
-          h.Class(
-            `route-step ${stepOf(model.station) === index && model.savedRuns.length > 0 ? 'here' : ''}`,
-          ),
+          h.Class('route-step'),
           h.OnClick(Message.SelectedStation({ station: step.station })),
         ],
         [
-          h.span([h.Class('route-n')], [String(index).padStart(2, '0')]),
+          h.span([h.Class('route-n')], [stepNumber(step.station)]),
           first === undefined ? h.empty : iconView(first.name, h),
           h.span(
             [h.Class('route-text')],
@@ -91,6 +46,35 @@ const stepRow = (model: Model, step: StoryStep, index: number, h: H): Html => {
     ],
   )
 }
+
+const stages: ReadonlyArray<StoryStep['module']> = Array.dedupe(
+  Array.map(route, step => step.module),
+)
+
+const routeView = (model: Model, h: H): Html =>
+  h.div(
+    [h.Class('route-stages')],
+    Array.map(stages, stage =>
+      h.keyed('section')(
+        stage,
+        [
+          h.Class(
+            `route-stage ${stage === 'around' || stage === 'yours' ? 'aside' : ''}`,
+          ),
+        ],
+        [
+          h.h3([h.Class('route-stage-name')], [stageNames[stage]]),
+          h.ol(
+            [h.Class('route-list')],
+            Array.map(
+              Array.filter(route, step => step.module === stage),
+              step => stepRow(model, step, h),
+            ),
+          ),
+        ],
+      ),
+    ),
+  )
 
 export const introView = (model: Model, h: H): Html =>
   h.main(
@@ -109,7 +93,19 @@ export const introView = (model: Model, h: H): Html =>
           ),
         ],
       ),
-      pictureView(h),
+      h.div(
+        [h.Class('intro-map')],
+        [
+          h.p(
+            [h.Class('intro-map-cap')],
+            [
+              h.b([], ['The first thing a server does is hand over a list. ']),
+              'The AI app asks “what tools do you have?” (tools/list) and the server answers with names, inputs and descriptions. This lab draws that answer as a map with nine slots, one for each kind of thing a tool can be, from a simple read to a physical action. Every server lights the slots it offers; the rest stay empty. Learn the shape once, and every server after that reads at a glance.',
+            ],
+          ),
+          mcpMapView(emptyMap(), h),
+        ],
+      ),
       h.div(
         [h.Class('intro-facts')],
         [
@@ -142,14 +138,14 @@ export const introView = (model: Model, h: H): Html =>
           h.div(
             [h.Class('intro-route-head')],
             [
-              h.h2([], ['The route, from easy to strange']),
+              h.h2([], ['The route: up the ladder, one slot at a time']),
               h.button(
                 [
                   h.Type('button'),
                   h.Class('btn'),
-                  h.OnClick(Message.SelectedStation({ station: 'valley' })),
+                  h.OnClick(Message.SelectedStation({ station: 'fetch' })),
                 ],
-                ['Start at step 00'],
+                ['Start at step 01 · Fetch a page'],
               ),
               h.button(
                 [
@@ -157,20 +153,17 @@ export const introView = (model: Model, h: H): Html =>
                   h.Class('btn ghost'),
                   h.OnClick(Message.ClickedHome()),
                 ],
-                ['Or explore all tools freely'],
+                ['Or see every tool on one map'],
               ),
             ],
           ),
           h.p(
             [h.Class('tb-note')],
             [
-              'Each step is one idea, one thing to try, one thing to notice. Everything runs in this page; the data is made up, the MCP messages are real.',
+              'Each step is one real server: one idea, one thing to try, one thing to notice. Everything runs in this page; the data is made up, the MCP messages are real.',
             ],
           ),
-          h.ol(
-            [h.Class('route-list')],
-            Array.map(route, (step, index) => stepRow(model, step, index, h)),
-          ),
+          routeView(model, h),
         ],
       ),
     ],
@@ -187,7 +180,7 @@ export const storyCardView = (model: Model, h: H): Html => {
   return h.section(
     [
       h.Class('story-card'),
-      h.AriaLabel(`Step ${index} of ${route.length - 1}`),
+      h.AriaLabel(`Step ${index + 1} of ${route.length}`),
     ],
     [
       h.div(
@@ -196,7 +189,7 @@ export const storyCardView = (model: Model, h: H): Html => {
           h.span(
             [h.Class('story-step')],
             [
-              `Step ${String(index).padStart(2, '0')} of ${String(route.length - 1).padStart(2, '0')}`,
+              `Step ${String(index + 1).padStart(2, '0')} of ${route.length} · ${stageNames[step.module]}`,
             ],
           ),
           h.div(

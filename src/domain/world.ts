@@ -145,6 +145,34 @@ export const Net = Schema.Struct({
 })
 export type Net = typeof Net.Type
 
+// Ask: two carts at the forge. A server build either asks the person which one
+// (MCP elicitation) or quietly picks one itself.
+export const Cart = Schema.Struct({
+  id: Schema.Literals(['small', 'long']),
+  name: Schema.String,
+  reservedBy: Schema.String,
+})
+export type Cart = typeof Cart.Type
+
+export const AskState = Schema.Struct({
+  build: Schema.Literals(['asks', 'guesses']),
+  carts: Schema.Array(Cart),
+})
+export type AskState = typeof AskState.Type
+
+// Act in the world: a simulated crane at the dock. Nothing physical exists;
+// the controller, the arm and the sensor are three made-up parts.
+export const CraneSpot = Schema.Literals(['quay', 'cart', 'ship', 'halfway'])
+export type CraneSpot = typeof CraneSpot.Type
+
+export const ArmState = Schema.Struct({
+  obstacle: Schema.Literals(['none', 'blocked']),
+  confirm: Schema.Literals(['trust', 'sensor']),
+  crate: CraneSpot,
+  moves: Schema.Number,
+})
+export type ArmState = typeof ArmState.Type
+
 export const LAUNCH_DIRECTORIES: ReadonlyArray<string> = ['/valley/forge']
 export const NO_SNAPSHOT = -1
 
@@ -164,6 +192,8 @@ export const World = Schema.Struct({
   loop: Loop,
   net: Net,
   inspection: Inspection,
+  ask: AskState,
+  arm: ArmState,
   places: Schema.Array(Place),
   paths: Schema.Array(Path),
   artifacts: Schema.Array(Artifact),
@@ -250,6 +280,14 @@ export const seedWorld = (
   loop: { criteria: 'satisfiable', engine: 'in-memory' },
   net: { naming: 'first-wins', dock: 'up' },
   inspection: { subject: 'pinned' },
+  ask: {
+    build: 'asks',
+    carts: [
+      { id: 'small', name: 'the small cart', reservedBy: '' },
+      { id: 'long', name: 'the long cart', reservedBy: '' },
+    ],
+  },
+  arm: { obstacle: 'none', confirm: 'trust', crate: 'quay', moves: 0 },
   places: seedPlaces,
   paths: [seedPath('forge', 'mill'), seedPath('kiln', 'dock')],
   artifacts: [],
@@ -544,6 +582,12 @@ export const carrySettings = (fresh: World, previous: World): World => ({
   loop: previous.loop,
   net: { ...fresh.net, naming: previous.net.naming },
   inspection: previous.inspection,
+  ask: { ...fresh.ask, build: previous.ask.build },
+  arm: {
+    ...fresh.arm,
+    obstacle: previous.arm.obstacle,
+    confirm: previous.arm.confirm,
+  },
 })
 
 export type StationSlice =
@@ -557,6 +601,8 @@ export type StationSlice =
   | 'code-mode'
   | 'delegation'
   | 'network'
+  | 'ask'
+  | 'arm'
 
 // NOTE: Puts one station's state back to its starting point and leaves every
 // other station, and every bend, as it is.
@@ -594,6 +640,12 @@ export const resetSlice = (world: World, slice: string): World => {
   if (slice === 'delegation') {
     return { ...world, artifacts: fresh.artifacts }
   }
+  if (slice === 'ask') {
+    return { ...world, ask: fresh.ask }
+  }
+  if (slice === 'arm') {
+    return { ...world, arm: fresh.arm }
+  }
   if (slice === 'network') {
     return { ...world, net: { ...fresh.net, naming: world.net.naming } }
   }
@@ -607,3 +659,13 @@ export const useFetchPolicy = (
   ...world,
   fetchPolicy,
 })
+
+export const withAsk = (world: World, build: AskState['build']): World => ({
+  ...world,
+  ask: { ...world.ask, build },
+})
+
+export const withArm = (
+  world: World,
+  arm: Partial<Pick<ArmState, 'obstacle' | 'confirm'>>,
+): World => ({ ...world, arm: { ...world.arm, ...arm } })

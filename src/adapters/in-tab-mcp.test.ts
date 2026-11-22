@@ -5,8 +5,16 @@ import { beforeEach, describe, expect, test } from 'vitest'
 import { runOn } from '../domain/capabilities.ts'
 import { driftOf, pinNew, profile } from '../domain/lens.ts'
 import { Pace } from '../domain/services.ts'
+import { applySettings } from '../domain/settings.ts'
 import { CALM_MAX_SPAN, STORM_MAX_SPAN, seedWorld } from '../domain/world.ts'
-import { enterDomain, resetSession, runOverMcp, sendRaw } from './in-tab-mcp.ts'
+import {
+  answerServer,
+  enterDomain,
+  isAsking,
+  resetSession,
+  runOverMcp,
+  sendRaw,
+} from './in-tab-mcp.ts'
 
 const goal = { from: 'forge', to: 'dock' }
 const calm = seedWorld(CALM_MAX_SPAN)
@@ -180,5 +188,74 @@ describe('a definition that changes after it was seen', () => {
     expect(
       entered.tools.find(tool => tool.name === 'fetch_page')?.parameters,
     ).toEqual(['url'])
+  })
+})
+
+describe('a server that asks the person mid-call', () => {
+  const waitUntilAsking = async (): Promise<void> => {
+    if (isAsking()) {
+      return
+    }
+    await new Promise(resolve => setTimeout(resolve, 5))
+    return waitUntilAsking()
+  }
+
+  test('reserve_cart sends elicitation/create and finishes with the answer', async () => {
+    await run(enterDomain(calm, 'ask', Pace.unpaced))
+    const call = run(
+      runOverMcp(
+        calm,
+        'ask',
+        'reserve_cart',
+        { answer: 'small' },
+        Pace.unpaced,
+      ),
+    )
+    await waitUntilAsking()
+    answerServer('long')
+    const done = await call
+    expect(labels(done.frames)).toEqual([
+      'client → server tools/call',
+      'server → client elicitation/create',
+      'client → server result',
+      'server → client result',
+    ])
+    expect(done.record.outcome).toMatchObject({
+      _tag: 'Succeeded',
+      output: { cart: 'the long cart', chosenBy: 'you' },
+    })
+  })
+
+  test('declining reaches the server and nothing is reserved', async () => {
+    await run(enterDomain(calm, 'ask', Pace.unpaced))
+    const call = run(runOverMcp(calm, 'ask', 'reserve_cart', {}, Pace.unpaced))
+    await waitUntilAsking()
+    answerServer('decline')
+    const done = await call
+    expect(done.record.outcome).toMatchObject({
+      _tag: 'Failed',
+      error: 'Declined',
+    })
+    expect(done.world.ask.carts.every(cart => cart.reservedBy === '')).toBe(
+      true,
+    )
+  })
+
+  test('a server built to guess asks nobody, over the same tool list', async () => {
+    const guessing = applySettings(calm, ['asking=guesses'])
+    const asking = await run(enterDomain(calm, 'ask', Pace.unpaced))
+    resetSession()
+    const guessed = await run(enterDomain(guessing, 'ask', Pace.unpaced))
+    expect(guessed.tools).toEqual(asking.tools)
+    const done = await run(
+      runOverMcp(guessing, 'ask', 'reserve_cart', {}, Pace.unpaced),
+    )
+    expect(labels(done.frames)).not.toContain(
+      'server → client elicitation/create',
+    )
+    expect(done.record.outcome).toMatchObject({
+      _tag: 'Succeeded',
+      output: { chosenBy: 'the server' },
+    })
   })
 })

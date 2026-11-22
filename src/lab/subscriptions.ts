@@ -1,6 +1,7 @@
 import { Option, Stream } from 'effect'
 import { Subscription } from 'foldkit'
 
+import { ASK_EVENT } from '../adapters/in-tab-mcp.ts'
 import { slotForKey } from './belt.ts'
 import { Message } from './message.ts'
 import type { Model } from './model.ts'
@@ -11,6 +12,18 @@ const isTypingTarget = (target: EventTarget | null): boolean =>
     ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
 
 export const subscriptions = Subscription.make<Model, Message>()(entry => ({
+  serverAsks: entry(
+    {},
+    {
+      modelToDependencies: () => ({}),
+      dependenciesToStream: () =>
+        Stream.fromEventListener<CustomEvent<string>>(window, ASK_EVENT).pipe(
+          Stream.map(event =>
+            Message.ServerAsked({ question: String(event.detail) }),
+          ),
+        ),
+    },
+  ),
   beltKeys: entry(
     {},
     {

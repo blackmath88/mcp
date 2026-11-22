@@ -1,6 +1,6 @@
 # Specimens
 
-A route of twelve specimens from easy to complex. Each has an anchor (a recognisable implementation), a diversion (a different design or fork) and an experiment that bends it.
+Fifteen specimens. Numbers are their ids; the lab walks them in the order of the nine-slot ladder (see `src/lab/story.ts` and D20 in `docs/DECISIONS.md`), starting with 01. Each has an anchor (a recognisable implementation), a diversion (a different design or fork) and an experiment that bends it.
 
 Source: owner-supplied research, 2026-11-21, summarised in [docs/research/2026-11-21-specimen-route.md](../docs/research/2026-11-21-specimen-route.md). **Nothing here is verified by the lab**: no upstream project was executed, pinned or benchmarked. "Reference" does not mean most used or production standard.
 
@@ -20,3 +20,6 @@ Source: owner-supplied research, 2026-11-21, summarised in [docs/research/2026-1
 | 10 | [Another intelligence](10-delegation/README.md) | When did advice become delegated responsibility? | simulated |
 | 11 | [Iteration and durable execution](11-iteration/README.md) | Who says "good enough", what stops the loop, and which component supplies durability? | simulated |
 | 12 | [The network and the repair bench](12-network/README.md) | Is one entrance also one domain, one authority, or one workflow? | simulated |
+| 13 | [Inspect the inspector](13-inspector/README.md) | What can be claimed about a server from what it says about itself, and on what grounds? | simulated |
+| 14 | [A tool that asks you](14-ask/README.md) | Who answers when a tool needs to know which one you mean? | simulated |
+| 15 | [A tool that moves something](15-arm/README.md) | When a tool call moves something, what tells you it arrived? | simulated, nothing physical |

@@ -115,7 +115,13 @@ const connect = async (
   const held: Held = { world, domain }
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair()
   const server = createLabServer(held, pace)
-  const client = new Client({ name: 'mcp-lab-tab', version: '0.1.0' })
+  const client = new Client(
+    { name: 'mcp-lab-tab', version: '0.1.0' },
+    { capabilities: { elicitation: {} } },
+  )
+  client.setRequestHandler(types.ElicitRequestSchema, async request =>
+    askPerson(request.params.message),
+  )
   const clientWire = recording(clientSide, frames, 'client → server')
   const open: Session = {
     client,
@@ -296,3 +302,45 @@ export const sendRaw = (
     },
     catch: failed,
   })
+
+// ASKING THE PERSON
+//
+// NOTE: Elicitation. During a tool call the server can send
+// elicitation/create to the client and wait for the person's answer. The
+// in-tab client declares that it can be asked; the question is handed to the
+// page as a DOM event, and the answer comes back through answerServer.
+
+export const ASK_EVENT = 'mcp-lab-server-asks'
+
+export type ServerAnswer = 'small' | 'long' | 'decline' | 'cancel'
+
+type ElicitReply =
+  | { action: 'accept'; content: { cart: string } }
+  | { action: 'decline' }
+  | { action: 'cancel' }
+
+const asking: { resolve: ((reply: ElicitReply) => void) | undefined } = {
+  resolve: undefined,
+}
+
+export const isAsking = (): boolean => asking.resolve !== undefined
+
+export const askPerson = (message: string): Promise<ElicitReply> =>
+  new Promise(resolve => {
+    asking.resolve = resolve
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent(ASK_EVENT, { detail: message }))
+    }
+  })
+
+export const answerServer = (answer: ServerAnswer): void => {
+  const resolve = asking.resolve
+  asking.resolve = undefined
+  resolve?.(
+    answer === 'decline'
+      ? { action: 'decline' }
+      : answer === 'cancel'
+        ? { action: 'cancel' }
+        : { action: 'accept', content: { cart: answer } },
+  )
+}

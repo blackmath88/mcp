@@ -7,8 +7,17 @@ import { pinNew } from '../domain/lens.ts'
 import { Pace } from '../domain/services.ts'
 import { Message } from './message.ts'
 import { worldFor } from './model.ts'
-import { EnterDomain, RunCapability, initialModel, update } from './update.ts'
+import {
+  AnswerServer,
+  EnterDomain,
+  RunCapability,
+  initialModel,
+  update,
+} from './update.ts'
 import { view } from './view.ts'
+
+// The route server, where the oldest scenes of this file begin.
+const atValley = { ...initialModel, station: 'valley' as const }
 
 const completed = (weather: 'calm' | 'storm') => {
   const result = Effect.runSync(
@@ -28,7 +37,7 @@ describe('the learning path', () => {
   test('the kit is discoverable before anything is selected', () => {
     scene(
       { update, view },
-      given(initialModel),
+      given(atValley),
       expect(role('button', { name: /^Map, read_map/ })).toExist(),
       expect(
         role('button', { name: /^Connection workshop, connect_places/ }),
@@ -41,7 +50,7 @@ describe('the learning path', () => {
   test('inspect an item, execute it, see the artifact and the trace', () => {
     scene(
       { update, view },
-      given(initialModel),
+      given(atValley),
       click(role('button', { name: /^Connection workshop, connect_places/ })),
       expect(text(/Connect two places by any means/)).toExist(),
       expect(
@@ -66,7 +75,7 @@ describe('the learning path', () => {
   test('the trace can be stepped from the start', () => {
     scene(
       { update, view },
-      given(initialModel),
+      given(atValley),
       click(role('button', { name: /^Connection workshop, connect_places/ })),
       click(role('button', { name: 'Connect them, any way' })),
       Command.resolve(RunCapability, completed('calm')),
@@ -83,7 +92,7 @@ describe('the learning path', () => {
   test('the storm failure names where it happened and what was left undone', () => {
     scene(
       { update, view },
-      given(initialModel),
+      given(atValley),
       click(role('button', { name: /Storm/ })),
       click(role('button', { name: 'Connect them, any way' })),
       Command.resolve(RunCapability, completed('storm')),
@@ -136,7 +145,7 @@ describe('the route of specimens', () => {
       expect(text('Succeeded')).toExist(),
       expect(text('What came back')).toExist(),
       expect(role('button', { name: /^Page fetcher, fetch_page/ })).toExist(),
-      expect(text('fetch_page(url)')).toExist(),
+      expect(text('A read')).toExist(),
       click(role('button', { name: 'Inspect run' })),
       expect(
         text(
@@ -300,10 +309,10 @@ describe('orientation', () => {
   test('the page says where you are and always shows the three phases', () => {
     scene(
       { update, view },
-      given(initialModel),
-      expect(text('The route · easy to strange')).toExist(),
+      given(atValley),
+      expect(text('The route · up the ladder')).toExist(),
       expect(role('button', { name: 'All tools' })).toExist(),
-      expect(text('Handed to you by the Valley server')).toExist(),
+      expect(text('What the Route server hands the AI')).toExist(),
       expect(text('Connecting…')).toExist(),
       expect(role('button', { name: 'Reset experiment' })).toExist(),
     )
@@ -339,7 +348,7 @@ describe('orientation', () => {
       expect(role('button', { name: /^Recall, recall/ })).toExist(),
       expect(
         text(
-          'from its tools/list answer just now · dashed: what it does not give you',
+          'its tools/list answer, drawn as a map · click a tool to look behind it',
         ),
       ).toExist(),
       expect(role('button', { name: /^Remember, remember/ })).toBeAbsent(),
@@ -374,7 +383,7 @@ describe('orientation', () => {
         },
       }),
       expect(text('Was anyone asked?')).toExist(),
-      expect(text(/This host’s rule is “never ask”/)).toExist(),
+      expect(text(/The host’s own rule is “never ask”/)).toExist(),
       expect(text('App view: open the interactive map.')).toExist(),
       expect(text(/nothing could change/)).toBeAbsent(),
     )
@@ -421,7 +430,7 @@ describe('truthful labelling of evidence', () => {
   test('MCP frames appear only under the recorded label', () => {
     scene(
       { update, view },
-      given(initialModel),
+      given(atValley),
       click(role('button', { name: 'Recorded CLI + MCP' })),
       expect(text('Recorded external execution')).toExist(),
       expect(text('In-process domain execution')).toBeAbsent(),
@@ -447,13 +456,13 @@ describe('the home screen and touchable benches', () => {
       { update, view },
       given({ ...initialModel, screen: 'home', maybeSelected: Option.none() }),
       expect(text('What can a connection hand you?')).toExist(),
-      expect(text('Read and perceive')).toExist(),
-      expect(text('Remember and change')).toExist(),
-      expect(text('Compose and delegate')).toExist(),
+      expect(text('A read')).toExist(),
+      expect(text('An interaction')).toExist(),
+      expect(text('A physical action')).toExist(),
       expect(
         text('Select something and its server’s tools appear here.'),
       ).toExist(),
-      click(role('button', { name: /^Recall, Remember, exposed by/ })),
+      click(role('button', { name: /^Recall, recall, Memory server/ })),
       expect(text('Exposed by the Memory server')).toExist(),
       expect(
         text('per the lab’s catalogue · the server has not been asked'),
@@ -634,10 +643,11 @@ describe('the toolbench', () => {
     scene(
       { update, view },
       given({ ...initialModel, station: 'code-mode', approval: 'writes' }),
-      expect(text('Handed to you by the Ledger server')).toExist(),
-      expect(text('undo_entry()')).toExist(),
-      expect(text('not offered: there is no undo')).toExist(),
-      click(role('button', { name: /^Write one entry, write_entry\(load\)/ })),
+      expect(text('What the Ledger server hands the AI')).toExist(),
+      expect(
+        text('not on this server · looks something up and hands it back'),
+      ).toExist(),
+      click(role('button', { name: /^Write one entry, write_entry/ })),
       expect(
         text(
           'Under the hood: what the model receives, what gets sent, what Lens reads',
@@ -722,15 +732,60 @@ describe('the story: what is MCP, then the route in order', () => {
       { update, view },
       given({ ...initialModel, screen: 'intro' }),
       expect(text('What is MCP?')).toExist(),
-      expect(text('The route, from easy to strange')).toExist(),
-      click(role('button', { name: 'Start at step 00' })),
+      expect(text('The route: up the ladder, one slot at a time')).toExist(),
+      expect(text('9 · A physical action')).toExist(),
+      click(role('button', { name: 'Start at step 01 · Fetch a page' })),
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
-      expect(text('Step 00 of 13')).toExist(),
-      expect(text(/^A server offers tools/)).toExist(),
-      click(role('button', { name: 'Next: Fetch a page' })),
+      expect(text('Step 01 of 16 · 1 · A read')).toExist(),
+      expect(text(/hands back a page/)).toExist(),
+      click(role('button', { name: 'Next: Filesystem' })),
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
-      expect(text('Step 01 of 13')).toExist(),
-      expect(text(/One tool call can hide a chain/)).toExist(),
+      expect(text('Step 02 of 16 · 1 · A read')).toExist(),
+    )
+  })
+})
+
+describe('the map and the new rungs', () => {
+  test('a bench draws its tool list on the fixed map and the story sits above it', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, station: 'arm' }),
+      expect(text('Step 11 of 16 · 9 · A physical action')).toExist(),
+      expect(text('What the Crane server hands the AI')).toExist(),
+      expect(text('2 tools in 2 of 9 slots')).toExist(),
+      expect(role('button', { name: /^Move the crate, move_crate/ })).toExist(),
+      expect(
+        text('only a read tells you whether the movement worked'),
+      ).toExist(),
+      expect(text('Sensor (simulated)')).toExist(),
+    )
+  })
+
+  test('when the server asks, the person answers on the bench', () => {
+    scene(
+      { update, view },
+      given({
+        ...initialModel,
+        station: 'ask',
+        asking: Option.some(
+          'Two carts are free at the Forge. Which one do you mean?',
+        ),
+      }),
+      expect(text('waiting for you')).toExist(),
+      expect(
+        text('Two carts are free at the Forge. Which one do you mean?'),
+      ).toExist(),
+      click(role('button', { name: 'The long cart' })),
+      Command.resolve(AnswerServer, Message.CompletedAnswerServer()),
+      expect(text('waiting for you')).toBeAbsent(),
+    )
+  })
+
+  test('all tools sit on the same nine slots', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'home' }),
+      expect(text('34 tools from every server, in 9 of 9 slots')).toExist(),
     )
   })
 })

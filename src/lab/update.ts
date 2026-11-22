@@ -8,6 +8,7 @@ import {
 } from '../adapters/in-process.ts'
 import {
   type Frame,
+  answerServer,
   enterDomain,
   runOverMcp,
   sendRaw,
@@ -106,6 +107,18 @@ export const RunCapability = Command.define('RunCapability', {
     ),
 })
 
+export const AnswerServer = Command.define('AnswerServer', {
+  args: {
+    answer: Schema.Literals(['small', 'long', 'decline', 'cancel']),
+  },
+  messages: [Message.CompletedAnswerServer],
+  execute: ({ answer }) =>
+    Effect.sync(() => {
+      answerServer(answer)
+      return Message.CompletedAnswerServer()
+    }),
+})
+
 export const EnterDomain = Command.define('EnterDomain', {
   args: { world: World, station: Station, tamper: Schema.Boolean },
   messages: [Message.CompletedEnterDomain, Message.FailedEnterDomain],
@@ -198,18 +211,20 @@ export const inputFor = (capability: string, model: Model): unknown =>
                     ? { name: model.toolName }
                     : capability === 'go_to'
                       ? { client: model.client, place: model.place }
-                      : capability === 'where_am_i'
-                        ? { client: model.client }
-                        : capability === 'find_route' ||
-                            capability === 'build_path' ||
-                            capability === 'connect_places'
-                          ? { from: model.from, to: model.to }
-                          : {}
+                      : capability === 'move_crate'
+                        ? { to: 'ship' }
+                        : capability === 'where_am_i'
+                          ? { client: model.client }
+                          : capability === 'find_route' ||
+                              capability === 'build_path' ||
+                              capability === 'connect_places'
+                            ? { from: model.from, to: model.to }
+                            : {}
 
 // INIT
 
 export const initialModel: Model = {
-  station: 'valley',
+  station: 'fetch',
   chapter: 'discover',
   completedChapters: [],
   weather: 'calm',
@@ -251,6 +266,7 @@ export const initialModel: Model = {
   approval: 'never',
   pending: Option.none(),
   declined: '',
+  asking: Option.none(),
   approvedLast: '',
   watching: false,
   tampered: false,
@@ -267,7 +283,7 @@ export const init: Runtime.ApplicationInit<Model, Message> = () => ({
   commands: [
     EnterDomain({
       world: initialModel.world,
-      station: 'valley',
+      station: initialModel.station,
       tamper: false,
     }),
   ],
@@ -921,6 +937,17 @@ export const update = (current: Model, message: Message): UpdateReturn => {
       }),
     }),
 
+    ServerAsked: ({ question }) => ({
+      model: modifyFields(model, { asking: () => Option.some(question) }),
+    }),
+
+    AnsweredServer: ({ answer }) => ({
+      model: modifyFields(model, { asking: () => Option.none() }),
+      commands: [AnswerServer({ answer })],
+    }),
+
+    CompletedAnswerServer: () => ({ model }),
+
     ClickedApprove: () =>
       Option.match(model.pending, {
         onNone: () => ({ model }),
@@ -1153,8 +1180,14 @@ export const update = (current: Model, message: Message): UpdateReturn => {
         Running: ({ runId, capability }) => ({
           model: modifyFields(model, {
             run: () => RunState.Cancelled({ runId, capability }),
+            asking: () => Option.none(),
           }),
-          commands: interruptIfRunning(model),
+          commands: [
+            ...interruptIfRunning(model),
+            ...(Option.isSome(model.asking)
+              ? [AnswerServer({ answer: 'cancel' })]
+              : []),
+          ],
         }),
       }),
 

@@ -18,7 +18,7 @@ export const ladder: ReadonlyArray<Rung> = [
     step: 1,
     name: 'Read',
     distinction: 'A reference versus the content behind it',
-    capabilities: ['read_map', 'read_file', 'fetch_page'],
+    capabilities: ['read_map', 'read_file', 'fetch_page', 'list_carts'],
   },
   {
     step: 2,
@@ -30,7 +30,7 @@ export const ladder: ReadonlyArray<Rung> = [
     step: 3,
     name: 'Act',
     distinction: 'An answer versus an effect',
-    capabilities: ['build_path', 'click', 'write_entry'],
+    capabilities: ['build_path', 'click', 'write_entry', 'move_crate'],
   },
   {
     step: 4,
@@ -42,7 +42,7 @@ export const ladder: ReadonlyArray<Rung> = [
     step: 5,
     name: 'Discover and perceive',
     distinction: 'The world versus the caller’s view of it',
-    capabilities: ['take_snapshot', 'click', 'read_file'],
+    capabilities: ['take_snapshot', 'click', 'read_file', 'read_sensor'],
   },
   {
     step: 6,
@@ -60,7 +60,7 @@ export const ladder: ReadonlyArray<Rung> = [
     step: 7,
     name: 'Interact',
     distinction: 'One response versus a shared working surface',
-    capabilities: ['show_map', 'get_current_view'],
+    capabilities: ['show_map', 'get_current_view', 'reserve_cart'],
   },
   {
     step: 8,

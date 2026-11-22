@@ -294,6 +294,64 @@ const sprites = {
     g.rect(10, 22, 5, 1, 'R')
     g.rect(17, 22, 2, 1, 'R')
   },
+  list_carts: g => {
+    g.rect(3, 9, 18, 7, 'O')
+    g.rect(4, 10, 16, 2, 'Y')
+    g.line(1, 6, 4, 9, 'M', 2)
+    g.circle(7, 18.5, 2.6, 'D')
+    g.circle(17, 18.5, 2.6, 'D')
+    g.set(7, 18, 'M')
+    g.set(17, 18, 'M')
+    g.outline()
+  },
+  reserve_cart: g => {
+    g.rect(2, 13, 14, 5, 'O')
+    g.rect(3, 14, 12, 1, 'Y')
+    g.circle(5, 20, 2.1, 'D')
+    g.circle(13, 20, 2.1, 'D')
+    g.rr(12, 1, 11, 9, 'P', 2)
+    g.poly(
+      [
+        [14, 9],
+        [17, 9],
+        [14, 12],
+      ],
+      'P',
+    )
+    g.rect(16, 3, 3, 1, 'B')
+    g.rect(18, 4, 1, 2, 'B')
+    g.rect(17, 5, 1, 1, 'B')
+    g.rect(17, 7, 1, 1, 'B')
+    g.outline()
+  },
+  move_crate: g => {
+    g.rect(3, 20, 18, 2, 'M')
+    g.rect(4, 6, 3, 14, 'Y')
+    g.rect(4, 4, 16, 3, 'Y')
+    g.rect(17, 7, 1, 6, 'M')
+    g.rr(13, 13, 9, 7, 'O', 1)
+    g.rect(14, 15, 7, 1, 'R')
+    g.rect(5, 8, 1, 1, 'O')
+    g.rect(5, 12, 1, 1, 'O')
+    g.outline()
+  },
+  read_sensor: g => {
+    g.rr(2, 8, 9, 8, 'M', 1)
+    g.circle(6.5, 12, 2.4, 'D')
+    g.set(6, 11, 'C')
+    g.poly(
+      [
+        [11, 10],
+        [22, 4],
+        [22, 20],
+        [11, 14],
+      ],
+      'L',
+    )
+    g.rr(16, 10, 6, 5, 'O', 1)
+    g.rect(4, 16, 3, 5, 'M')
+    g.outline()
+  },
   run_as_calls: g => {
     g.rect(4, 2, 16, 20, 'P')
     g.rect(6, 4, 4, 4, 'R')

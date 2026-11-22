@@ -16,8 +16,9 @@ import { approvalRules, claimsReadOnly } from './approval.ts'
 import { evidenceView } from './atlas.ts'
 import { beltOf, calledToolOf, findCapability } from './belt.ts'
 import { iconView } from './icons.ts'
+import { mcpMapView, serverMap } from './mcpmap.ts'
 import { Message } from './message.ts'
-import { type Model, RunState, type Station } from './model.ts'
+import { type Model, RunState } from './model.ts'
 import { serverNames } from './names.ts'
 import { inputFor } from './update.ts'
 
@@ -28,28 +29,6 @@ type H = HtmlBuilder<Message>
 // stays changed. Instruments come from the tool list. The work area is drawn
 // from the lab's own source; for a server the lab did not write it would stay
 // an empty outline.
-
-// Authored: tools a reader might expect here that this server does not offer.
-// They make the shape of the server visible, including its gaps.
-const ghosts: Record<Station, ReadonlyArray<readonly [string, string]>> = {
-  valley: [['remove_path(from, to)', 'nothing here takes a path away']],
-  fetch: [['post_form(url, data)', 'it can read pages, not send them']],
-  memory: [['forget(entity)', 'nothing here deletes a statement']],
-  thinking: [['check_plan(plan)', 'nothing verifies the plan it returns']],
-  filesystem: [['write_file(path, text)', 'it can read, not write']],
-  perception: [
-    ['navigate(url)', 'it cannot go to another page'],
-    ['type(text)', 'it cannot fill a form'],
-  ],
-  cli: [['update_cli()', 'the generated CLI cannot refresh itself']],
-  'local-remote': [['whose_process()', 'nothing says who owns the process']],
-  apps: [['set_view(place)', 'the model cannot move the map itself']],
-  'code-mode': [['undo_entry()', 'there is no undo']],
-  delegation: [['who_decides()', 'nothing says who owns the next step']],
-  iteration: [['stop_loop()', 'you cannot stop it halfway']],
-  network: [['list_backends()', 'you cannot see which backends exist']],
-  inspector: [['watch_tool_run(name)', 'it cannot see a tool run']],
-}
 
 // Authored: tools whose one call runs a whole process of its own.
 const workshops: ReadonlySet<string> = new Set([
@@ -73,9 +52,6 @@ const activeName = (model: Model): Option.Option<string> =>
     Failed: ({ record }) => Option.some(record.capability),
     Cancelled: ({ capability }) => Option.some(capability),
   })
-
-const signature = (capability: Capability): string =>
-  `${capability.name}(${Object.keys(Object(inputJsonSchema(capability).properties)).join(', ')})`
 
 const callsOf = (model: Model, name: string): number =>
   model.frames.filter(frame =>
@@ -159,73 +135,24 @@ const hostView = (model: Model, h: H): Html =>
     ],
   )
 
-const instrumentCard = (
-  model: Model,
-  capability: Capability,
-  index: number,
-  h: H,
-): Html => {
-  const isSelected = Option.contains(model.maybeSelected, capability.name)
-  const isActive = Option.contains(activeName(model), capability.name)
-  const calls = callsOf(model, capability.name)
-  const readOnly = claimsReadOnly(capability.name)
-  return h.keyed('button')(
-    capability.name,
-    [
-      h.Type('button'),
-      h.Class(`tb-tool ${isActive ? 'active' : ''}`),
-      h.AriaPressed(isSelected ? 'true' : 'false'),
-      h.AriaLabel(
-        `${capability.title}, ${signature(capability)}. Select to see what the model receives.`,
-      ),
-      h.OnClick(Message.SelectedCapability({ name: capability.name })),
-    ],
-    [
-      h.span([h.Class('tb-key'), h.AriaHidden(true)], [`${index + 1}`]),
-      iconView(capability.name, h),
-      h.span([h.Class('tb-sig')], [signature(capability)]),
-      h.span(
-        [h.Class(`tb-hint ${readOnly ? 'ro' : ''}`)],
-        [readOnly ? 'readOnlyHint true' : 'readOnlyHint —'],
-      ),
-      calls > 0 ? h.span([h.Class('tb-calls')], [`called ${calls}×`]) : h.empty,
-      workshops.has(capability.name)
-        ? h.span([h.Class('tb-workshop')], ['contains a workshop'])
-        : h.empty,
-    ],
-  )
-}
-
-const ghostCard = (ghost: readonly [string, string], h: H): Html =>
-  h.keyed('div')(
-    ghost[0],
-    [h.Class('tb-tool ghost')],
-    [
-      h.span([h.Class('tb-sig')], [ghost[0]]),
-      h.span([h.Class('tb-ghost-note')], [`not offered: ${ghost[1]}`]),
-    ],
-  )
-
-const instrumentsView = (model: Model, h: H): Html => {
+const mapRowView = (model: Model, story: Html, h: H): Html => {
   const belt = beltOf(model)
   return h.div(
-    [h.Class('tb-instruments')],
+    [h.Class('tb-maprow')],
     [
-      stepLabel(
-        '1',
-        `Handed to you by the ${serverNames[model.station]}`,
-        belt.source === 'server'
-          ? 'from its tools/list answer just now · dashed: what it does not give you'
-          : 'from the lab’s catalogue · dashed: what it does not give you',
-        h,
-      ),
+      story,
       h.div(
-        [h.Class('tb-tools')],
+        [h.Class('tb-mapcol')],
         [
-          ...Array.map(belt.tools, (capability, index) =>
-            instrumentCard(model, capability, index, h),
+          stepLabel(
+            '1',
+            `What the ${serverNames[model.station]} hands the AI`,
+            belt.source === 'server'
+              ? 'its tools/list answer, drawn as a map · click a tool to look behind it'
+              : 'the lab’s catalogue, drawn as a map · click a tool to look behind it',
+            h,
           ),
-          ...Array.map(ghosts[model.station], ghost => ghostCard(ghost, h)),
+          mcpMapView(serverMap(model), h),
         ],
       ),
     ],
@@ -330,6 +257,9 @@ const drawerView = (model: Model, h: H): Html =>
                         family === undefined
                           ? ''
                           : ` In this lab’s words: it ${family.means}.`,
+                        workshops.has(capability.name)
+                          ? ' One call to it runs a whole process of its own.'
+                          : '',
                       ],
                     ),
                   ],
@@ -454,6 +384,7 @@ const drawerView = (model: Model, h: H): Html =>
 // THE BENCH
 
 export type BenchParts = Readonly<{
+  story: Html
   material: ReadonlyArray<Html>
   result: Html
   happened: Html
@@ -465,7 +396,7 @@ export const toolbenchView = (model: Model, parts: BenchParts, h: H): Html =>
     [h.Class('toolbench'), h.AriaLabel('Toolbench')],
     [
       hostView(model, h),
-      instrumentsView(model, h),
+      mapRowView(model, parts.story, h),
       drawerView(model, h),
       h.div(
         [h.Class('tb-main')],

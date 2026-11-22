@@ -152,6 +152,18 @@ Status: owner direction, 2026-11-22. Implemented. Revises D16.
 
 The lab opens on the question it exists to answer and walks the route from easy to strange (valley, specimens 01–12 in their numbered order, inspector). Each station is a step with one idea, one thing to try and one thing to notice. The atlas remains as the free way in, but no longer the first screen.
 
+## D20 — The map of a tool list is the lab's main picture; the route follows the owner's ladder
+
+Status: owner direction, 2026-11-22. Implemented. Revises D19's order.
+
+Owner: "keep the map … the whole thing we are trying to do is a modular look of the MCP … every MCP you see, you know exactly: these modules are on, these are off … the first call presents a tool list, and it should be the map of this list." And the ladder: a read, an interaction, a read and a write, an operation, a workflow, an application, a way to invent a tool, another intelligence, a physical action. Garden: "only real" specimens. Rung 9: a simulated arm is acceptable.
+
+- One canvas, nine slots in fixed places (`src/domain/modules.ts`, `src/lab/mcpmap.ts`), a staircase for rungs 1 to 6 that forks into 7, 8 and 9. Used on the front door (empty), on every bench (one server), in All tools (everything), and in Your server (a pasted listing, placed by guesses that name their basis).
+- Lines between lit slots are inferred rules (C01 from Lens, M01 to M08 here), drawn only when both ends are lit.
+- The route: fetch, filesystem, ask, memory, route server, thinking, iteration, apps, code mode, delegation, arm; then perception, CLI, local/remote, network; inspector last. "The valley" is renamed "Find or build a route".
+- Two new servers fill the empty rungs: the cart server (rung 2) asks over real MCP elicitation; the crane server (rung 9) is a labelled simulation. No garden toy.
+- Proposed, not decided: whether a tool may sit in two slots (reserve_cart both asks and writes).
+
 ## Still undecided
 
 Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.

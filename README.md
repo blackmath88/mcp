@@ -4,10 +4,11 @@ An exploration lab for one question: when an AI gains access to a capability, wh
 
 ## What you will find
 
-- **An atlas** of 30 tools on 14 simulated servers, each tool a pixel object in a fixed place. Three sentences for a first visit, and a shortcut to raw JSON-RPC for the curious.
-- **A toolbench per server**: what it hands you (and what it does not), what those tools work on, what comes back, what stays changed. Use a tool, watch the engine events replay, set the host to ask you first and deny a write.
-- **Under the hood** of every tool: the `tools/list` entry as received, the exact `tools/call` it would send, what Lens infers from the wording, and hidden-character checks.
-- **Thirteen questions** from reading to inspecting the inspector, each with tools to try. Python runs in the tab for station 09; every `ledger.write` is a real tool call.
+- **"What is MCP?"** as the front door, answered with one picture: the map of a tool list.
+- **The map**: nine fixed slots, one for each kind of thing a tool can be (a read, an interaction, a read and a write, an operation, a workflow, an application, a way to invent a tool, another intelligence, a physical action). Every server lights the slots its `tools/list` answer fills; the rest stay as blurred outlines. Lines between lit slots say what the combination can do. The same map draws every server, all 34 tools at once, and a listing you paste.
+- **The route up the ladder**: 16 real (simulated) servers in the order of the nine slots, starting with fetching a page, each with one idea, one thing to try and one thing to notice. Then four side trips about where tools run, and your own server last.
+- **A toolbench per server**: the map, what the tools work on, what comes back, what stays changed. Use a tool, watch the engine events replay, set the host to ask you first and deny a write. The cart server really asks you mid-call over MCP (`elicitation/create`).
+- **Under the hood** of every tool: the `tools/list` entry as received, the exact `tools/call` it would send, what Lens infers from the wording, and hidden-character checks. Python runs in the tab for the code-mode server; every `ledger.write` is a real tool call.
 
 ## Run the first slice
 

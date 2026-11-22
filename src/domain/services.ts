@@ -42,6 +42,13 @@ export const ComponentId = Schema.Literals([
   'dock-backend',
   'lens',
   'inspected-server',
+  'cart-server',
+  'person',
+  'cart-store',
+  'crane-server',
+  'controller',
+  'arm',
+  'sensor',
 ])
 export type ComponentId = typeof ComponentId.Type
 

@@ -84,6 +84,18 @@ export const outcomeLine = (record: RunRecord): string =>
         if (output._tag === 'EntryWritten') {
           return `OK wrote ${output.load}; the ledger has ${output.entriesNow} entries`
         }
+        if (output._tag === 'CartsListed') {
+          return `OK ${output.carts.join('; ')}`
+        }
+        if (output._tag === 'CartReserved') {
+          return `OK reserved ${output.cart}, chosen by ${output.chosenBy}`
+        }
+        if (output._tag === 'CrateMoved') {
+          return `OK ${output.reported} (sent to ${output.to}${output.checked ? ', checked by the sensor' : ', nothing checked'})`
+        }
+        if (output._tag === 'SensorRead') {
+          return `OK the sensor sees the crate at ${output.crateAt}`
+        }
         if (output._tag === 'PathBuilt') {
           return `OK ${output.artifact.id}: ${output.artifact.summary}`
         }

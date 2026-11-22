@@ -1,5 +1,17 @@
 # Handoff
 
+## The map is back, and the route climbs the owner's ladder — 2026-11-22
+
+Owner: "where did the map go … keep the map … every MCP you see, you know exactly: these modules are on, these are off … why is the first one called the Valley … fetch a page first". Plus a nine-rung ladder (read → physical action). Decisions: rung 9 may be a simulated arm; garden: only real specimens.
+
+- **The map** (`src/lab/mcpmap.ts`, model in `src/domain/modules.ts`): nine slots in fixed places. Lit from the server's `tools/list` answer, ghosted where empty, lines for combinations (inferred). Shows the chain You → host → MCP → server → list → behind, and the parts behind the list lit along the last call. On the front door it is empty; on a bench it is section 1 under the story card; in All tools it holds all 34 tools; in Your server it places pasted tools by guesses and says the "interaction" slot cannot be seen in a list.
+- **The route** (`src/lab/story.ts`) follows the ladder and starts at fetch. Sidebar and front page are grouped by rung. Steps are numbered 01–16.
+- **Cart server** (`ask`, rung 2): `reserve_cart` makes the lab's MCP server send `elicitation/create` mid-call; the page shows the question, the answer goes back (`answerServer` in `src/adapters/in-tab-mcp.ts`, a DOM event to a Foldkit subscription). Bend: a build that picks itself with the same tool list.
+- **Crane server** (`arm`, rung 9): simulated controller, arm, sensor. With something in the way, "Moved." comes back while the crate hangs halfway; a build that checks the sensor fails honestly.
+- Removed: the authored "not offered" ghosts (the map's empty slots do this structurally) and the old family atlas layout.
+- Checks: 217 tests, lint, typecheck, build; screenshots of front door, fetch, ask (question and answer), arm, all tools, your server, phone (no horizontal overflow).
+- Open: a tool in two slots; the summary block in the map's empty corner could crowd on a server with many combinations.
+
 ## The story is the front door again: "What is MCP?" and the agreed route — 2026-11-22
 
 Owner: "it doesn't tell the story … what is an MCP is the main question … the specimens should be in order from easy to complex … remember the order we agreed".

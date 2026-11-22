@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vitest'
 
 import routeSpecimens from '../../specimens/route.json'
 import { catalogue, families, runOn } from '../domain/capabilities.ts'
+import { modules } from '../domain/modules.ts'
 import { Pace } from '../domain/services.ts'
 import { needsApproval } from './approval.ts'
 import { beltOf, calledTools, slotForKey } from './belt.ts'
@@ -900,12 +901,24 @@ describe('the host asks before a call runs', () => {
   })
 })
 
-describe('the route is the agreed order', () => {
-  test('valley first, then the specimens in their numbered order, inspector last', () => {
-    const numbered = routeSpecimens.specimens
-      .slice()
-      .sort((a, b) => a.number - b.number)
-      .map(specimen => specimen.id)
-    expect(route.map(step => step.station)).toEqual(['valley', ...numbered])
+describe('the route follows the ladder', () => {
+  test('every specimen appears once, fetch first, the inspector last', () => {
+    const stations = route.map(step => step.station)
+    expect(stations[0]).toBe('fetch')
+    expect(stations.at(-1)).toBe('inspector')
+    expect([...stations].sort()).toEqual(
+      [
+        ...routeSpecimens.specimens.map(specimen => specimen.id),
+        'valley',
+      ].sort(),
+    )
+  })
+
+  test('the ladder part climbs the nine modules in order', () => {
+    const rungs = route
+      .map(step => modules.findIndex(module => module.id === step.module))
+      .filter(index => index >= 0)
+    expect(rungs).toEqual([...rungs].sort((a, b) => a - b))
+    expect(new Set(rungs).size).toBe(modules.length)
   })
 })

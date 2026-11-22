@@ -2,6 +2,8 @@ import { Schema } from 'effect'
 
 import {
   AppState,
+  ArmState,
+  AskState,
   Handoff,
   Inspection,
   Ledger,
@@ -9,6 +11,8 @@ import {
   Net,
   type World,
   withApp,
+  withArm,
+  withAsk,
   withHandoff,
   withInspection,
   withLedgerFault,
@@ -61,6 +65,22 @@ const applySetting = (world: World, setting: string): World => {
       world,
       Schema.decodeUnknownSync(Inspection.fields.subject)(value),
     )
+  }
+  if (key === 'asking') {
+    return withAsk(
+      world,
+      Schema.decodeUnknownSync(AskState.fields.build)(value),
+    )
+  }
+  if (key === 'obstacle') {
+    return withArm(world, {
+      obstacle: Schema.decodeUnknownSync(ArmState.fields.obstacle)(value),
+    })
+  }
+  if (key === 'confirm') {
+    return withArm(world, {
+      confirm: Schema.decodeUnknownSync(ArmState.fields.confirm)(value),
+    })
   }
   throw new Error(`Unknown setting: ${key}`)
 }

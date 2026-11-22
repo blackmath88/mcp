@@ -48,6 +48,8 @@ export const Station = Schema.Literals([
   'iteration',
   'network',
   'inspector',
+  'ask',
+  'arm',
 ])
 export type Station = typeof Station.Type
 
@@ -138,6 +140,7 @@ export const Model = Schema.Struct({
     }),
   ),
   declined: Schema.String,
+  asking: Schema.Option(Schema.String),
   approvedLast: Schema.String,
   watching: Schema.Boolean,
   pins: Schema.Array(
