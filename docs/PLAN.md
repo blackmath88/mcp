@@ -24,6 +24,8 @@ Build one shared engine with CLI and MCP access and a truthful trace. Use synthe
 
 Exit proposal: learner can explain interface versus implementation and trace one actual result.
 
+Status 2026-11-21: a first executable slice exists (see docs/HANDOFF.md). Phase 1 storyboard validation with a chosen audience was skipped at the owner's instruction to build; the learner exit check has not been run with a person.
+
 ## Phase 3 — Composition and placement
 
 Add a fixed workflow and a local/remote comparison. Identify state ownership, partial results, and dependencies. Do not introduce a general workflow platform unless needed.
@@ -40,9 +42,60 @@ Reveal mixed modules, aggregation versus orchestration, a replaceable component,
 
 Research candidates from the conversation. Record primary sources, official/community status, exact capabilities, versions, client support, credentials, cost, effects, and documented versus executed evidence. Select examples for distinct lessons.
 
+## Route plan (simulation first)
+
+Agreed 2026-11-21: the lab follows the twelve specimens in specimens/route.json. Each station is simulated on synthetic data in the shared engine, reachable through the browser, the CLI and the MCP stdio server. Live connections wait for a later decision.
+
+| Station | State |
+| --- | --- |
+| 00 The valley (the lab's own specimen) | working, seven steps |
+| 01 Fetch a page | simulated: three robots policies, redirect, loop |
+| 02 Memory | simulated: storage path, client and server restart, reinstall, conflicting statements |
+| 03 "Thinking" as a tool | simulated: record, compute, consult (scripted stand-in) behind one tool name |
+| 04 Filesystem | simulated: three server builds, client roots sent and revoked |
+| 05 Browser perception | simulated: snapshot versus coordinates, stale references |
+| 06 CLI, reversed | simulated: generated artifact versus live call across a schema change |
+| 07 Local and remote | simulated: shared process versus one per connection; reconnect, vanish, timeout |
+| 08 The item becomes an application | simulated: tool result, screen and model's knowledge drift apart |
+| 09 One item contains a language | simulated: three calls versus one program, with a failing write; plus an editable Python program run in the tab whose writes are real MCP calls |
+| 10 Another intelligence | simulated with a scripted stand-in: ask, review, deliver; map sent or left out |
+| 11 Iteration and durable execution | simulated with scripted stand-ins: the reference loop rule; crash with and without durability |
+| 12 The network and the repair bench | simulated: name collision, prefixed names, a backend going down. No fuzzing. |
+| 13 Inspect the inspector | simulated: Lens as two tools; a listing that changed since it was pinned; one bounded self-inspection |
+
+### Ladder coverage (all thirteen segments)
+
+Source of truth: `src/domain/ladder.ts`, shown in the app under Atlas → Thirteen questions. A test runs every listed capability.
+
+| Step | Distinction | Where to meet it |
+| --- | --- | --- |
+| 1 Read | reference versus content | valley, filesystem, fetch |
+| 2 Query | stored versus computed | valley, memory |
+| 3 Act | answer versus effect | valley, browser perception, ledger |
+| 4 Remember | change now versus state later | memory, thinking |
+| 5 Discover and perceive | world versus caller's view | browser perception, filesystem |
+| 6 Trace interfaces and placement | entrance versus engine | generated CLI, local and remote |
+| 7 Interact | one response versus a shared surface | interactive map |
+| 8 Compose | named action versus program | valley, one item a language |
+| 9 Consult and delegate | judgement versus control | another intelligence |
+| 10 Iterate | single pass versus repetition | a loop that refines |
+| 11 Resume | client lifetime versus work lifetime | a loop that refines (crash and resume) |
+| 12 Connect workshops | one inventory versus many owners | the network |
+| 13 Inspect the inspector | claims versus grounds | inspect the inspector |
+
+Thin spots: step 11 is one tool that crashes a workflow and restarts it; it does not show a client disconnecting and a job being fetched by handle. Step 2 has no "same content, two queries" comparison on one screen.
+
+Per station, before calling it done: pin the upstream revision, check the documented behaviour against the source, and fill the evidence record in its README. None of that has been done for any station.
+
+Protocol facts (revision, feature status, client support) still need a check against the specification before stations 04, 07, 08 and 12, which depend on Roots, transports, MCP Apps and gateways.
+
 ## Immediate next action
 
-Review the concept and choose audience plus synthetic domain. Then specify the smallest storyboard. No framework selection is required yet.
+1. Hand the lab to one person: station 08 on a phone, then the call console.
+2. Give the other stations a specimen you can touch, starting with 02 Memory and 04 Filesystem; build timelines for 09 and 11.
+3. Build the home dashboard from the design canvas and use its station names.
+4. Put more of the protocol on the wire where a station needs it: the map as a resource in 00, roots in 04, a changing tool list in a rug-pull station.
+5. Pin upstream revisions; stations 01 to 03 were never checked against a source.
 
 ## Explicit exclusions for this change
 

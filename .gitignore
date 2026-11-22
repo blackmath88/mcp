@@ -9,3 +9,10 @@ observstory/
 test-output/
 
 .practice/cache/
+
+node_modules/
+dist/
+.alchemy/
+.lab/
+*.tsbuildinfo
+public/pyodide/

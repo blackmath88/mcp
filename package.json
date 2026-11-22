@@ -1,0 +1,53 @@
+{
+  "name": "mcp-lab",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "infra:dev": "alchemy dev",
+    "infra:deploy": "node scripts/confirm-deploy.mjs && alchemy deploy",
+    "typecheck": "tsc --noEmit",
+    "format": "oxfmt",
+    "test": "vitest run",
+    "test:infra-guard": "node --test tests/deploy-gate.test.mjs",
+    "lint": "oxlint src && effect-tsgo patch --no-typescript --oxlint && oxlint --config .oxlintrc.effect.json --deny-warnings src",
+    "lab": "node src/adapters/cli.ts",
+    "mcp:server": "node src/adapters/mcp-server.ts",
+    "record": "node scripts/record-entrances.ts",
+    "predev": "node scripts/copy-pyodide.mjs",
+    "prebuild": "node scripts/copy-pyodide.mjs"
+  },
+  "dependencies": {
+    "@effect/platform-browser": "4.1.4",
+    "@foldkit/ui": "0.170.0",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "effect": "4.1.4",
+    "foldkit": "0.170.0"
+  },
+  "devDependencies": {
+    "@alchemy.run/cloudflare": "2.0.0-beta.87",
+    "@alchemy.run/frontend-frameworks": "2.0.0-beta.87",
+    "@effect/platform-bun": "4.1.4",
+    "@effect/platform-node": "4.1.4",
+    "@effect/tsgo": "0.50.0",
+    "@foldkit/devtools": "0.170.0",
+    "@foldkit/oxlint-plugin": "0.15.4",
+    "@foldkit/vite-plugin": "0.29.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "24.19.2",
+    "alchemy": "2.0.0-beta.87",
+    "happy-dom": "^20.14.5",
+    "oxfmt": "^0.66.0",
+    "oxlint": "1.85.0",
+    "oxlint-tsgolint": "7.0.2003",
+    "pyodide": "314.0.8",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2",
+    "zod": "4.6.7"
+  }
+}
