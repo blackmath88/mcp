@@ -31,7 +31,13 @@ export type Tool = typeof Tool.Type
 export const Evidence = Schema.Struct({
   seq: Schema.Number,
   at: Schema.String,
-  channel: Schema.Literals(['MCP stdio', 'MCP Apps', 'Host', 'Registry REST']),
+  channel: Schema.Literals([
+    'MCP stdio',
+    'MCP in-process',
+    'MCP Apps',
+    'Host',
+    'Registry REST',
+  ]),
   direction: Schema.Literals(['out', 'in', 'local']),
   label: Schema.String,
   detail: Schema.String,
@@ -44,6 +50,7 @@ export const Session = Schema.Struct({
   server: Schema.String,
   version: Schema.String,
   protocol: Schema.String,
+  transport: Schema.Literals(['MCP stdio', 'MCP in-process']),
   tools: Schema.Array(Tool),
   partial: Schema.Boolean,
 })
@@ -78,6 +85,16 @@ export const RegistryEntry = Schema.Struct({
 })
 export type RegistryEntry = typeof RegistryEntry.Type
 
+export const RegistryResults = Schema.Struct({
+  entries: Schema.Array(RegistryEntry),
+  partial: Schema.Boolean,
+})
+
+export const RegistryReceipt = Schema.Struct({
+  upstream: Schema.Array(Evidence),
+  page: Schema.optional(RegistryResults),
+})
+
 export const Reply = Schema.Struct({
   events: Schema.Array(Evidence),
   dropped: Schema.Number,
@@ -85,11 +102,7 @@ export const Reply = Schema.Struct({
   session: Schema.optional(Session),
   invocation: Schema.optional(Invocation),
   app: Schema.optional(AppResource),
-  registry: Schema.optional(
-    Schema.Struct({
-      entries: Schema.Array(RegistryEntry),
-      partial: Schema.Boolean,
-    }),
-  ),
+  registry: Schema.optional(RegistryResults),
+  registryEvents: Schema.optional(Schema.Array(Evidence)),
 })
 export type Reply = typeof Reply.Type

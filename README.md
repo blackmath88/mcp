@@ -25,7 +25,7 @@ Open [the Atlas](http://127.0.0.1:5173/) and choose **Live workbench**, or open 
 | Get Time | Discover tools, open the upstream view, then click **Get Server Time** inside it. Backstage shows the Apps messages and MCP stdio call separately. Use **Stop specimen** and click again to see the failed refresh. |
 | Everything | Discover the reference inventory and run **Echo** with your own text. Select other discovered tools to inspect their metadata. |
 | Permission slip | Run the synthetic bridge edit as viewer, then as editor. Read the role, enforcement decision and before/after revisions in the result. |
-| Registry | Search published records and compare package identifiers with remote endpoint declarations. |
+| Registry | Send the same query directly over REST and through the local MCP adapter. Compare the protocol trace and the Registry receipt, then inspect package and endpoint declarations. |
 
 **MCP Lens** shows what the actual tool listing advertised, with the corresponding field beside each claim. Runtime results and Apps activity appear in Backstage. The original [simulated prototype](http://127.0.0.1:5173/lab/concept.html) and the Atlas’s recorded CLI/MCP exchange remain accessible.
 
@@ -44,7 +44,7 @@ npx playwright install chromium
 npm run test:browser
 ```
 
-For an existing Chromium, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to its executable. The browser suite uses real local specimen processes and a deterministic Registry failure response. Registry availability can be checked from its workbench exhibit.
+For an existing Chromium, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to its executable. The browser suite uses real local specimen processes, the in-process Registry adapter, and a deterministic Registry failure response. The Registry exhibit also supports a live smoke test over both entrances.
 
 ## Atlas and command-line entrances
 

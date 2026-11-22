@@ -178,3 +178,34 @@ test('releases the previous MCP session on reload', async ({ page }) => {
     })
     .toMatch(/expired or is unavailable/)
 })
+
+test('carries the Registry query from REST into the discovered MCP adapter', async ({
+  page,
+}) => {
+  await page.goto('/live.html')
+  await page
+    .getByRole('button', { name: 'Registry Live REST', exact: true })
+    .click()
+  const stage = page.getByRole('region', { name: 'Onstage' })
+  await stage
+    .getByRole('searchbox', { name: 'Registry query' })
+    .fill('bridge notes')
+  await stage.getByRole('button', { name: 'Local MCP adapter' }).click()
+  await expect(stage.getByRole('searchbox')).toHaveCount(0)
+  await stage.getByRole('button', { name: 'Discover tools' }).click()
+  await expect(
+    stage.getByRole('searchbox', { name: 'Registry query' }),
+  ).toHaveValue('bridge notes')
+  await expect(
+    stage.getByRole('button', { name: 'Search via MCP' }),
+  ).toBeEnabled()
+  await expect(
+    page.getByRole('button', { name: 'search_registry', exact: true }),
+  ).toBeVisible()
+  const wire = page.getByRole('region', { name: 'Backstage' })
+  await expect(
+    wire.getByText('Lab Registry adapter · 1.0.0', { exact: true }),
+  ).toBeVisible()
+  await expect(wire.getByText('MCP in-process', { exact: true })).toBeVisible()
+  await expect(wire.getByText('tools/list #1', { exact: true })).toBeVisible()
+})

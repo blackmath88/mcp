@@ -7,7 +7,7 @@ import { type Reply, Request } from './contract.ts'
 import { errorMessage } from './evidence.ts'
 import { Message } from './message.ts'
 import { AppState, type Model, Operation } from './model.ts'
-import { type SpecimenId, allowedTools } from './specimens.ts'
+import { type SpecimenId, allowedTools, isRegistry } from './specimens.ts'
 
 type UpdateReturn = Update.Return<Model, Message>
 
@@ -70,6 +70,7 @@ const freshModel = (specimen: SpecimenId, epoch: number): Model => ({
   appEvents: [],
   error: Option.none(),
   registry: Option.none(),
+  registryEvents: [],
 })
 
 export const init = (): UpdateReturn => ({ model: freshModel('time', 0) })
@@ -133,7 +134,12 @@ export const update = (model: Model, message: Message): UpdateReturn =>
       if (model.specimen === specimen || model.operation._tag !== 'Idle') {
         return { model }
       }
-      const nextModel = freshModel(specimen, model.epoch + 1)
+      const nextModel = modifyFields(freshModel(specimen, model.epoch + 1), {
+        query: value =>
+          isRegistry(specimen) && isRegistry(model.specimen)
+            ? model.query
+            : value,
+      })
       return Option.match(model.session, {
         onNone: () => ({ model: nextModel }),
         onSome: ({ id }) => ({
@@ -161,6 +167,7 @@ export const update = (model: Model, message: Message): UpdateReturn =>
       const cleared = modifyFields(freshModel(model.specimen, model.epoch), {
         echoMessage: () => model.echoMessage,
         role: () => model.role,
+        query: () => model.query,
       })
       return start(
         cleared,
@@ -185,8 +192,14 @@ export const update = (model: Model, message: Message): UpdateReturn =>
           ? { message: model.echoMessage }
           : model.specimen === 'boundary'
             ? { role: model.role }
-            : {}
-      const nextModel = modifyFields(model, { invocation: () => Option.none() })
+            : model.specimen === 'registry-mcp'
+              ? { query: model.query }
+              : {}
+      const nextModel = modifyFields(model, {
+        invocation: () => Option.none(),
+        registry: () => Option.none(),
+        registryEvents: () => [],
+      })
       return start(
         nextModel,
         Operation.Calling(),
@@ -242,6 +255,7 @@ export const update = (model: Model, message: Message): UpdateReturn =>
           appEvents: previous => (reply.app ? [] : previous),
           registry: previous =>
             reply.registry ? Option.some(reply.registry) : previous,
+          registryEvents: previous => reply.registryEvents ?? previous,
         }),
       }
     },

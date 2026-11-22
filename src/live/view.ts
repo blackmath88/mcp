@@ -16,10 +16,11 @@ import { Message } from './message.ts'
 import { AppState, type Model } from './model.ts'
 import { ConnectApp, WatchSessionExit } from './mount.ts'
 import {
-  SpecimenId,
   allowedTools,
   hostName,
   hostVersion,
+  isRegistry,
+  shelf,
   specimens,
 } from './specimens.ts'
 
@@ -51,6 +52,7 @@ const selectedTool = (model: Model): Option.Option<Tool> =>
 
 const inventory = (model: Model, h: H): Html => {
   const busy = model.operation._tag !== 'Idle'
+  const current = isRegistry(model.specimen) ? 'registry' : model.specimen
   return h.aside(
     [h.Class('live-inventory'), h.AriaLabel('Inventory')],
     [
@@ -60,7 +62,7 @@ const inventory = (model: Model, h: H): Html => {
         [
           h.ul(
             [h.Class('live-shelf')],
-            SpecimenId.literals.map(id =>
+            shelf.map(id =>
               h.keyed('li')(
                 id,
                 [],
@@ -69,9 +71,13 @@ const inventory = (model: Model, h: H): Html => {
                     [
                       h.Type('button'),
                       h.Class('shelf-slot'),
-                      h.AriaCurrent(id === model.specimen ? 'page' : 'false'),
+                      h.AriaCurrent(id === current ? 'page' : 'false'),
                       h.Disabled(busy),
-                      h.OnClick(Message.SelectedSpecimen({ specimen: id })),
+                      h.OnClick(
+                        Message.SelectedSpecimen({
+                          specimen: id === current ? model.specimen : id,
+                        }),
+                      ),
                     ],
                     [
                       h.span(
@@ -90,7 +96,14 @@ const inventory = (model: Model, h: H): Html => {
                         [],
                         [
                           h.strong([], [specimens[id].title]),
-                          h.small([], [specimens[id].mode]),
+                          h.small(
+                            [],
+                            [
+                              id === current
+                                ? specimens[model.specimen].mode
+                                : specimens[id].mode,
+                            ],
+                          ),
                         ],
                       ),
                     ],
@@ -207,70 +220,78 @@ const callControls = (
     [
       h.h3([], [tool.title ?? tool.name]),
       tool.description ? h.p([], [tool.description]) : h.empty,
-      allowed
-        ? h.div(
-            [h.Class('tool-controls')],
-            [
-              model.specimen === 'everything'
-                ? h.label(
-                    [],
-                    [
-                      'Message',
-                      h.input([
-                        h.Type('text'),
-                        h.Maxlength(240),
-                        h.Value(model.echoMessage),
-                        h.OnInput(value => Message.UpdatedEcho({ value })),
-                      ]),
-                    ],
-                  )
-                : h.empty,
-              model.specimen === 'boundary'
-                ? h.fieldset(
-                    [h.Class('role-picker')],
-                    [
-                      h.legend([], ['Synthetic role']),
-                      ...(['viewer', 'editor'] as const).map(role =>
-                        h.keyed('label')(
-                          role,
-                          [],
-                          [
-                            h.input([
-                              h.Type('radio'),
-                              h.Name('synthetic-role'),
-                              h.Checked(model.role === role),
-                              h.OnChange(() => Message.UpdatedRole({ role })),
-                            ]),
-                            role === 'viewer' ? 'Viewer' : 'Editor',
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                : h.empty,
-              h.div(
-                [h.Class('live-actions')],
-                [
-                  button(
-                    model.operation._tag === 'Calling'
-                      ? 'Calling…'
-                      : session.state === 'stopped'
-                        ? 'Retry tool'
-                        : model.specimen === 'time'
-                          ? 'Open time app'
-                          : 'Run tool',
-                    Message.ClickedCall(),
-                    busy || !canRun,
-                    h,
-                  ),
-                ],
-              ),
-            ],
+      model.specimen === 'registry-mcp' && allowed
+        ? registryForm(
+            model,
+            'Search via MCP',
+            Message.ClickedCall(),
+            !canRun,
+            h,
           )
-        : h.p(
-            [h.Class('live-muted')],
-            ['This tool is available for metadata inspection in the lab.'],
-          ),
+        : allowed
+          ? h.div(
+              [h.Class('tool-controls')],
+              [
+                model.specimen === 'everything'
+                  ? h.label(
+                      [],
+                      [
+                        'Message',
+                        h.input([
+                          h.Type('text'),
+                          h.Maxlength(240),
+                          h.Value(model.echoMessage),
+                          h.OnInput(value => Message.UpdatedEcho({ value })),
+                        ]),
+                      ],
+                    )
+                  : h.empty,
+                model.specimen === 'boundary'
+                  ? h.fieldset(
+                      [h.Class('role-picker')],
+                      [
+                        h.legend([], ['Synthetic role']),
+                        ...(['viewer', 'editor'] as const).map(role =>
+                          h.keyed('label')(
+                            role,
+                            [],
+                            [
+                              h.input([
+                                h.Type('radio'),
+                                h.Name('synthetic-role'),
+                                h.Checked(model.role === role),
+                                h.OnChange(() => Message.UpdatedRole({ role })),
+                              ]),
+                              role === 'viewer' ? 'Viewer' : 'Editor',
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  : h.empty,
+                h.div(
+                  [h.Class('live-actions')],
+                  [
+                    button(
+                      model.operation._tag === 'Calling'
+                        ? 'Calling…'
+                        : session.state === 'stopped'
+                          ? 'Retry tool'
+                          : model.specimen === 'time'
+                            ? 'Open time app'
+                            : 'Run tool',
+                      Message.ClickedCall(),
+                      busy || !canRun,
+                      h,
+                    ),
+                  ],
+                ),
+              ],
+            )
+          : h.p(
+              [h.Class('live-muted')],
+              ['This tool is available for metadata inspection in the lab.'],
+            ),
     ],
   )
 }
@@ -373,7 +394,10 @@ const mcpOnstage = (model: Model, h: H): Html => {
       }),
       Option.match(model.invocation, {
         onNone: () => h.empty,
-        onSome: invocation => invocationView(invocation, h),
+        onSome: invocation =>
+          model.specimen === 'registry-mcp' && !invocation.isError
+            ? h.empty
+            : invocationView(invocation, h),
       }),
     ],
   )
@@ -404,62 +428,108 @@ const registryRecord = (entry: RegistryEntry, h: H): Html =>
     ],
   )
 
+const registryForm = (
+  model: Model,
+  label: string,
+  action: Message,
+  disabled: boolean,
+  h: H,
+): Html =>
+  h.form(
+    [h.Class('registry-form'), h.OnSubmit(action)],
+    [
+      h.label(
+        [],
+        [
+          'Registry query',
+          h.input([
+            h.Type('search'),
+            h.Required(true),
+            h.Minlength(3),
+            h.Maxlength(120),
+            h.Value(model.query),
+            h.OnInput(value => Message.UpdatedQuery({ value })),
+          ]),
+        ],
+      ),
+      h.button(
+        [
+          h.Type('submit'),
+          h.Class('live-button'),
+          h.Disabled(disabled || model.operation._tag !== 'Idle'),
+        ],
+        [model.operation._tag === 'Idle' ? label : 'Searching…'],
+      ),
+    ],
+  )
+
+const registryResults = (model: Model, h: H): Html =>
+  Option.match(model.registry, {
+    onNone: () => h.empty,
+    onSome: ({ entries, partial }) =>
+      h.div(
+        [h.Class('registry-results live-content')],
+        [
+          h.p(
+            [h.Role('status')],
+            [
+              entries.length === 0
+                ? 'The registry returned no matching records.'
+                : `${entries.length} published records${partial ? ' in the first page' : ''}.`,
+            ],
+          ),
+          h.ul(
+            [h.Class('registry-records')],
+            entries.map(entry => registryRecord(entry, h)),
+          ),
+        ],
+      ),
+  })
+
+const registryEntrances = (model: Model, h: H): Html =>
+  h.div(
+    [
+      h.Class('registry-entrance'),
+      h.Role('group'),
+      h.AriaLabel('Registry entrance'),
+    ],
+    [
+      h.button(
+        [
+          h.Type('button'),
+          h.AriaPressed(String(model.specimen === 'registry')),
+          h.Disabled(model.operation._tag !== 'Idle'),
+          h.OnClick(Message.SelectedSpecimen({ specimen: 'registry' })),
+        ],
+        ['Direct REST'],
+      ),
+      h.button(
+        [
+          h.Type('button'),
+          h.AriaPressed(String(model.specimen === 'registry-mcp')),
+          h.Disabled(model.operation._tag !== 'Idle'),
+          h.OnClick(Message.SelectedSpecimen({ specimen: 'registry-mcp' })),
+        ],
+        ['Local MCP adapter'],
+      ),
+    ],
+  )
+
 const registryOnstage = (model: Model, h: H): Html =>
   h.div(
     [h.Class('live-content')],
     [
-      h.form(
-        [h.Class('registry-form'), h.OnSubmit(Message.SubmittedSearch())],
-        [
-          h.label(
-            [],
-            [
-              'Registry query',
-              h.input([
-                h.Type('search'),
-                h.Required(true),
-                h.Minlength(3),
-                h.Maxlength(120),
-                h.Value(model.query),
-                h.OnInput(value => Message.UpdatedQuery({ value })),
-              ]),
-            ],
-          ),
-          h.button(
-            [
-              h.Type('submit'),
-              h.Class('live-button'),
-              h.Disabled(model.operation._tag !== 'Idle'),
-            ],
-            [
-              model.operation._tag === 'Searching'
-                ? 'Searching…'
-                : 'Search registry',
-            ],
-          ),
-        ],
-      ),
-      Option.match(model.registry, {
-        onNone: () => h.empty,
-        onSome: ({ entries, partial }) =>
-          h.div(
-            [h.Class('live-content')],
-            [
-              h.p(
-                [h.Role('status')],
-                [
-                  entries.length === 0
-                    ? 'The registry returned no matching records.'
-                    : `${entries.length} published records${partial ? ' in the first page' : ''}.`,
-                ],
-              ),
-              h.ul(
-                [h.Class('registry-records')],
-                entries.map(entry => registryRecord(entry, h)),
-              ),
-            ],
-          ),
-      }),
+      registryEntrances(model, h),
+      model.specimen === 'registry'
+        ? registryForm(
+            model,
+            'Search registry',
+            Message.SubmittedSearch(),
+            false,
+            h,
+          )
+        : mcpOnstage(model, h),
+      registryResults(model, h),
     ],
   )
 
@@ -470,7 +540,7 @@ const onstage = (model: Model, h: H): Html =>
       title('Onstage', h),
       h.h3([h.Class('specimen-title')], [specimens[model.specimen].title]),
       h.p([h.Class('live-muted')], [specimens[model.specimen].description]),
-      model.specimen === 'registry'
+      isRegistry(model.specimen)
         ? registryOnstage(model, h)
         : mcpOnstage(model, h),
       Option.match(model.error, {
@@ -564,6 +634,20 @@ const backstage = (model: Model, h: H): Html => {
     [h.Class('live-backstage'), h.AriaLabel('Backstage')],
     [
       title('Backstage', h),
+      model.appEvents.length || model.registryEvents.length
+        ? h.nav(
+            [h.Class('wire-jump'), h.AriaLabel('Evidence channels')],
+            [
+              h.a([h.Href('#specimen-evidence')], ['Specimen']),
+              model.appEvents.length
+                ? h.a([h.Href('#apps-evidence')], ['Apps bridge'])
+                : h.empty,
+              model.registryEvents.length
+                ? h.a([h.Href('#registry-receipt')], ['Registry receipt'])
+                : h.empty,
+            ],
+          )
+        : h.empty,
       h.dl(
         [h.Class('provenance')],
         [
@@ -592,6 +676,8 @@ const backstage = (model: Model, h: H): Html => {
             onSome: session => [
               h.dt([], ['Observed server']),
               h.dd([], [`${session.server} · ${session.version}`]),
+              h.dt([], ['Transport']),
+              h.dd([], [session.transport]),
               h.dt([], ['Protocol']),
               h.dd([], [session.protocol]),
             ],
@@ -618,7 +704,7 @@ const backstage = (model: Model, h: H): Html => {
       }),
       model.events.length
         ? h.div(
-            [h.Class('wire-channel')],
+            [h.Class('wire-channel'), h.Id('specimen-evidence')],
             [
               h.h3(
                 [],
@@ -630,7 +716,7 @@ const backstage = (model: Model, h: H): Html => {
               ),
               h.p(
                 [h.Class('wire-order')],
-                ['Latest first · → sent · ← received · · host'],
+                ['Latest first · → sent · ← received'],
               ),
               model.dropped
                 ? h.p([], [`${model.dropped} older events omitted.`])
@@ -642,9 +728,22 @@ const backstage = (model: Model, h: H): Html => {
             [h.Class('wire-empty')],
             ['Protocol and host events appear here as you use the bench.'],
           ),
+      model.registryEvents.length
+        ? h.div(
+            [h.Class('wire-channel'), h.Id('registry-receipt')],
+            [
+              h.h3([], ['Adapter’s REST receipt']),
+              evidenceView(
+                model.registryEvents,
+                `${scope}:rest:${model.epoch}`,
+                h,
+              ),
+            ],
+          )
+        : h.empty,
       model.appEvents.length
         ? h.div(
-            [h.Class('wire-channel')],
+            [h.Class('wire-channel'), h.Id('apps-evidence')],
             [
               h.h3([], ['App ↔ Host']),
               appDropped > 0

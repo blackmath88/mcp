@@ -1,4 +1,4 @@
-import { Clock, Effect } from 'effect'
+import { Clock, Effect, Schema } from 'effect'
 import { randomUUID } from 'node:crypto'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
@@ -13,18 +13,29 @@ import {
 import { EXTENSION_ID } from '@modelcontextprotocol/ext-apps/server'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
+import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
 import {
   InitializeResultSchema,
   type Tool as McpTool,
 } from '@modelcontextprotocol/sdk/types.js'
 
-import type { Invocation, Reply, Request, Session, Tool } from './contract.ts'
+import {
+  type Invocation,
+  RegistryReceipt,
+  type Reply,
+  type Request,
+  type Session,
+  type Tool,
+} from './contract.ts'
 import {
   createEvidence,
   errorMessage,
   frameLabel,
   observeTransport,
 } from './evidence.ts'
+import { createRegistryMcpServer } from './registry-mcp-server.ts'
+import { searchRegistry } from './registry-server.ts'
 import {
   type SpecimenId,
   allowedTools,
@@ -33,7 +44,8 @@ import {
 } from './specimens.ts'
 
 const require = createRequire(import.meta.url)
-const commandPath = (specimen: Exclude<SpecimenId, 'registry'>): string => {
+type StdioSpecimen = Exclude<SpecimenId, 'registry' | 'registry-mcp'>
+const commandPath = (specimen: StdioSpecimen): string => {
   if (specimen === 'everything') {
     return join(
       dirname(
@@ -138,7 +150,59 @@ function snapshot(session: ActiveSession, fields: Partial<Reply> = {}): Reply {
   return { ...session.evidence.snapshot(), session: session.data, ...fields }
 }
 
-export function createSessionHost(getSandboxUrl: () => Promise<string>) {
+function stdioTransport(specimen: StdioSpecimen): Transport {
+  // The SDK adds its own fixed default environment keys. Keep those empty so local
+  // account locations and paths are not passed into the curated specimen process.
+  return new StdioClientTransport({
+    command: process.execPath,
+    args: [commandPath(specimen)],
+    env: {
+      HOME: '',
+      LOGNAME: '',
+      PATH: '',
+      SHELL: '',
+      TERM: '',
+      USER: '',
+      APPDATA: '',
+      HOMEDRIVE: '',
+      HOMEPATH: '',
+      LOCALAPPDATA: '',
+      USERPROFILE: '',
+      SYSTEMDRIVE: '',
+      TEMP: '',
+      USERNAME: '',
+      PROCESSOR_ARCHITECTURE: '',
+      PROGRAMFILES: '',
+    },
+    stderr: 'ignore',
+    maxBufferSize: 1_048_576,
+  })
+}
+
+function openTransport(
+  specimen: Exclude<SpecimenId, 'registry'>,
+  search: (query: string) => Promise<Reply>,
+): {
+  transport: Transport
+  kind: Session['transport']
+  prepare?: () => Promise<void>
+} {
+  if (specimen === 'registry-mcp') {
+    const [transport, peer] = InMemoryTransport.createLinkedPair()
+    const registry = createRegistryMcpServer(search)
+    return {
+      transport,
+      kind: 'MCP in-process',
+      prepare: () => registry.connect(peer),
+    }
+  }
+  return { transport: stdioTransport(specimen), kind: 'MCP stdio' }
+}
+
+export function createSessionHost(
+  getSandboxUrl: () => Promise<string>,
+  registrySearch: (query: string) => Promise<Reply> = searchRegistry,
+) {
   const sessions = new Map<string, ActiveSession>()
   const sweep = setInterval(() => {
     sessions.forEach((session, id) => {
@@ -159,33 +223,9 @@ export function createSessionHost(getSandboxUrl: () => Promise<string>) {
     }
 
     const id = randomUUID()
-    // The SDK adds its own fixed default environment keys. Keep those empty so local
-    // account locations and paths are not passed into the curated specimen process.
-    const transport = new StdioClientTransport({
-      command: process.execPath,
-      args: [commandPath(specimen)],
-      env: {
-        HOME: '',
-        LOGNAME: '',
-        PATH: '',
-        SHELL: '',
-        TERM: '',
-        USER: '',
-        APPDATA: '',
-        HOMEDRIVE: '',
-        HOMEPATH: '',
-        LOCALAPPDATA: '',
-        USERPROFILE: '',
-        SYSTEMDRIVE: '',
-        TEMP: '',
-        USERNAME: '',
-        PROCESSOR_ARCHITECTURE: '',
-        PROGRAMFILES: '',
-      },
-      stderr: 'ignore',
-      maxBufferSize: 1_048_576,
-    })
-    const evidence = createEvidence('MCP stdio')
+    const opened = openTransport(specimen, registrySearch)
+    const transport = opened.transport
+    const evidence = createEvidence(opened.kind)
     const client = new Client(
       { name: hostName, version: hostVersion },
       {
@@ -207,6 +247,7 @@ export function createSessionHost(getSandboxUrl: () => Promise<string>) {
         server: 'Unknown',
         version: 'Unknown',
         protocol: 'Unknown',
+        transport: opened.kind,
         tools: [],
         partial: false,
       },
@@ -232,6 +273,7 @@ export function createSessionHost(getSandboxUrl: () => Promise<string>) {
       )
     }
     try {
+      await opened.prepare?.()
       await client.connect(
         observeTransport(transport, (direction, frame) => {
           evidence.record(direction, frameLabel(frame), frame)
@@ -309,7 +351,7 @@ export function createSessionHost(getSandboxUrl: () => Promise<string>) {
       const result = await session.client.callTool(
         { name: tool, arguments: args },
         undefined,
-        options,
+        session.specimen === 'registry-mcp' ? { timeout: 10_000 } : options,
       )
       invocation = {
         tool,
@@ -317,6 +359,16 @@ export function createSessionHost(getSandboxUrl: () => Promise<string>) {
         from,
         resultJson: JSON.stringify(result),
         isError: result.isError === true,
+      }
+      if (session.specimen === 'registry-mcp' && result.structuredContent) {
+        const receipt = Schema.decodeUnknownSync(RegistryReceipt)(
+          result.structuredContent,
+        )
+        return snapshot(session, {
+          invocation,
+          registryEvents: receipt.upstream,
+          ...(receipt.page === undefined ? {} : { registry: receipt.page }),
+        })
       }
       if (from !== 'learner' || !declared.uiUri || invocation.isError) {
         return snapshot(session, { invocation })

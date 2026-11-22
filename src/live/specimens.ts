@@ -5,8 +5,14 @@ export const SpecimenId = Schema.Literals([
   'everything',
   'boundary',
   'registry',
+  'registry-mcp',
 ])
 export type SpecimenId = typeof SpecimenId.Type
+
+export const shelf = ['time', 'everything', 'boundary', 'registry'] as const
+export const registrySearchTool = 'search_registry'
+export const isRegistry = (id: SpecimenId) =>
+  id === 'registry' || id === 'registry-mcp'
 
 export const specimens = {
   time: {
@@ -43,6 +49,14 @@ export const specimens = {
     version: 'Official Registry v0.1',
     source: 'https://registry.modelcontextprotocol.io/',
   },
+  'registry-mcp': {
+    title: 'Registry',
+    mode: 'Live MCP · local adapter',
+    description:
+      'Call a local MCP adapter that queries the official Registry REST API. Follow both legs in Backstage.',
+    version: 'Lab adapter v1 · Official Registry v0.1',
+    source: 'https://registry.modelcontextprotocol.io/',
+  },
 } satisfies Record<
   SpecimenId,
   {
@@ -60,6 +74,7 @@ export const allowedTools: Readonly<Record<SpecimenId, ReadonlyArray<string>>> =
     everything: ['echo'],
     boundary: ['request_bridge_edit'],
     registry: [],
+    'registry-mcp': [registrySearchTool],
   }
 
 export const apiPath = '/api/lab/specimen'

@@ -1,5 +1,17 @@
 # Handoff
 
+## Registry comparison and integrated verification · 2026-11-22
+
+The Registry exhibit offers direct REST and an in-process MCP client/server pair that calls the same official REST search. Switching entrances preserves the query. The local MCP adapter’s `search_registry` result carries the upstream receipt. Backstage shows that receipt separately from the host’s MCP frames.
+
+Chromium queried both entrances with `memory`. Both returned HTTP 200 and the same first eight records. The integrated suite passed 211 Vitest tests, five Playwright scenarios on the built preview, and four infrastructure guard tests. Desktop and phone smoke checks showed no horizontal overflow.
+
+### Remaining work
+
+- The documented hosted Registry SSE route remains unavailable with HTTP 500. The local comparison uses the official REST endpoint for data.
+- The Apps host currently handles the curated self-contained HTML Quickstart. Resource types, external asset policies, app-only tool inventories and model-context updates need dedicated specimens and checks before widening the host.
+- The keyboard and viewport checks exercise navigation and evidence. A facilitated learner walkthrough has yet to measure the understanding described in the journey.
+
 ## Workbench repair checkpoint · 2026-11-22
 
 A second agent reviewed the committed host at `c634d1d` by reading its diff. The follow-up keeps completed sends distinct from failed writes, reports an accepted version after initialization, retains successful pages when discovery is partial, preserves an active view when replacement fails, and ignores app replies older than the current session evidence. Leaving the page attempts a best-effort release. A fresh discovery in the same tab retires the remembered session. Chromium verified that reload and rediscovery close the old session.

@@ -217,3 +217,76 @@ it('keeps the original app grant when the replacement fails', async () => {
     await isolated.close()
   }
 })
+
+it('uses an actual in-process MCP call to obtain the Registry REST receipt', async () => {
+  const resultPage = {
+    entries: [
+      {
+        name: 'example/note',
+        version: '1.0.0',
+        description: '',
+        packages: [],
+        remotes: [],
+      },
+    ],
+    partial: false,
+  }
+  const upstream = {
+    seq: 1,
+    at: '2026-11-22T10:00:00Z',
+    channel: 'Registry REST' as const,
+    direction: 'in' as const,
+    label: 'HTTP 200',
+    detail: '{}',
+  }
+  const isolated = createSessionHost(
+    async () => '',
+    async query => {
+      expect(query).toBe('note')
+      return { events: [upstream], dropped: 0, registry: resultPage }
+    },
+  )
+  try {
+    const opened = await isolated.execute({
+      _tag: 'Connect',
+      specimen: 'registry-mcp',
+    })
+    expect(opened.error).toBeUndefined()
+    expect(opened.session).toMatchObject({
+      server: 'Lab Registry adapter',
+      transport: 'MCP in-process',
+      tools: [
+        expect.objectContaining({
+          name: 'search_registry',
+          readOnlyHint: true,
+        }),
+      ],
+    })
+    const result = await isolated.execute({
+      _tag: 'Call',
+      sessionId: opened.session?.id ?? '',
+      tool: 'search_registry',
+      arguments: { query: 'note' },
+      from: 'learner',
+    })
+    expect(result.error).toBeUndefined()
+    expect(result.invocation?.isError).toBe(false)
+    expect(result.registry).toEqual(resultPage)
+    expect(result.registryEvents).toEqual([upstream])
+    expect(
+      result.events
+        .filter(event => event.channel === 'MCP in-process')
+        .map(event => event.label),
+    ).toEqual([
+      'initialize #0',
+      'Response #0',
+      'notifications/initialized',
+      'tools/list #1',
+      'Response #1',
+      'tools/call #2',
+      'Response #2',
+    ])
+  } finally {
+    await isolated.close()
+  }
+})

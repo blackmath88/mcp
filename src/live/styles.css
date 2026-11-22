@@ -534,3 +534,33 @@
     justify-self: start;
   }
 }
+
+.registry-entrance {
+  display: flex;
+  gap: 3px;
+  justify-self: start;
+  padding: 3px;
+  border: 1px solid var(--bd);
+  border-radius: 7px;
+  background: var(--canvas);
+}
+.registry-entrance button {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.registry-entrance button[aria-pressed='true'] {
+  color: var(--pri);
+  background: var(--prisub);
+}
+.live-tool .registry-form {
+  margin-top: 12px;
+}
+
+.wire-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 12px;
+  margin: -5px 0 13px;
+}

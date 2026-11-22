@@ -49,6 +49,7 @@ it('keeps a newer stop and failure when an older app reply arrives', () => {
     server: 'Clock',
     version: '1',
     protocol: '2025-11-25',
+    transport: 'MCP stdio' as const,
     tools: [],
     partial: false,
   }

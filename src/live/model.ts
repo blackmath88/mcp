@@ -5,7 +5,7 @@ import {
   AppResource,
   Evidence,
   Invocation,
-  RegistryEntry,
+  RegistryResults,
   Session,
 } from './contract.ts'
 import { SpecimenId } from './specimens.ts'
@@ -41,11 +41,7 @@ export const Model = Schema.Struct({
   dropped: Schema.Number,
   appEvents: Schema.Array(Evidence),
   error: Schema.Option(Schema.String),
-  registry: Schema.Option(
-    Schema.Struct({
-      entries: Schema.Array(RegistryEntry),
-      partial: Schema.Boolean,
-    }),
-  ),
+  registry: Schema.Option(RegistryResults),
+  registryEvents: Schema.Array(Evidence),
 })
 export type Model = typeof Model.Type
