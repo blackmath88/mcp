@@ -17,13 +17,18 @@
     "lab": "node src/adapters/cli.ts",
     "mcp:server": "node src/adapters/mcp-server.ts",
     "record": "node scripts/record-entrances.ts",
-    "predev": "node scripts/copy-pyodide.mjs",
-    "prebuild": "node scripts/copy-pyodide.mjs"
+    "predev": "npm run build:quickstart && node scripts/copy-pyodide.mjs",
+    "prebuild": "npm run build:quickstart && node scripts/copy-pyodide.mjs",
+    "build:quickstart": "vite build --config vendor/mcp-apps-quickstart/vite.config.ts",
+    "pretest": "npm run build:quickstart",
+    "test:browser": "playwright test"
   },
   "dependencies": {
     "@effect/platform-browser": "4.1.4",
     "@foldkit/ui": "0.170.0",
+    "@modelcontextprotocol/ext-apps": "1.7.5",
     "@modelcontextprotocol/sdk": "1.32.2",
+    "@modelcontextprotocol/server-everything": "2.3.1",
     "effect": "4.1.4",
     "foldkit": "0.170.0"
   },
@@ -36,6 +41,7 @@
     "@foldkit/devtools": "0.170.0",
     "@foldkit/oxlint-plugin": "0.15.4",
     "@foldkit/vite-plugin": "0.29.0",
+    "@playwright/test": "1.58.2",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "24.19.2",
     "alchemy": "2.0.0-beta.87",
@@ -47,7 +53,11 @@
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",
+    "vite-plugin-singlefile": "2.3.3",
     "vitest": "^5.0.2",
     "zod": "4.6.7"
+  },
+  "engines": {
+    "node": ">=24.12.0"
   }
 }

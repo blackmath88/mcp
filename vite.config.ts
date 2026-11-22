@@ -1,13 +1,22 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 
 import { foldkit } from '@foldkit/vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 
+import { specimenHost } from './src/live/vite-plugin.ts'
+
 export default defineConfig({
-  // The upstream default starts a local MCP relay. The catalog needs no server;
-  // enable the relay explicitly only for trusted, deliberately configured tooling.
-  plugins: [tailwindcss(), foldkit({ devToolsMcpPort: false })],
+  // Keep the Foldkit DevTools relay disabled. The specimen middleware owns its loopback API.
+  plugins: [tailwindcss(), foldkit({ devToolsMcpPort: false }), specimenHost()],
+  build: {
+    rollupOptions: {
+      input: ['index.html', 'live.html', 'lab/concept.html'].map(file =>
+        fileURLToPath(new URL(file, import.meta.url)),
+      ),
+    },
+  },
   optimizeDeps: {
-    entries: ['src/entry.ts'],
+    entries: ['src/entry.ts', 'src/live/entry.ts'],
   },
 })

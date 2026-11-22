@@ -1,5 +1,18 @@
 # Handoff
 
+## Live workbench checkpoint · 2026-11-22
+
+Integrated the existing Foldkit/Effect/Alchemy work from `98ff8c3` with the current main concept work at `d6f5da1`. The local checkout had no Observatory artifact. Git refs and open pull requests supplied orientation. The upstream application template was inspected at `7b398a7c4d41d8114f8f5a4029506222a9386584`.
+
+- The Atlas links to the [live workbench startup instructions](../README.md#run-the-lab). The prototype, existing in-tab specimens and recorded exchanges are available alongside it.
+- The lab’s SDK 1.32.2 client discovered and called the [official Apps Quickstart v1.7.5](../vendor/mcp-apps-quickstart/PROVENANCE.md) and the installed Everything 2.3.1 reference server over stdio. Both sessions negotiated MCP 2025-11-25. The pinned Apps SDK’s AppBridge serves the Quickstart view via a separate-origin loopback sandbox. Chromium rendered the upstream view and its button caused a second MCP invocation.
+- Inventory shows live listings. Onstage hosts the upstream view and results. Backstage includes transport frames, host decisions, time, inputs, source, raw results and a first interface-only Lens. Everything invocation is scoped to Echo. The Permission Slip specimen executes a fictional edit policy over the same MCP client path.
+- A live official Registry REST query returned HTTP 200 and a page of records. The Registry reports package and remote declarations as published metadata.
+- Initial integrated checks passed 206 Vitest tests and four infrastructure guard tests. Browser checks exercise keyboard discovery, Apps refresh and stopped-dependency failure, Echo, a synthetic deny/grant and a Registry failure.
+
+Practice source `blackmath88/development-practice` at `8a416833d269475653861964984cb8cfb6aa37c1`. Read the v0.1 draft baseline, decision ledger and prototype profile. Applied bounded upstream execution, explicit provenance and testable failure states. No optional method selected.
+
+
 ## Gateway exhibit · 2026-11-21
 
 Added the [proxy concept](concept/MCP-PROXY.md) and its Papercut module mapping. The proposed fixture compares proxy and backend denials using separate receipts. No runtime experiment was executed. Development Practice draft at `8a416833d269475653861964984cb8cfb6aa37c1`, baseline, decision ledger and prototype profile, informed the choice of a disposable fixture. The next design check is whether a learner can identify which component denied each edit.

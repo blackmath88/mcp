@@ -2681,3 +2681,16 @@ textarea.console-text {
     animation: none !important;
   }
 }
+
+.titlebar-live {
+  color: var(--pri);
+  border: 1px solid var(--bd);
+  border-radius: 5px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.titlebar-live:hover {
+  background: var(--prisub);
+}

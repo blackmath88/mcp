@@ -553,6 +553,7 @@ const titlebarView = (model: Model, h: H): Html =>
               h.b([], [stationTitle(model.station)]),
             ],
       ),
+      h.a([h.Href('/live.html'), h.Class('titlebar-live')], ['Live workbench']),
       h.span(
         [h.Class('simtag')],
         [
