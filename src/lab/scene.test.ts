@@ -828,3 +828,31 @@ describe('the full-window map', () => {
     )
   })
 })
+
+describe('out in the world', () => {
+  test('a bench shows real servers of four kinds, each with its evidence', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, station: 'filesystem' }),
+      expect(text('Out in the world')).toExist(),
+      expect(text('Most used')).toExist(),
+      expect(text('Almost breaks it')).toExist(),
+      expect(text('Desktop Commander')).toExist(),
+      expect(text('EscapeRoute (CVE-2025-53109 and -53110)')).toExist(),
+    )
+  })
+
+  test('the library tells the route again through real servers', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'intro' }),
+      click(role('button', { name: 'Out in the world' })),
+      expect(text('The real servers behind each step')).toExist(),
+      expect(text('Playwright MCP')).toExist(),
+      expect(text('Home Assistant MCP Server')).toExist(),
+      click(role('button', { name: 'Open step 11' })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
+      expect(text('crane at the dock (simulated)')).toExist(),
+    )
+  })
+})

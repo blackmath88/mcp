@@ -1023,6 +1023,10 @@ export const update = (current: Model, message: Message): UpdateReturn => {
       }),
     }),
 
+    ClickedLibrary: () => ({
+      model: modifyFields(model, { screen: () => 'library' }),
+    }),
+
     ClickedIntro: () => ({
       model: modifyFields(model, { screen: () => 'intro' }),
     }),

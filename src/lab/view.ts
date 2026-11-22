@@ -32,6 +32,7 @@ import {
 } from './icons.ts'
 import { introView, storyCardView } from './intro.ts'
 import { lensTabView } from './lens-view.ts'
+import { libraryScreenView, shelfView } from './library.ts'
 import { Message } from './message.ts'
 import {
   type BackstageTab,
@@ -272,7 +273,7 @@ export const view = (model: Model, h: H): Document => ({
             statusbarView(model, h),
           ],
         )
-      : model.screen === 'home'
+      : model.screen === 'library'
         ? h.div(
             [h.Class('ide shell-atlas')],
             [
@@ -281,24 +282,37 @@ export const view = (model: Model, h: H): Document => ({
                 [h.Class('sidebar'), h.AriaLabel('Specimens')],
                 [journeyView(model, h)],
               ),
-              atlasScreenView(model, h),
+              libraryScreenView(model, h),
               statusbarView(model, h),
             ],
           )
-        : h.div(
-            [h.Class(`ide backstage-${model.backstage}`)],
-            [
-              titlebarView(model, h),
-              h.nav(
-                [h.Class('sidebar'), h.AriaLabel('Specimens')],
-                [journeyView(model, h)],
-              ),
-              workbenchView(model, h),
-              inspectorView(model, h),
-              backstageView(model, h),
-              statusbarView(model, h),
-            ],
-          ),
+        : model.screen === 'home'
+          ? h.div(
+              [h.Class('ide shell-atlas')],
+              [
+                titlebarView(model, h),
+                h.nav(
+                  [h.Class('sidebar'), h.AriaLabel('Specimens')],
+                  [journeyView(model, h)],
+                ),
+                atlasScreenView(model, h),
+                statusbarView(model, h),
+              ],
+            )
+          : h.div(
+              [h.Class(`ide backstage-${model.backstage}`)],
+              [
+                titlebarView(model, h),
+                h.nav(
+                  [h.Class('sidebar'), h.AriaLabel('Specimens')],
+                  [journeyView(model, h)],
+                ),
+                workbenchView(model, h),
+                inspectorView(model, h),
+                backstageView(model, h),
+                statusbarView(model, h),
+              ],
+            ),
 })
 
 const brandView = (h: H): Html =>
@@ -323,7 +337,7 @@ const titlebarView = (model: Model, h: H): Html =>
         [h.Class('location'), h.AriaLabel('Current location')],
         model.screen === 'intro'
           ? [h.b([], ['What is MCP?'])]
-          : model.screen === 'home'
+          : model.screen === 'library'
             ? [
                 h.button(
                   [
@@ -334,34 +348,47 @@ const titlebarView = (model: Model, h: H): Html =>
                   ['← What is MCP?'],
                 ),
                 ' / ',
-                h.b([], ['All tools']),
+                h.b([], ['Out in the world']),
               ]
-            : [
-                h.button(
-                  [
-                    h.Type('button'),
-                    h.Class('crumb'),
-                    h.OnClick(Message.ClickedIntro()),
-                  ],
-                  ['← What is MCP?'],
-                ),
-                ' / ',
-                h.button(
-                  [
-                    h.Type('button'),
-                    h.Class('crumb'),
-                    h.OnClick(Message.ClickedShowOnAtlas()),
-                  ],
-                  ['All tools'],
-                ),
-                ' / ',
-                h.b(
-                  [],
-                  [
-                    `${stepNumber(model.station)} · ${stationTitle(model.station)}`,
-                  ],
-                ),
-              ],
+            : model.screen === 'home'
+              ? [
+                  h.button(
+                    [
+                      h.Type('button'),
+                      h.Class('crumb'),
+                      h.OnClick(Message.ClickedIntro()),
+                    ],
+                    ['← What is MCP?'],
+                  ),
+                  ' / ',
+                  h.b([], ['All tools']),
+                ]
+              : [
+                  h.button(
+                    [
+                      h.Type('button'),
+                      h.Class('crumb'),
+                      h.OnClick(Message.ClickedIntro()),
+                    ],
+                    ['← What is MCP?'],
+                  ),
+                  ' / ',
+                  h.button(
+                    [
+                      h.Type('button'),
+                      h.Class('crumb'),
+                      h.OnClick(Message.ClickedShowOnAtlas()),
+                    ],
+                    ['All tools'],
+                  ),
+                  ' / ',
+                  h.b(
+                    [],
+                    [
+                      `${stepNumber(model.station)} · ${stationTitle(model.station)}`,
+                    ],
+                  ),
+                ],
       ),
       h.span(
         [h.Class('simtag')],
@@ -454,6 +481,15 @@ const journeyView = (model: Model, h: H): Html =>
               h.OnClick(Message.ClickedHome()),
             ],
             [h.span([h.Class('nav-t')], ['All tools and your server'])],
+          ),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('nav-row top'),
+              h.AriaCurrent(model.screen === 'library' ? 'page' : 'false'),
+              h.OnClick(Message.ClickedLibrary()),
+            ],
+            [h.span([h.Class('nav-t')], ['Out in the world'])],
           ),
         ],
       ),
@@ -886,6 +922,7 @@ const workbenchView = (model: Model, h: H): Html =>
         },
         h,
       ),
+      shelfView(model.station, h),
     ],
   )
 

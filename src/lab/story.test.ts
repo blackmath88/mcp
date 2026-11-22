@@ -2,6 +2,7 @@ import { Effect, Option } from 'effect'
 import { Command, given, message, model, story } from 'foldkit/story'
 import { describe, expect, test } from 'vitest'
 
+import library from '../../specimens/library.json'
 import routeSpecimens from '../../specimens/route.json'
 import { catalogue, families, runOn } from '../domain/capabilities.ts'
 import { modules } from '../domain/modules.ts'
@@ -924,5 +925,27 @@ describe('the route follows the ladder', () => {
       .filter(index => index >= 0)
     expect(rungs).toEqual([...rungs].sort((a, b) => a - b))
     expect(new Set(rungs).size).toBe(modules.length)
+  })
+})
+
+describe('the library', () => {
+  test('every station on the route has all four kinds, and every entry names its evidence', () => {
+    const entries = library.entries
+    for (const step of route) {
+      const kinds = entries
+        .filter(entry => entry.station === step.station)
+        .map(entry => entry.kind)
+        .sort()
+      expect(kinds, step.station).toEqual([
+        'breaking',
+        'first',
+        'popular',
+        'weird',
+      ])
+    }
+    for (const entry of entries) {
+      expect(['checked', 'research', 'author']).toContain(entry.evidence.kind)
+      expect(entry.evidence.note.length).toBeGreaterThan(10)
+    }
   })
 })

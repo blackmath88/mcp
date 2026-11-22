@@ -69,6 +69,7 @@ export const Message = defineMessageUnion({
   FailedRunPython: {},
   ClickedHome: {},
   ClickedIntro: {},
+  ClickedLibrary: {},
   ClickedRouteStep: { direction: Schema.Literals(['back', 'next']) },
   SelectedAtlasView: {
     view: Schema.Literals(['map', 'list', 'ladder', 'yours']),

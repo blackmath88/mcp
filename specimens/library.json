@@ -1,0 +1,971 @@
+{
+  "about": "Real MCP servers for each station of the lab, in four kinds: the most used, the first, a weird one, and one that almost breaks the station's idea. Compiled 2026-11-22. Nothing here was installed or run by the lab. Each entry says what its evidence is: 'checked' (confirmed in this session, the note says how), 'research' (owner-supplied research in docs/research, not verified at source), 'author' (named from the compiler's knowledge, not checked). Popularity figures carry their date and measure; different measures do not compare.",
+  "kinds": {
+    "popular": "Most used",
+    "first": "First",
+    "weird": "Weird",
+    "breaking": "Almost breaks it"
+  },
+  "entries": [
+    {
+      "station": "fetch",
+      "kind": "popular",
+      "name": "Firecrawl MCP",
+      "by": "Firecrawl",
+      "url": "https://github.com/firecrawl/firecrawl-mcp-server",
+      "what": "Scrapes, crawls and searches the web and hands back clean text.",
+      "why": "A read of the web as most people meet it: one call, a whole crawling service behind it.",
+      "slots": ["read", "sequence"],
+      "reaches": ["web", "program"],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package firecrawl-mcp exists, first published 2025-02-21. No usage figure checked."
+      }
+    },
+    {
+      "station": "fetch",
+      "kind": "first",
+      "name": "Fetch (reference server)",
+      "by": "modelcontextprotocol/servers",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
+      "what": "Fetches one URL and converts the HTML to Markdown, checking robots.txt for model-initiated calls.",
+      "why": "The original that this station simulates.",
+      "slots": ["read"],
+      "reaches": ["web"],
+      "evidence": {
+        "kind": "checked",
+        "note": "PyPI package mcp-server-fetch, first upload 2024-11-22. A web search reported it among the most downloaded servers; that figure was not checked."
+      }
+    },
+    {
+      "station": "fetch",
+      "kind": "weird",
+      "name": "Gopher and Gemini MCP",
+      "by": "community",
+      "url": "",
+      "what": "Browses Gopherspace and Geminispace, the pre-web and alternative-internet protocols, and refuses every write protocol.",
+      "why": "Reading the web is not only HTTP; a read-only surface by design.",
+      "slots": ["read"],
+      "reaches": ["web"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/2026-11-21-wild-examples.md. Not read at source."
+      }
+    },
+    {
+      "station": "fetch",
+      "kind": "breaking",
+      "name": "The redirect that skipped robots.txt",
+      "by": "GHSA-3jqg-r5pp-rmp2",
+      "url": "https://github.com/modelcontextprotocol/servers/security/advisories/GHSA-3jqg-r5pp-rmp2",
+      "what": "A published advisory: an allowed page redirected to a disallowed one, and the second hop was not checked.",
+      "why": "The tool name stayed “fetch”; the chain of decisions behind it was different. Exactly the station's bend.",
+      "slots": ["read"],
+      "reaches": ["web"],
+      "evidence": {
+        "kind": "research",
+        "note": "Linked in specimens/route.json. The current README describes per-hop checking; these are different revisions."
+      }
+    },
+    {
+      "station": "filesystem",
+      "kind": "popular",
+      "name": "Desktop Commander",
+      "by": "wonderwhy-er",
+      "url": "https://github.com/wonderwhy-er/DesktopCommanderMCP",
+      "what": "Reads and edits files and runs terminal commands on your own computer.",
+      "why": "Files plus a shell: the boundary is much wider than “allowed folders”.",
+      "slots": ["read", "write", "invent"],
+      "reaches": ["files", "program"],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package @wonderwhy-er/desktop-commander, first published 2025-01-09. No usage figure checked."
+      }
+    },
+    {
+      "station": "filesystem",
+      "kind": "first",
+      "name": "Filesystem (reference server)",
+      "by": "modelcontextprotocol/servers",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
+      "what": "Reads, writes and searches files inside directories given at launch or sent by the client as roots.",
+      "why": "The original that this station simulates.",
+      "slots": ["read", "write"],
+      "reaches": ["files"],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package @modelcontextprotocol/server-filesystem, first published 2024-11-21."
+      }
+    },
+    {
+      "station": "filesystem",
+      "kind": "weird",
+      "name": "Zigzag embroidery studio",
+      "by": "simpsoka",
+      "url": "https://github.com/simpsoka/zigzag",
+      "what": "The target is whichever design is in the foreground tab; every agent call is one undo step.",
+      "why": "What a tool may touch is decided by which tab you have open, not by a path.",
+      "slots": ["read", "write"],
+      "reaches": ["files"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/REAL-MCP-SPECIMENS.md. Not run."
+      }
+    },
+    {
+      "station": "filesystem",
+      "kind": "breaking",
+      "name": "EscapeRoute (CVE-2025-53109 and -53110)",
+      "by": "Cymulate, on the reference server",
+      "url": "https://cymulate.com/blog/cve-2025-53109-53110-escaperoute-anthropic/",
+      "what": "A prefix check and a symlink let paths outside the allowed folders through; fixed in 2025.7.1.",
+      "why": "The wall's gate existed and still let things past.",
+      "slots": ["read", "write"],
+      "reaches": ["files"],
+      "evidence": {
+        "kind": "checked",
+        "note": "A web search found Cymulate's write-up and NVD entries (published 2025-07-01/02). Fixed version numbers differ between sources."
+      }
+    },
+    {
+      "station": "ask",
+      "kind": "popular",
+      "name": "None established yet",
+      "by": "",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation",
+      "what": "Elicitation is young and not every host supports it. No widely used server built around it was found.",
+      "why": "A gap worth knowing: the capability exists before the habits do.",
+      "slots": ["ask"],
+      "reaches": [],
+      "evidence": {
+        "kind": "checked",
+        "note": "A web search found the specification and demos, but no production server built around elicitation."
+      }
+    },
+    {
+      "station": "ask",
+      "kind": "first",
+      "name": "GitHub's game server for Copilot",
+      "by": "GitHub",
+      "url": "https://github.blog/ai-and-ml/github-copilot/building-smarter-interactions-with-mcp-elicitation-from-clunky-tool-calls-to-seamless-user-experiences/",
+      "what": "A tic-tac-toe and rock-paper-scissors server: create_game opens a form in VS Code asking for your preferences.",
+      "why": "The same move as the cart server: the tool stops and asks the person, not the model.",
+      "slots": ["ask", "write"],
+      "reaches": ["store"],
+      "evidence": {
+        "kind": "checked",
+        "note": "Found by web search on GitHub's blog; the sample repository was not read. “First” here means the earliest well-known demo, not a dated first."
+      }
+    },
+    {
+      "station": "ask",
+      "kind": "weird",
+      "name": "DOOM inside chat",
+      "by": "Chris Nager",
+      "url": "https://chrisnager.com/blog/doom-runs-in-chatgpt-and-claude/",
+      "what": "A tool starts a playable DOOM session; the human supplies every input from then on.",
+      "why": "The ultimate “ask the person”: the person drives, the model watches.",
+      "slots": ["share", "ask"],
+      "reaches": [],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/REAL-MCP-SPECIMENS.md, a creator demonstration. Not run."
+      }
+    },
+    {
+      "station": "ask",
+      "kind": "breaking",
+      "name": "Asking for secrets",
+      "by": "MCP specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation",
+      "what": "A form in the chat could ask for a password or a key. The specification separates sensitive requests from ordinary forms.",
+      "why": "Once a server can ask you anything, the question is what it must never ask this way.",
+      "slots": ["ask"],
+      "reaches": [],
+      "evidence": {
+        "kind": "author",
+        "note": "From the compiler's reading of the specification's elicitation page; check the current revision before quoting."
+      }
+    },
+    {
+      "station": "memory",
+      "kind": "popular",
+      "name": "Basic Memory",
+      "by": "Basic Machines",
+      "url": "https://github.com/basicmachines-co/basic-memory",
+      "what": "Keeps notes as Markdown files you can open and edit yourself; the AI reads and writes the same files.",
+      "why": "Memory you can see: the stored data is a folder, not a hidden graph.",
+      "slots": ["read", "write"],
+      "reaches": ["files", "store"],
+      "evidence": {
+        "kind": "checked",
+        "note": "PyPI package basic-memory, first upload 2025-02-04. No usage figure checked."
+      }
+    },
+    {
+      "station": "memory",
+      "kind": "first",
+      "name": "Memory (reference server)",
+      "by": "modelcontextprotocol/servers",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+      "what": "A knowledge graph of entities, observations and relations in a local file.",
+      "why": "The original that this station simulates.",
+      "slots": ["read", "write"],
+      "reaches": ["store"],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package @modelcontextprotocol/server-memory, first published 2024-11-21."
+      }
+    },
+    {
+      "station": "memory",
+      "kind": "weird",
+      "name": "MemoryMesh",
+      "by": "CheMiguel23",
+      "url": "https://github.com/CheMiguel23/MemoryMesh",
+      "what": "The same graph idea applied to role-playing worlds, organisations or reading notes, with a schema per world.",
+      "why": "Memory as a game world: what is “true” is whatever the world's rules allow.",
+      "slots": ["read", "write"],
+      "reaches": ["store"],
+      "evidence": {
+        "kind": "research",
+        "note": "A diversion in specimens/route.json. Not run."
+      }
+    },
+    {
+      "station": "memory",
+      "kind": "breaking",
+      "name": "The memory that lives in the package cache",
+      "by": "reference memory server README",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+      "what": "By default the file can sit in a package-managed directory, so a reinstall can erase what was remembered.",
+      "why": "The promise is memory; the reality is a file path. The station's bend comes from here.",
+      "slots": ["read", "write"],
+      "reaches": ["store"],
+      "evidence": {
+        "kind": "research",
+        "note": "Quoted in specimens/route.json from the README. Not reproduced against the upstream package."
+      }
+    },
+    {
+      "station": "valley",
+      "kind": "popular",
+      "name": "Mapbox MCP server",
+      "by": "Mapbox",
+      "url": "https://github.com/mapbox/mcp-server",
+      "what": "Geocoding, directions, isochrones and static maps from Mapbox's services.",
+      "why": "Reads and computations about places: it answers; it does not build roads.",
+      "slots": ["read", "compute"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package @mapbox/mcp-server, first published 2025-06-12. No usage figure checked."
+      }
+    },
+    {
+      "station": "valley",
+      "kind": "first",
+      "name": "Google Maps (reference server, archived)",
+      "by": "modelcontextprotocol/servers",
+      "url": "https://github.com/modelcontextprotocol/servers-archived",
+      "what": "Places search, geocoding, distances and directions, among the first reference servers.",
+      "why": "Finding a route without changing any map.",
+      "slots": ["read", "compute"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package @modelcontextprotocol/server-google-maps, first published 2024-11-21. The archive location is from a web search."
+      }
+    },
+    {
+      "station": "valley",
+      "kind": "weird",
+      "name": "Seestar observing planner",
+      "by": "joshuagillmore",
+      "url": "https://github.com/joshuagillmore/seestar-mcp",
+      "what": "Plans a night of telescope observing and can propose a change to the horizon map from repeated failures.",
+      "why": "Proposing a map edit and applying it are two different tools: compute versus write.",
+      "slots": ["compute", "write"],
+      "reaches": ["store", "world"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/REAL-MCP-SPECIMENS.md. Not run."
+      }
+    },
+    {
+      "station": "valley",
+      "kind": "breaking",
+      "name": "A read-only hint that is only a hint",
+      "by": "MCP specification, tool annotations",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
+      "what": "readOnlyHint is the server's own claim. Nothing in the protocol stops a “read” from writing.",
+      "why": "The difference between asking and changing is only as good as the server's word.",
+      "slots": ["read", "write"],
+      "reaches": ["store"],
+      "evidence": {
+        "kind": "research",
+        "note": "Owner research (Perplexity report, 2026-11-21) on annotations as untrusted hints."
+      }
+    },
+    {
+      "station": "thinking",
+      "kind": "popular",
+      "name": "Sequential Thinking (reference server)",
+      "by": "modelcontextprotocol/servers",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking",
+      "what": "Accepts the caller's own thoughts with revision and branching metadata, and hands them back in order.",
+      "why": "Very widely installed, and it contains no model: the thinking is yours.",
+      "slots": ["sequence"],
+      "reaches": [],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package @modelcontextprotocol/server-sequential-thinking, first published 2024-12-03. Popularity is widely reported; no figure checked."
+      }
+    },
+    {
+      "station": "thinking",
+      "kind": "first",
+      "name": "Sequential Thinking",
+      "by": "modelcontextprotocol/servers",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking",
+      "what": "The same server: the most used and the first are one here.",
+      "why": "Two weeks after the first reference servers, a “thinking” tool already existed.",
+      "slots": ["sequence"],
+      "reaches": [],
+      "evidence": {
+        "kind": "checked",
+        "note": "First published 2024-12-03, after filesystem and memory (2024-11-21)."
+      }
+    },
+    {
+      "station": "thinking",
+      "kind": "weird",
+      "name": "Metacog",
+      "by": "community",
+      "url": "",
+      "what": "One tool, change_cognitive_state. Because it says it changes the model's state, the model behaves as if it did.",
+      "why": "The description is the effect. Nothing runs, and something still changes.",
+      "slots": ["compute"],
+      "reaches": [],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/2026-11-21-wild-examples.md. Not read at source."
+      }
+    },
+    {
+      "station": "thinking",
+      "kind": "breaking",
+      "name": "Free Will MCP",
+      "by": "community",
+      "url": "",
+      "what": "Tools like self_prompt, ignore_request and sleep, so the assistant can follow its own goals instead of yours.",
+      "why": "A thinking tool whose point is to not do what was asked.",
+      "slots": ["sequence", "ask"],
+      "reaches": [],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/2026-11-21-wild-examples.md. Not read at source."
+      }
+    },
+    {
+      "station": "iteration",
+      "kind": "popular",
+      "name": "Task Master",
+      "by": "eyaltoledano",
+      "url": "https://github.com/eyaltoledano/claude-task-master",
+      "what": "Breaks a project into tasks, tracks them and decides what comes next, across many calls.",
+      "why": "Work that keeps going across steps, with its state kept outside the chat.",
+      "slots": ["sequence", "write"],
+      "reaches": ["files", "llm"],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package task-master-ai, first published 2025-03-22. No usage figure checked."
+      }
+    },
+    {
+      "station": "iteration",
+      "kind": "first",
+      "name": "mcp-agent evaluator-optimizer",
+      "by": "LastMile AI",
+      "url": "https://github.com/lastmile-ai/mcp-agent",
+      "what": "A writer and a judge loop until a rating is good enough or the turns run out.",
+      "why": "The pattern this station simulates.",
+      "slots": ["sequence"],
+      "reaches": ["llm"],
+      "evidence": {
+        "kind": "research",
+        "note": "Anchor in specimens/route.json; its source file was read on 2026-11-21. Not run."
+      }
+    },
+    {
+      "station": "iteration",
+      "kind": "weird",
+      "name": "Plotter Studio",
+      "by": "ucodia",
+      "url": "https://github.com/ucodia/plotter-studio-mcp",
+      "what": "Design an SVG, plot it with a pen plotter, photograph the paper, and go again.",
+      "why": "An iteration loop that runs through the physical world.",
+      "slots": ["sequence", "act", "read"],
+      "reaches": ["world"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/REAL-MCP-SPECIMENS.md. Not run."
+      }
+    },
+    {
+      "station": "iteration",
+      "kind": "breaking",
+      "name": "Consilium and the host timeout",
+      "by": "Hugging Face blog",
+      "url": "https://huggingface.co/blog/consilium-multi-llm",
+      "what": "The creator reports a long deliberation timing out in one desktop host; the Tasks extension later let work outlive a response.",
+      "why": "A loop longer than the conversation's patience.",
+      "slots": ["sequence", "delegate"],
+      "reaches": ["llm"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/REAL-MCP-SPECIMENS.md. No evidence that Consilium uses Tasks."
+      }
+    },
+    {
+      "station": "apps",
+      "kind": "popular",
+      "name": "Figma MCP server",
+      "by": "Figma",
+      "url": "https://developers.figma.com/docs/figma-mcp-server/code-to-canvas/",
+      "what": "Reads designs for code and, with code-to-canvas, turns a running UI into editable design layers.",
+      "why": "A surface that people and the AI both work on.",
+      "slots": ["read", "share", "write"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "research",
+        "note": "Figma's Q3 2026 prepared remarks, quoted in docs/research/REAL-MCP-SPECIMENS.md: adopted by about half of new Pro teams."
+      }
+    },
+    {
+      "station": "apps",
+      "kind": "first",
+      "name": "MCP Apps map server",
+      "by": "modelcontextprotocol/ext-apps",
+      "url": "https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/map-server",
+      "what": "An interactive globe returned as an app inside the chat.",
+      "why": "The example this station simulates.",
+      "slots": ["share", "read"],
+      "reaches": [],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package @modelcontextprotocol/ext-apps, first published 2025-12-08. Its README was read on 2026-11-21."
+      }
+    },
+    {
+      "station": "apps",
+      "kind": "weird",
+      "name": "tldraw canvas app",
+      "by": "tldraw",
+      "url": "https://tldraw.dev/blog/tldraw-mcp-app",
+      "what": "A shared canvas: the agent draws, you move shapes by hand, and the current canvas returns to the chat.",
+      "why": "The person's hand edit becomes the AI's next input.",
+      "slots": ["share", "write"],
+      "reaches": [],
+      "evidence": {
+        "kind": "research",
+        "note": "Vendor demonstration, in docs/research/REAL-MCP-SPECIMENS.md. Not run."
+      }
+    },
+    {
+      "station": "apps",
+      "kind": "breaking",
+      "name": "DOOM inside chat",
+      "by": "Chris Nager",
+      "url": "https://chrisnager.com/blog/doom-runs-in-chatgpt-and-claude/",
+      "what": "A tool result that is a whole running game.",
+      "why": "When the app is a game loop, the model no longer knows the current state at all.",
+      "slots": ["share"],
+      "reaches": [],
+      "evidence": {
+        "kind": "research",
+        "note": "Creator demonstration, in docs/research/REAL-MCP-SPECIMENS.md. Not run."
+      }
+    },
+    {
+      "station": "code-mode",
+      "kind": "popular",
+      "name": "Cloudflare Code Mode",
+      "by": "Cloudflare",
+      "url": "https://github.com/cloudflare/mcp",
+      "what": "Instead of thousands of tools, the model writes JavaScript against Cloudflare's API and the server runs it in isolation.",
+      "why": "One tool, a whole language.",
+      "slots": ["invent", "write"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "research",
+        "note": "README read on 2026-11-21 (specimens/route.json). No usage figure."
+      }
+    },
+    {
+      "station": "code-mode",
+      "kind": "first",
+      "name": "MCP Run Python",
+      "by": "Pydantic",
+      "url": "https://github.com/pydantic/mcp-run-python",
+      "what": "Runs Python the model wrote in a sandbox (Pyodide in Deno).",
+      "why": "An early “run this code” server, close to this lab's own Pyodide.",
+      "slots": ["invent"],
+      "reaches": [],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package @pydantic/mcp-run-python, first published 2025-03-16. “First” is relative to this station's other examples, not a dated first."
+      }
+    },
+    {
+      "station": "code-mode",
+      "kind": "weird",
+      "name": "Octopus Protocol",
+      "by": "research (MIT/Harvard, as reported)",
+      "url": "",
+      "what": "A coding agent inspects connected hardware and writes its own MCP server for it, then uses it.",
+      "why": "The invented procedure is the whole server.",
+      "slots": ["invent", "act"],
+      "reaches": ["world"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/2026-11-21-wild-examples.md. Attribution and figures not checked."
+      }
+    },
+    {
+      "station": "code-mode",
+      "kind": "breaking",
+      "name": "Truncated results",
+      "by": "Cloudflare Code Mode README",
+      "url": "https://github.com/cloudflare/mcp",
+      "what": "Large program results are truncated and marked; the program may have done more than the caller can see.",
+      "why": "One call, many effects, and only part of the story comes back.",
+      "slots": ["invent"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/REAL-MCP-SPECIMENS.md. Not run."
+      }
+    },
+    {
+      "station": "delegation",
+      "kind": "popular",
+      "name": "PAL MCP (formerly Zen MCP)",
+      "by": "Beehive Innovations",
+      "url": "https://github.com/beehiveinnovations/zen-mcp-server",
+      "what": "Lets a coding agent consult other models, including a consensus tool that asks several at once.",
+      "why": "Another intelligence, a phone call away.",
+      "slots": ["delegate"],
+      "reaches": ["llm"],
+      "evidence": {
+        "kind": "checked",
+        "note": "Found by web search, including the renaming. Repository not read; no usage figure."
+      }
+    },
+    {
+      "station": "delegation",
+      "kind": "first",
+      "name": "mcp-llm",
+      "by": "sammcj",
+      "url": "https://github.com/sammcj/mcp-llm",
+      "what": "Tools to ask another LLM a question or have it write code or documentation.",
+      "why": "The anchor of this station.",
+      "slots": ["delegate"],
+      "reaches": ["llm"],
+      "evidence": {
+        "kind": "research",
+        "note": "README read on 2026-11-21 (specimens/route.json). “First” is relative to this station, not a dated first."
+      }
+    },
+    {
+      "station": "delegation",
+      "kind": "weird",
+      "name": "Consilium",
+      "by": "Hugging Face community",
+      "url": "https://huggingface.co/blog/consilium-multi-llm",
+      "what": "One outward tool, a council of models deliberating behind it, with the debate visible in a UI.",
+      "why": "Delegating to a committee: who owns the final answer?",
+      "slots": ["delegate", "sequence"],
+      "reaches": ["llm"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/REAL-MCP-SPECIMENS.md. Not run."
+      }
+    },
+    {
+      "station": "delegation",
+      "kind": "breaking",
+      "name": "Dead Cowboy",
+      "by": "community",
+      "url": "",
+      "what": "A dead-drop for agents where every field is an enum, a number or a hash; there is no prose field at all.",
+      "why": "A handoff with no words, so no instructions can ride along.",
+      "slots": ["delegate", "write"],
+      "reaches": ["store"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/2026-11-21-wild-examples.md. Not read at source."
+      }
+    },
+    {
+      "station": "arm",
+      "kind": "popular",
+      "name": "Home Assistant MCP Server",
+      "by": "Home Assistant",
+      "url": "https://www.home-assistant.io/integrations/mcp_server/",
+      "what": "An official integration: an AI agent can read your home's state and control its devices.",
+      "why": "Lights, locks and thermostats: tool calls that change rooms.",
+      "slots": ["act", "read"],
+      "reaches": ["world"],
+      "evidence": {
+        "kind": "checked",
+        "note": "Integration page found by web search. Requires an administrator account by default, per the search result."
+      }
+    },
+    {
+      "station": "arm",
+      "kind": "first",
+      "name": "ROS MCP server",
+      "by": "robotmcp",
+      "url": "https://github.com/robotmcp/ros-mcp-server",
+      "what": "Connects language models to robots running ROS, sending commands and reading sensors.",
+      "why": "The plain robot case this station simulates.",
+      "slots": ["act", "read"],
+      "reaches": ["world"],
+      "evidence": {
+        "kind": "checked",
+        "note": "PyPI package ros-mcp, first upload 2025-09-17; the repository name is from a web search. Not a dated first."
+      }
+    },
+    {
+      "station": "arm",
+      "kind": "weird",
+      "name": "Plotter Studio",
+      "by": "ucodia",
+      "url": "https://github.com/ucodia/plotter-studio-mcp",
+      "what": "Draws with a pen plotter and photographs the paper as a separate observation.",
+      "why": "The command, the receipt and the photograph are three different evidences, like the crane's sensor.",
+      "slots": ["act", "read"],
+      "reaches": ["world"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/REAL-MCP-SPECIMENS.md. Not run."
+      }
+    },
+    {
+      "station": "arm",
+      "kind": "breaking",
+      "name": "Halyn shield rules",
+      "by": "community",
+      "url": "",
+      "what": "A safety layer between AI and robots that enforces rules like “deny * delete *” outside the model, with an audit chain.",
+      "why": "Moving things safely needs a rule the model cannot argue with.",
+      "slots": ["act"],
+      "reaches": ["world"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/2026-11-21-wild-examples.md. Not read at source."
+      }
+    },
+    {
+      "station": "perception",
+      "kind": "popular",
+      "name": "Playwright MCP",
+      "by": "Microsoft",
+      "url": "https://github.com/microsoft/playwright-mcp",
+      "what": "Drives a browser through accessibility snapshots with element references.",
+      "why": "The snapshot is the tool's whole view of the page, as at this station.",
+      "slots": ["read", "write"],
+      "reaches": ["web"],
+      "evidence": {
+        "kind": "research",
+        "note": "ProtocolProbe reported 41.6M package downloads, 22 Oct–20 Nov 2026 (docs/research/REAL-MCP-SPECIMENS.md); npm package @playwright/mcp first published 2025-03-13 (checked)."
+      }
+    },
+    {
+      "station": "perception",
+      "kind": "first",
+      "name": "Puppeteer (reference server, archived)",
+      "by": "modelcontextprotocol/servers",
+      "url": "https://github.com/modelcontextprotocol/servers-archived",
+      "what": "Browser automation with screenshots and CSS selectors, among the very first reference servers.",
+      "why": "Seeing a page by screenshot and selector, before accessibility snapshots.",
+      "slots": ["read", "write"],
+      "reaches": ["web"],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package @modelcontextprotocol/server-puppeteer, first published 2024-11-19."
+      }
+    },
+    {
+      "station": "perception",
+      "kind": "weird",
+      "name": "Chrome DevTools MCP",
+      "by": "Chrome DevTools team",
+      "url": "https://github.com/ChromeDevTools/chrome-devtools-mcp",
+      "what": "Sees the page as a developer does: network requests, console, performance traces.",
+      "why": "Same page, a completely different perception of it.",
+      "slots": ["read", "write"],
+      "reaches": ["web"],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package chrome-devtools-mcp, first published 2025-05-13. A directory reported it as most downloaded weekly in August 2026; not checked."
+      }
+    },
+    {
+      "station": "perception",
+      "kind": "breaking",
+      "name": "WebMCP",
+      "by": "Chrome",
+      "url": "https://developer.chrome.com/blog/webmcp-epp",
+      "what": "The page itself declares actions the agent may take, instead of the agent perceiving the page.",
+      "why": "Perception turned inside out: the page tells you what you can do.",
+      "slots": ["read", "write"],
+      "reaches": ["web"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/REAL-MCP-SPECIMENS.md. Not run."
+      }
+    },
+    {
+      "station": "cli",
+      "kind": "popular",
+      "name": "Playwright: CLI and MCP side by side",
+      "by": "Microsoft",
+      "url": "https://github.com/microsoft/playwright.dev/blob/main/mcp/introduction.mdx",
+      "what": "The same browser capability offered as a command-line tool and as an MCP server.",
+      "why": "Two entrances to one engine: which one notices a change?",
+      "slots": ["read", "write"],
+      "reaches": ["web"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/REAL-MCP-SPECIMENS.md. Not compared by the lab."
+      }
+    },
+    {
+      "station": "cli",
+      "kind": "first",
+      "name": "mcporter",
+      "by": "openclaw",
+      "url": "https://github.com/openclaw/mcporter",
+      "what": "Calls MCP servers from the command line and can generate a CLI from a server's tool list.",
+      "why": "The generated CLI this station simulates.",
+      "slots": ["compute"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package mcporter, first published 2025-11-05. Its docs were read on 2026-11-21."
+      }
+    },
+    {
+      "station": "cli",
+      "kind": "weird",
+      "name": "MCP Inspector, CLI mode",
+      "by": "modelcontextprotocol",
+      "url": "https://github.com/modelcontextprotocol/inspector",
+      "what": "The debugging tool also has a command-line mode that lists and calls tools from a script.",
+      "why": "An inspector turned into a client.",
+      "slots": ["read"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "author",
+        "note": "Named from the compiler's knowledge; the npm package @modelcontextprotocol/inspector exists (first published 2024-11-19, checked)."
+      }
+    },
+    {
+      "station": "cli",
+      "kind": "breaking",
+      "name": "A catalogue that changes after you looked",
+      "by": "Hugging Face Spaces as MCP servers",
+      "url": "https://huggingface.co/docs/hub/spaces-mcp-servers",
+      "what": "Dynamic Spaces can add tools later; some clients only see them after a refresh.",
+      "why": "Every frozen copy of a tool list is already old.",
+      "slots": ["read"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "research",
+        "note": "Provider documentation, in docs/research/REAL-MCP-SPECIMENS.md. Not run."
+      }
+    },
+    {
+      "station": "local-remote",
+      "kind": "popular",
+      "name": "mcp-remote",
+      "by": "community",
+      "url": "https://github.com/punkpeye/mcp-remote",
+      "what": "Lets a local-only client talk to a remote server, handling the login on the way.",
+      "why": "The everyday bridge between your machine and somebody else's.",
+      "slots": ["delegate"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package mcp-remote, first published 2025-03-17, repository as listed on npm. No usage figure checked."
+      }
+    },
+    {
+      "station": "local-remote",
+      "kind": "first",
+      "name": "Supergateway",
+      "by": "Supercorp",
+      "url": "https://github.com/supercorp-ai/supergateway",
+      "what": "Runs a local stdio server behind a network transport, so remote clients can reach it.",
+      "why": "The anchor of this station.",
+      "slots": ["delegate"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package supergateway, first published 2024-12-21. Its README and issues were read on 2026-11-21."
+      }
+    },
+    {
+      "station": "local-remote",
+      "kind": "weird",
+      "name": "Hugging Face Spaces as MCP servers",
+      "by": "Hugging Face",
+      "url": "https://huggingface.co/docs/hub/spaces-mcp-servers",
+      "what": "Any Gradio app on the Hub can become a remote MCP server.",
+      "why": "Thousands of other people's processes, one click away.",
+      "slots": ["compute"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "research",
+        "note": "Provider documentation, in docs/research/REAL-MCP-SPECIMENS.md. Not run."
+      }
+    },
+    {
+      "station": "local-remote",
+      "kind": "breaking",
+      "name": "The Asana connector incident",
+      "by": "catalogued by OWASP",
+      "url": "https://github.com/OWASP/MCP-Security-Testing-Guide/blob/main/06.%20Hacks%2C%20News%2C%20and%20Public%20Incidents.md",
+      "what": "A tenant-isolation defect in a hosted connector could expose one organisation's data to another.",
+      "why": "Whose process is it? Here, possibly everyone's at once.",
+      "slots": ["read"],
+      "reaches": ["store"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/REAL-MCP-SPECIMENS.md. External compromise unconfirmed."
+      }
+    },
+    {
+      "station": "network",
+      "kind": "popular",
+      "name": "Docker MCP Gateway",
+      "by": "Docker",
+      "url": "https://github.com/docker/mcp-gateway",
+      "what": "One entrance in front of many containerised servers, chosen from a catalogue.",
+      "why": "One desk, many rooms, as at this station.",
+      "slots": ["delegate", "read"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "author",
+        "note": "Named from the compiler's knowledge; Docker Hub lists MCP servers such as Zen (seen in a web search). Repository not read."
+      }
+    },
+    {
+      "station": "network",
+      "kind": "first",
+      "name": "ContextForge",
+      "by": "IBM",
+      "url": "https://github.com/IBM/mcp-context-forge",
+      "what": "A gateway, registry and proxy that federates many servers into virtual servers.",
+      "why": "The anchor of this station.",
+      "slots": ["delegate", "read"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "research",
+        "note": "README read on 2026-11-21, truncated at about half (specimens/route.json)."
+      }
+    },
+    {
+      "station": "network",
+      "kind": "weird",
+      "name": "Meta Chess and agent message buses",
+      "by": "community",
+      "url": "",
+      "what": "One server is the shared board and referee for two different agents playing each other.",
+      "why": "The network is not between servers but between callers.",
+      "slots": ["read", "write"],
+      "reaches": ["store", "llm"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/2026-11-21-wild-examples.md. Not read at source."
+      }
+    },
+    {
+      "station": "network",
+      "kind": "breaking",
+      "name": "Shadowing and look-alike packages",
+      "by": "“Everything Wrong” and the Postmark case",
+      "url": "https://github.com/OWASP/MCP-Security-Testing-Guide/blob/main/03.%20MCP%20Threats%20and%20Attack%20Patterns/3.13-supply-chain.md",
+      "what": "A hidden tool rewrites another tool's behaviour; an impersonating package quietly added a BCC recipient.",
+      "why": "With many servers behind one entrance, the name you call may not be the one you meant.",
+      "slots": ["write"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/REAL-MCP-SPECIMENS.md and 2026-11-21-wild-examples.md. Not reproduced."
+      }
+    },
+    {
+      "station": "inspector",
+      "kind": "popular",
+      "name": "MCP Inspector",
+      "by": "modelcontextprotocol",
+      "url": "https://github.com/modelcontextprotocol/inspector",
+      "what": "The official tool for connecting to a server and looking at what it lists and returns.",
+      "why": "Everyone's first look at a board.",
+      "slots": ["read", "compute"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package @modelcontextprotocol/inspector, first published 2024-11-19."
+      }
+    },
+    {
+      "station": "inspector",
+      "kind": "first",
+      "name": "Everything (reference server)",
+      "by": "modelcontextprotocol/servers",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/everything",
+      "what": "A test server that exercises every feature of the protocol, published the same day as the Inspector.",
+      "why": "The first thing anyone pointed an inspector at.",
+      "slots": ["read", "ask", "compute"],
+      "reaches": [],
+      "evidence": {
+        "kind": "checked",
+        "note": "npm package @modelcontextprotocol/server-everything, first published 2024-11-19."
+      }
+    },
+    {
+      "station": "inspector",
+      "kind": "weird",
+      "name": "Invisible instructions (Unicode tags)",
+      "by": "research",
+      "url": "",
+      "what": "Text hidden in code points with no glyph: the model reads it, the person approving sees nothing.",
+      "why": "An inspector that shows the text can still miss what is in it. Lens checks for this (L10).",
+      "slots": ["read"],
+      "reaches": [],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/2026-11-21-wild-examples.md. Not read at source."
+      }
+    },
+    {
+      "station": "inspector",
+      "kind": "breaking",
+      "name": "MCP Server “Everything Wrong”",
+      "by": "community",
+      "url": "",
+      "what": "A deliberately insecure server whose tool descriptions change after the first call.",
+      "why": "The board you inspected is not the board you are using. Pinning catches this; reading once does not.",
+      "slots": ["read", "write"],
+      "reaches": ["program"],
+      "evidence": {
+        "kind": "research",
+        "note": "docs/research/2026-11-21-wild-examples.md. Not read at source."
+      }
+    }
+  ]
+}

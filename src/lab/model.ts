@@ -121,7 +121,7 @@ export const Model = Schema.Struct({
   pythonOutput: Schema.String,
   pythonError: Schema.String,
   python: Schema.Literals(['idle', 'running', 'done', 'unavailable']),
-  screen: Schema.Literals(['intro', 'home', 'bench']),
+  screen: Schema.Literals(['intro', 'home', 'bench', 'library']),
   atlasView: Schema.Literals(['map', 'list', 'ladder', 'yours']),
   pastedTools: Schema.String,
   pastedPins: Schema.Array(

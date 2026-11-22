@@ -1,5 +1,17 @@
 # Handoff
 
+## Out in the world: the example library as a second narrative — 2026-11-22
+
+Owner: "build the example library … real and popular for the specimens we have: most used, first, weird, and almost breaking the specimen … look in the repo for a catalogue … build this as second narrative".
+
+- Data: `specimens/library.json`, 64 entries, four per station (popular, first, weird, breaking), for all 16 stations of the route. Each entry: name, by, url, what it is, why it is here, the slots it lights and the neighbours it reaches (as its README describes, not run), and evidence.
+- Evidence labels: **checked** (confirmed in this session: npm or PyPI first-publish dates from the registries, or a web search that found the primary page), **research** (from `docs/research/REAL-MCP-SPECIMENS.md`, `2026-11-21-wild-examples.md` or `specimens/route.json`, not verified at source), **author** (named from knowledge, not checked; three entries).
+- Sources used from the repo: REAL-MCP-SPECIMENS (popularity signals, creative implementations, security cases), wild-examples (boundary-breaking leads), route.json anchors and diversions.
+- Not reachable here: GitHub API, npm download counts, PyPI download stats. So "most used" rests on the cited figures where they exist (Playwright 41.6M downloads, 22 Oct–20 Nov 2026, from the repo research) and is otherwise a judgement, said so in the note.
+- Gaps said plainly: no widely used server built around elicitation was found (Ask, "most used"); several "first" entries are first for the station, not dated firsts.
+- UI: `src/lab/library.ts`. Every bench ends with "Out in the world" (four cards). A new screen, "Out in the world" in the nav, walks the route again through real servers, each step with its idea and four cards and "Open this step". Each card has a slot fingerprint (nine icons lit where it has tools, then what it reaches).
+- Checks: 223 tests (incl. four kinds per station and an evidence label on every entry), lint, typecheck, build; screenshots at 1440 and 390 px.
+
 ## One shell and one style across the platform — 2026-11-22
 
 Owner: "implement this style all over the whole platform".
