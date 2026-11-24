@@ -31,6 +31,7 @@ import {
   slotIcons,
 } from './icons.ts'
 import { introView, storyCardView } from './intro.ts'
+import { landingView } from './landing.ts'
 import { lensTabView } from './lens-view.ts'
 import { libraryScreenView, shelfView } from './library.ts'
 import { Message } from './message.ts'
@@ -260,20 +261,9 @@ const fiveAnswers = (model: Model): ReadonlyArray<Answer> => {
 export const view = (model: Model, h: H): Document => ({
   title: 'MCP Lab',
   body:
-    model.screen === 'intro'
-      ? h.div(
-          [h.Class('ide shell-atlas')],
-          [
-            titlebarView(model, h),
-            h.nav(
-              [h.Class('sidebar'), h.AriaLabel('Specimens')],
-              [journeyView(model, h)],
-            ),
-            introView(model, h),
-            statusbarView(model, h),
-          ],
-        )
-      : model.screen === 'library'
+    model.screen === 'landing'
+      ? h.div([h.Class('ide landing-shell')], [landingView(model, h)])
+      : model.screen === 'intro'
         ? h.div(
             [h.Class('ide shell-atlas')],
             [
@@ -282,11 +272,11 @@ export const view = (model: Model, h: H): Document => ({
                 [h.Class('sidebar'), h.AriaLabel('Specimens')],
                 [journeyView(model, h)],
               ),
-              libraryScreenView(model, h),
+              introView(model, h),
               statusbarView(model, h),
             ],
           )
-        : model.screen === 'home'
+        : model.screen === 'library'
           ? h.div(
               [h.Class('ide shell-atlas')],
               [
@@ -295,24 +285,37 @@ export const view = (model: Model, h: H): Document => ({
                   [h.Class('sidebar'), h.AriaLabel('Specimens')],
                   [journeyView(model, h)],
                 ),
-                atlasScreenView(model, h),
+                libraryScreenView(model, h),
                 statusbarView(model, h),
               ],
             )
-          : h.div(
-              [h.Class(`ide backstage-${model.backstage}`)],
-              [
-                titlebarView(model, h),
-                h.nav(
-                  [h.Class('sidebar'), h.AriaLabel('Specimens')],
-                  [journeyView(model, h)],
-                ),
-                workbenchView(model, h),
-                inspectorView(model, h),
-                backstageView(model, h),
-                statusbarView(model, h),
-              ],
-            ),
+          : model.screen === 'home'
+            ? h.div(
+                [h.Class('ide shell-atlas')],
+                [
+                  titlebarView(model, h),
+                  h.nav(
+                    [h.Class('sidebar'), h.AriaLabel('Specimens')],
+                    [journeyView(model, h)],
+                  ),
+                  atlasScreenView(model, h),
+                  statusbarView(model, h),
+                ],
+              )
+            : h.div(
+                [h.Class(`ide backstage-${model.backstage}`)],
+                [
+                  titlebarView(model, h),
+                  h.nav(
+                    [h.Class('sidebar'), h.AriaLabel('Specimens')],
+                    [journeyView(model, h)],
+                  ),
+                  workbenchView(model, h),
+                  inspectorView(model, h),
+                  backstageView(model, h),
+                  statusbarView(model, h),
+                ],
+              ),
 })
 
 const brandView = (h: H): Html =>
@@ -321,7 +324,7 @@ const brandView = (h: H): Html =>
       h.Type('button'),
       h.Class('brand'),
       h.AriaLabel('MCP Lab, back to the start'),
-      h.OnClick(Message.ClickedIntro()),
+      h.OnClick(Message.ClickedLanding()),
     ],
     [
       h.span([h.Class('brandmark'), h.AriaHidden(true)], []),

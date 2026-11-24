@@ -301,7 +301,7 @@ export const initialModel: Model = {
 }
 
 export const init: Runtime.ApplicationInit<Model, Message> = () => ({
-  model: modifyFields(initialModel, { screen: () => 'intro' }),
+  model: modifyFields(initialModel, { screen: () => 'landing' }),
   commands: [
     EnterDomain({
       world: initialModel.world,
@@ -1073,6 +1073,10 @@ export const update = (current: Model, message: Message): UpdateReturn => {
       model: modifyFields(model, {
         pastedTools: () => CHANGED_EXAMPLE_LISTING,
       }),
+    }),
+
+    ClickedLanding: () => ({
+      model: modifyFields(model, { screen: () => 'landing' }),
     }),
 
     ClickedLibrary: () => ({

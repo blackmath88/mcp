@@ -1,5 +1,14 @@
 # Handoff
 
+## A full-window landing page before the lab — 2026-11-24
+
+Owner: "we want fullwindow landing page like an intro, then enter to the lab".
+
+- New first screen `landing` (`src/lab/landing.ts`): no sidebar or title bar. Headline "The AI only sees a list. Open the workshop behind it.", one paragraph, "Enter the lab" (to "What is MCP?"), "Straight to step 01", "Real servers, out in the world", the nine slot icons, and a one-line note on what is real.
+- On the right, the workshop drawn large with every call line moving: a showcase server of one tool from each of seven lab servers, labelled as a showcase under the drawing.
+- The MCP Lab mark in the sidebar now returns to the landing page.
+- Checks: 228 tests, lint, typecheck, build; looked at 1440×900 light and dark and 390 px (no horizontal overflow).
+
 ## Closing gaps — 2026-11-24
 
 Owner: "close as many gaps as possible".

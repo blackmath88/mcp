@@ -928,3 +928,19 @@ describe('your server, asked by address', () => {
     )
   })
 })
+
+describe('the landing page', () => {
+  test('the lab opens full window and is entered with one button', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'landing' }),
+      expect(
+        text('The AI only sees a list. Open the workshop behind it.'),
+      ).toExist(),
+      expect(role('navigation', { name: 'The route' })).toBeAbsent(),
+      click(role('button', { name: 'Enter the lab' })),
+      expect(text('What is MCP?')).toExist(),
+      expect(role('navigation', { name: 'The route' })).toExist(),
+    )
+  })
+})

@@ -3538,3 +3538,143 @@ button.ws-chip {
   background: var(--bg);
   border-color: color-mix(in srgb, var(--ink) 25%, var(--bd));
 }
+
+/* LANDING: full window, before the lab */
+.ide.landing-shell {
+  display: block;
+  height: auto;
+  min-height: 100dvh;
+  background:
+    radial-gradient(
+      1200px 600px at 85% 20%,
+      color-mix(in srgb, var(--phone-t) 70%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      900px 500px at 10% 100%,
+      color-mix(in srgb, var(--shelf-t) 70%, transparent),
+      transparent 70%
+    ),
+    var(--bg);
+}
+.landing {
+  min-height: 100dvh;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.35fr);
+  align-items: center;
+  gap: 48px;
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: max(40px, env(safe-area-inset-top, 0px))
+    max(40px, env(safe-area-inset-right, 0px))
+    max(40px, env(safe-area-inset-bottom, 0px))
+    max(40px, env(safe-area-inset-left, 0px));
+}
+.landing-text {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+.landing-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.landing-title {
+  margin: 0;
+  font-size: clamp(34px, 4.4vw, 60px);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.landing-lede {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--fg3);
+}
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.btn.landing-enter {
+  padding: 13px 26px;
+  font-size: 16px;
+  border-radius: 12px;
+}
+.landing-slots-title {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg2);
+}
+.landing-slots ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.landing-slots li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--fg3);
+}
+.landing-slots .ic {
+  width: 26px;
+  height: 26px;
+}
+.landing-foot {
+  margin: 0;
+  max-width: 56ch;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--fg2);
+}
+.landing-art {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.landing-art .ws-full-btn,
+.landing-art .ws-under,
+.landing-art .ws-notes {
+  display: none;
+}
+.landing-art .ws-scroll {
+  box-shadow: var(--lift);
+  background: var(--bg);
+}
+.landing-caption {
+  margin: 0;
+  font-size: 12px;
+  color: var(--fg2);
+}
+@media (max-width: 1100px) {
+  .landing {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding: 28px max(18px, env(safe-area-inset-right, 0px)) 40px
+      max(18px, env(safe-area-inset-left, 0px));
+  }
+}
+.landing-art .ws-canvas {
+  min-width: 0;
+}
