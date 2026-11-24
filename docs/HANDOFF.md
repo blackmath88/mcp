@@ -1,5 +1,20 @@
 # Handoff
 
+## Closing gaps — 2026-11-24
+
+Owner: "close as many gaps as possible".
+
+- **Keyboard:** Enter and Space open a lit slot on the workshop canvas (test).
+- **Popovers** close on an outside click or Escape (`src/lab/popovers.ts`, wired in `src/entry.ts`).
+- **Full window:** the selected tool's details open beside the canvas; the inline drawer is hidden while the overlay is open.
+- **Backstage** shows one bar until opened; tabs appear when expanded (tests open it first).
+- **Your server by address:** "Ask for its tools" sends initialize and tools/list to a Streamable HTTP URL from the browser, then closes; the listing goes through the same parser and workshop as a pasted one (`src/adapters/remote-listing.ts`). Only https or localhost. Tested against the lab's own server over real HTTP (`remote-listing.test.ts`): three tools listed, no tools/call sent. Real servers must allow the page's origin (CORS) and not need a login; failures say which.
+- **Dead styles:** 161 rules from removed views pruned (styles.css 80 KB → 63 KB); screens re-checked.
+- **Bench cells** are separate cards; a row that is not full no longer shows grey filler.
+- **Library verified:** web searches on 2026-11-24 moved 59 of 64 cards to "checked". Replaced because the named project was not found: Metacog → brain-mcp's switchCognitiveMode; "Dead Cowboy" → sampling (research); joshuagillmore's planner → taco-ops seestar-mcp; Cloudflare "truncation" → "one approval, many requests" (from Cloudflare's build guide). Corrected: the fetch advisory ID was not found, the card now cites the May 2026 disclosure; Figma's capture is "flat layers" per its docs; Asana incident details (June 2025, ~1,000 customers). Five cards remain "research".
+- Still open: screen-reader test; a tool in two slots; gateway as several rooms; library examples drawn on the full canvas; a newcomer test; deploy.
+- Checks: 227 tests, lint, typecheck, build.
+
 ## Out in the world: the example library as a second narrative — 2026-11-22
 
 Owner: "build the example library … real and popular for the specimens we have: most used, first, weird, and almost breaking the specimen … look in the repo for a catalogue … build this as second narrative".

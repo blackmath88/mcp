@@ -1,6 +1,6 @@
 # Boundary-breaking MCP examples (research leads)
 
-Status: **unverified research leads**, supplied by the owner on 2026-11-21. Nothing here has been read at its source by this project. Names, numbers ("10-15 minutes", "281 tools", "98.7%"), dates and attributions are claims to check before any of them is quoted in the lab or turned into a specimen. See `specimens/README.md` for how a lead becomes a specimen with an evidence record.
+Status: **unverified research leads**. Checked by web search on 2026-11-24 (see `specimens/library.json`): Free Will MCP, Gopher and Gemini MCP, Halyn, the Octopus Protocol, Meta Chess, "Everything Wrong" and the Unicode Tags technique were found. Metacog's `change_cognitive_state` and "Dead Cowboy" were **not found**; do not quote them., supplied by the owner on 2026-11-21. Nothing here has been read at its source by this project. Names, numbers ("10-15 minutes", "281 tools", "98.7%"), dates and attributions are claims to check before any of them is quoted in the lab or turned into a specimen. See `specimens/README.md` for how a lead becomes a specimen with an evidence record.
 
 Why it is kept: these are good candidates for future specimens and for the "related, out in the world" notes on the atlas. Each one bends a different edge of the protocol.
 

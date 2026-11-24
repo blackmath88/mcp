@@ -3520,3 +3520,21 @@ button.ws-chip {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Bench cells as separate cards, so a row that is not full leaves no grey */
+.places {
+  gap: 8px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+}
+.places > .placebox {
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  background: var(--canvas);
+}
+.places > .placebox.active {
+  background: var(--bg);
+  border-color: color-mix(in srgb, var(--ink) 25%, var(--bd));
+}
