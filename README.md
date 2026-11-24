@@ -12,6 +12,6 @@ The local workbench above preserves the 18 November prototype. The newer [explor
 
 ## Public site
 
-`site/` holds the landing page (plain HTML/CSS/JS, self-hosted fonts, no build dependencies). `sh scripts/build-site.sh` assembles `dist/`: the landing page at `/` and only the runtime files of `lab/` at `/lab/`. Repository docs, notes, tests and `lab/concept.html` are not published.
+`site/` holds the public pages (plain HTML/CSS/JS, self-hosted fonts, no build dependencies): the landing page with intro and demo recording at `/`, and the guided tour at `/guide/`. `sh scripts/build-site.sh` assembles `dist/` and adds only the runtime files of `lab/` at `/lab/`. Repository docs, notes, tests and `lab/concept.html` are not published.
 
 Cloudflare Pages: build command `sh scripts/build-site.sh`, output directory `dist`, no framework preset. `site/_headers` sets security headers and long caching for fonts.

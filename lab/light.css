@@ -1,0 +1,118 @@
+/* Light theme for the workbench, loaded after polish.css. One theme: white surfaces, neutral greys, one green accent.
+   Matches the public landing page and guide; layout and behaviour are unchanged. */
+@view-transition{navigation:auto}
+:root{color-scheme:light;--bg:#fff;--panel:#fafafa;--edge:#e8e8e8;--muted:#676d6a;--text:#0f1110;--ink:#0f1110;--blue:#17784a;--green:#17784a}
+body{background:#fff;color:#0f1110;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+button{background:#fff;border-color:#d9dbda;color:#0f1110}
+button:hover:not(:disabled){background:#f3f4f4;border-color:#c4c7c5}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible,summary:focus-visible{outline-color:#17784a}
+input,select{background:#fff;border-color:#d9dbda;color:#0f1110}
+
+/* chrome */
+.topbar{background:#fff;border-color:#e8e8e8;color:#0f1110}
+.logo{color:#0f1110}
+.project{color:#676d6a;border-color:#d9dbda}
+.top-actions button{border-color:#d9dbda;color:#3d4340}
+.explorer,.inspector{background:#fafafa;border-color:#e8e8e8;color:#0f1110}
+.panel-label{color:#3d4340}.panel-label span{color:#8c918f}
+.search-label,#weird,.sidebar-note,.nav-group h2{color:#676d6a}
+#weird.selected{color:#17784a}
+.usecase{color:#3d4340}
+.usecase small{color:#676d6a}
+.example-icon{color:#8c918f}
+.usecase:hover:not(:disabled){background:#f3f4f4}
+.usecase.active{background:#fff;color:#0f1110;box-shadow:0 0 0 1px #e8e8e8,inset 2px 0 #17784a}
+.usecase.active .example-icon{color:#17784a}
+.tabs{background:#fafafa;border-color:#e8e8e8}
+.tab{color:#676d6a;border-color:#e8e8e8;background:none}
+.tab.active{background:#fff;color:#0f1110;box-shadow:inset 0 2px #17784a}
+.toolbar{background:#fff;color:#0f1110;border-color:#e8e8e8}
+.badge{background:#e9f6ef;border-color:#b5dfc8;color:#0d4a2d}
+
+/* working surface */
+.surface{background:#fff;scrollbar-color:#d9dbda #fff}
+.surface p{color:#3d4340}
+.surface button{background:#fff;border-color:#d9dbda;color:#0f1110}
+.surface button:hover:not(:disabled){background:#f3f4f4;border-color:#c4c7c5}
+.surface .primary{background:#0f1110;border-color:#0f1110;color:#fff;box-shadow:none}
+.surface .primary:hover:not(:disabled){background:#2a2e2c;border-color:#2a2e2c}
+.surface a{color:#17784a}
+.stage-topline,.experiment-label,.specimen-footnote,.answer-heading{color:#676d6a}
+.stage-heading h1{color:#0f1110}
+.lens-controls{border-color:#e8e8e8}
+.lens-controls button{color:#676d6a}
+.lens-controls button.selected{border-color:#0f1110;color:#0f1110}
+.lens-body{background-image:radial-gradient(#e3e5e4 .9px,transparent .9px)}
+.human-request,.host-group,.diagram-node{background:#fff;border-color:#d9dbda;box-shadow:none}
+.host-group>.window-title{background:#fafafa;border-color:#e8e8e8;color:#3d4340}
+.diagram-node .actor-icon{background:#fafafa;color:#3d4340;border:1px solid #e8e8e8}
+.diagram-node strong,.human-request q{color:#0f1110}
+.diagram-node small,.human-request>span,.window-meta{color:#676d6a}
+.connection-diagram>[data-actor=app]{background:#fff;border-color:#d9dbda}
+.connection-diagram>[data-actor=app] .actor-icon{background:#fafafa;color:#3d4340}
+.diagram-node.lit,.human-request.lit{outline:0;border-color:#17784a;box-shadow:0 0 0 3px #e9f6ef;background:#fff}
+.diagram-node.lit .actor-icon{background:#e9f6ef;border-color:#b5dfc8;color:#0d4a2d}
+.host-modules .diagram-node.lit{background:#e9f6ef}
+.mcp-link .protocol-badge{background:#fff;border-color:#d9dbda;color:#3d4340}
+.mcp-link.lit .protocol-badge{background:#17784a;border-color:#17784a;color:#fff}
+.protocol-wire{background:#d9dbda}
+.mcp-link.lit .protocol-wire{background:#17784a}
+.flow-packet{background:#17784a}
+.lens-caption{border-color:#e8e8e8;color:#3d4340}
+.caption-dot{background:#17784a}
+.surface:has(#teaching-lens) .notebook{background:#fff;border-color:#e8e8e8;box-shadow:none}
+.specimen-heading{border-color:#e8e8e8}
+.specimen-heading>span{color:#0f1110}
+.specimen-heading small{color:#8c918f}
+.surface:has(#teaching-lens) .note-list{background:#fafafa;border-color:#e8e8e8}
+.surface:has(#teaching-lens) .note-list button{color:#676d6a}
+.surface:has(#teaching-lens) .note-list button.selected{color:#0f1110;box-shadow:inset 0 -2px #0f1110}
+.surface:has(#teaching-lens) .note h1{color:#0f1110}
+.checklist li{color:#3d4340}.checklist li span{color:#8c918f}.checklist li.added{color:#17784a}
+.surface .compact-answer{background:#fafafa;border-color:#e8e8e8}
+.data-chip{background:#fff;border-color:#d9dbda;color:#0f1110}
+.data-chip.added{background:#e9f6ef;border-color:#b5dfc8;color:#0d4a2d}
+.compact-answer .empty-chip,.answer-result{color:#676d6a}
+.context-empty-icon{color:#8c918f}.context-arrow{background:#fafafa}
+.gate.available{background:#e9f6ef;border-color:#b5dfc8;color:#0d4a2d}
+.gate.unavailable{background:#fef6e7;border-color:#f0cf96;color:#9a5b06}
+.gate-lane,.gate-outcome,.lane-title,.version-status{color:#3d4340}
+.preview,.evidence,.comparison section{background:#fff;border-color:#e8e8e8;color:#0f1110}
+.preview h1,.evidence h1,.preview dt,.evidence dt{color:#0f1110}
+.preview p,.evidence p,.preview dd,.evidence dd{color:#3d4340}
+.preview-mark{color:#17784a}
+.evidence pre{background:#f6f7f7;color:#3d4340}
+.reflection{background:#fafafa;border-color:#e8e8e8}
+.reflection p{color:#3d4340}
+.surface-meta{color:#676d6a}
+
+/* inspector */
+.control-label,.inspector p,.inspector-details,.inspector-details p,.inspector-details summary{color:#3d4340}
+.inspector-details a{color:#17784a}
+.inspector h2{color:#0f1110}
+.capability-pills span{background:#fff;border-color:#d9dbda;color:#3d4340}
+.inspector-tabs{border-color:#e8e8e8}
+.inspector-tabs button{color:#676d6a;background:none}
+.inspector-tabs button.selected{border-color:#0f1110;color:#0f1110}
+.idea-equation span{background:#fff;border-color:#d9dbda;color:#0f1110}
+.idea-equation b{color:#676d6a}
+.step-marker{color:#0f1110;border-color:#e8e8e8}
+.actor-label{color:#17784a!important}
+.result-label{color:#3d4340;border-color:#17784a}
+
+/* console + status */
+.console{background:#fff;border-color:#e8e8e8}
+.console-head{border-color:#e8e8e8}
+.console-head strong{color:#3d4340}
+#event-count,.timeline-empty,.full-events summary,.full-event{color:#676d6a}
+.sequence-controls button{background:#fff;border-color:#d9dbda;color:#0f1110}
+#replay{background:#0f1110;border-color:#0f1110;color:#fff}
+#replay:hover{background:#2a2e2c}
+.speed-control select{background:#fff;border-color:#d9dbda;color:#0f1110}
+#step-caption strong{color:#0f1110}#step-caption span{color:#676d6a}
+.sequence-step{color:#3d4340}
+.sequence-step span{background:#f3f4f4;color:#3d4340}
+.sequence-step.selected{background:#e9f6ef;color:#0d4a2d;box-shadow:inset 0 -2px #17784a}
+.timeline-event.selected{background:#e9f6ef}
+footer{background:#fafafa;color:#676d6a;border-top:1px solid #e8e8e8}
+noscript{background:#fff}

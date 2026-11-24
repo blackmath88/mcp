@@ -32,3 +32,8 @@ Framework decision for this slice: keep native modules and the established stati
 
 
 The revised presentation uses a light working canvas within dark IDE chrome. A question feeds the host window, the MCP link connects client and server, and the notes application stays distinct. Current source and received context sit beside each other on desktop and stack on narrow screens. The timeline expands when events exist. Explanatory playback follows an already completed deterministic action; it does not progressively execute operations or alter the data panels. Screenshot and browser evidence for this design pass is retained in `.lab/redesign-qa/`.
+
+
+## Light theme
+
+`light.css` loads after `polish.css` and gives the workbench the same white, neutral-grey, single-green-accent theme as the public landing page and guide. It overrides colours only; layout and behaviour are unchanged.

@@ -1,5 +1,13 @@
 # Handoff
 
+## Landing page, demo recording and one light theme — 24 November 2026
+
+Owner feedback: the mixed dark chrome / light surface read as low contrast, and the off-white "paper" tint felt artificial. They asked for a real landing page with a nice loading moment and a demo video, where clicking leads into the real screens.
+
+Changed: `site/index.html` is now the landing page (intro mark + handshake lines once per session, hero "MCP is just a list of tools. Then it escalates.", a 31 s screen recording of the workbench with chapter buttons, and an enter transition that grows the recording into the workbench). The previous page moved to `site/guide/`. Guide and landing use one theme: white, neutral greys, one green accent (#17784a). `lab/light.css` applies the same theme to the workbench (colour overrides only). Demo recorded with Playwright from `lab/` at this commit (`site/media/demo.{webm,mp4}`, poster); `site/img/workbench.jpg` re-captured. Re-record both when the lab UI changes.
+
+Evidence: headless Chromium 1440 and 390 px: no horizontal overflow; video autoplays muted, chapter seek works with a range-capable server (Python's http.server cannot seek); enter click navigates to `lab/#notes` without console errors; guide stage reaches step 08. Lab tests and foundation check pass. No human evaluation.
+
 ## Landing page redesign — 24 November 2026
 
 Owner feedback: the first version looked generic ("like every page Claude has done") and used a serif font. Rebuilt the landing page from the workbench's own interface: dark topbar, explorer as a scroll-spy table of contents, sage working surface with sticky toolbar crumb, inspector holding the live `tools/list` stage and an activity log of what crossed the wire, and the status bar. The "What's MCP?" diagram reuses the lab's connection-diagram language with a replayable request. The hero shows a real screenshot of the workbench (`site/img/workbench.jpg`, captured from `lab/` at this commit; refresh it when the lab UI changes). Fonts: Inter + JetBrains Mono (self-hosted, OFL); Fraunces and Plex Mono removed. Applied the ui-ux-pro-max skill for structure (product-demo hero, 150–300 ms micro-motion, exit faster than enter, 44 px targets, reduced motion); its suggested slate/indigo "Modern Dark" palette was rejected in favour of the lab's palette. Checked in headless Chromium at 1440, 1024 and 390 px: no console errors, no horizontal overflow, stage reaches step 08.
