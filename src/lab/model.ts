@@ -124,6 +124,9 @@ export const Model = Schema.Struct({
   screen: Schema.Literals(['intro', 'home', 'bench', 'library']),
   atlasView: Schema.Literals(['map', 'list', 'ladder', 'yours']),
   pastedTools: Schema.String,
+  remoteUrl: Schema.String,
+  remoteNote: Schema.String,
+  remoteState: Schema.Literals(['idle', 'asking']),
   pastedPins: Schema.Array(
     Schema.Struct({
       name: Schema.String,

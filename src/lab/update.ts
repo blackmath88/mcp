@@ -14,6 +14,7 @@ import {
   sendRaw,
 } from '../adapters/in-tab-mcp.ts'
 import { DEFAULT_PROGRAM, runProgram } from '../adapters/python-runner.ts'
+import { listRemoteTools } from '../adapters/remote-listing.ts'
 import type { CapabilityName, RunRecord } from '../domain/capabilities.ts'
 import {
   CHANGED_EXAMPLE_LISTING,
@@ -117,6 +118,23 @@ export const AnswerServer = Command.define('AnswerServer', {
       answerServer(answer)
       return Message.CompletedAnswerServer()
     }),
+})
+
+export const AskRemote = Command.define('AskRemote', {
+  args: { url: Schema.String },
+  messages: [Message.CompletedAskRemote, Message.FailedAskRemote],
+  execute: ({ url }) =>
+    listRemoteTools(url).pipe(
+      Effect.map(listing =>
+        Message.CompletedAskRemote({
+          json: listing.json,
+          tools: listing.tools,
+        }),
+      ),
+      Effect.catch(error =>
+        Effect.succeed(Message.FailedAskRemote({ reason: error.message })),
+      ),
+    ),
 })
 
 export const EnterDomain = Command.define('EnterDomain', {
@@ -261,6 +279,9 @@ export const initialModel: Model = {
   screen: 'bench',
   atlasView: 'map',
   pastedTools: '',
+  remoteUrl: '',
+  remoteNote: '',
+  remoteState: 'idle',
   pastedPins: [],
   pins: [],
   approval: 'never',
@@ -992,6 +1013,37 @@ export const update = (current: Model, message: Message): UpdateReturn => {
         }),
       }
     },
+
+    UpdatedRemoteUrl: ({ value }) => ({
+      model: modifyFields(model, { remoteUrl: () => value }),
+    }),
+
+    ClickedAskRemote: () =>
+      model.remoteUrl.trim() === ''
+        ? { model }
+        : {
+            model: modifyFields(model, {
+              remoteState: () => 'asking',
+              remoteNote: () => 'Asking the server for its tool list…',
+            }),
+            commands: [AskRemote({ url: model.remoteUrl.trim() })],
+          },
+
+    CompletedAskRemote: ({ json, tools }) => ({
+      model: modifyFields(model, {
+        remoteState: () => 'idle',
+        pastedTools: () => json,
+        remoteNote: () =>
+          `The server listed ${tools} tool${tools === 1 ? '' : 's'}. Only initialize and tools/list were sent; nothing was called.`,
+      }),
+    }),
+
+    FailedAskRemote: ({ reason }) => ({
+      model: modifyFields(model, {
+        remoteState: () => 'idle',
+        remoteNote: () => reason,
+      }),
+    }),
 
     UpdatedPastedTools: ({ value }) => ({
       model: modifyFields(model, { pastedTools: () => value }),

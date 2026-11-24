@@ -358,7 +358,48 @@ const yoursView = (model: Model, h: H): Html => {
         [h.Class('mode')],
         [
           h.b([], ['Your server']),
-          ' · paste what any MCP server answered to tools/list. It is read in this page only; nothing is sent anywhere and nothing is run.',
+          ' · ask a real server for its tool list, or paste what one answered. Only the list is read; no tool is ever called.',
+        ],
+      ),
+      h.form(
+        [
+          h.Class('remote-row'),
+          h.AriaLabel('Ask a server by its address'),
+          h.OnSubmit(Message.ClickedAskRemote()),
+        ],
+        [
+          h.label(
+            [h.For('remote-url'), h.Class('eyebrow')],
+            ['Server address (Streamable HTTP)'],
+          ),
+          h.div(
+            [h.Class('remote-input')],
+            [
+              h.input([
+                h.Id('remote-url'),
+                h.Type('url'),
+                h.Placeholder('https://example.com/mcp'),
+                h.Value(model.remoteUrl),
+                h.OnInput(value => Message.UpdatedRemoteUrl({ value })),
+              ]),
+              h.button(
+                [
+                  h.Type('submit'),
+                  h.Class('btn small'),
+                  h.Disabled(model.remoteState === 'asking'),
+                ],
+                ['Ask for its tools'],
+              ),
+            ],
+          ),
+          h.p(
+            [h.Class('tb-note')],
+            [
+              model.remoteNote === ''
+                ? 'Your browser sends initialize and tools/list to that address, then disconnects. The server must allow this page (CORS) and not need a login.'
+                : model.remoteNote,
+            ],
+          ),
         ],
       ),
       h.label(

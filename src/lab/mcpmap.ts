@@ -455,7 +455,14 @@ const slotView = (input: MapInput, id: ModuleId, h: H): Html => {
           h.AriaLabel(`${name}. Select to look behind it.`),
           ...Option.match(target.message, {
             onNone: () => [],
-            onSome: message => [h.OnClick(message)],
+            onSome: message => [
+              h.OnClick(message),
+              h.OnKeyDownPreventDefault(key =>
+                key === 'Enter' || key === ' '
+                  ? Option.some(message)
+                  : Option.none(),
+              ),
+            ],
           }),
         ],
         body,
@@ -609,7 +616,12 @@ const notesView = (input: MapInput, h: H): Html =>
       ),
   })
 
-export const mcpMapView = (input: MapInput, h: H, isFull = false): Html =>
+export const mcpMapView = (
+  input: MapInput,
+  h: H,
+  isFull = false,
+  aside: Html | undefined = undefined,
+): Html =>
   h.section(
     [
       h.Class(`mcpmap mode-${input.mode} ${isFull ? 'full' : ''}`),
@@ -630,7 +642,9 @@ export const mcpMapView = (input: MapInput, h: H, isFull = false): Html =>
         ],
         [isFull ? 'Close · Esc' : 'Full window'],
       ),
-      canvasView(input, h),
+      isFull && aside !== undefined
+        ? h.div([h.Class('ws-full-body')], [canvasView(input, h), aside])
+        : canvasView(input, h),
       h.div(
         [h.Class('ws-under')],
         [

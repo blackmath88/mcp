@@ -1,5 +1,14 @@
 import { Effect, Option } from 'effect'
-import { Command, click, expect, given, role, scene, text } from 'foldkit/scene'
+import {
+  Command,
+  click,
+  expect,
+  given,
+  keydown,
+  role,
+  scene,
+  text,
+} from 'foldkit/scene'
 import { describe, test } from 'vitest'
 
 import { runOn } from '../domain/capabilities.ts'
@@ -9,6 +18,7 @@ import { Message } from './message.ts'
 import { worldFor } from './model.ts'
 import {
   AnswerServer,
+  AskRemote,
   EnterDomain,
   RunCapability,
   initialModel,
@@ -101,6 +111,7 @@ describe('the learning path', () => {
         text('Nothing was built. The map is still at revision 0.'),
       ).toExist(),
       expect(text('Nothing.')).toExist(),
+      click(role('button', { name: 'Expand' })),
       click(role('button', { name: 'Network' })),
       expect(text('Failed here. Called by Planner · 2 events.')).toExist(),
     )
@@ -360,6 +371,7 @@ describe('orientation', () => {
     scene(
       { update, view },
       given(initialModel),
+      click(role('button', { name: 'Expand' })),
       click(role('button', { name: 'Call console' })),
       expect(text('Your own message')).toExist(),
       click(role('button', { name: 'Unknown method' })),
@@ -396,6 +408,7 @@ describe('truthful labelling of evidence', () => {
     scene(
       { update, view },
       given(initialModel),
+      click(role('button', { name: 'Expand' })),
       click(role('button', { name: 'MCP frames' })),
       expect(text('Actual MCP connection')).toExist(),
       expect(
@@ -432,6 +445,7 @@ describe('truthful labelling of evidence', () => {
     scene(
       { update, view },
       given(atValley),
+      click(role('button', { name: 'Expand' })),
       click(role('button', { name: 'Recorded CLI + MCP' })),
       expect(text('Recorded external execution')).toExist(),
       expect(text('In-process domain execution')).toBeAbsent(),
@@ -444,6 +458,7 @@ describe('truthful labelling of evidence', () => {
     scene(
       { update, view },
       given(initialModel),
+      click(role('button', { name: 'Expand' })),
       click(role('button', { name: 'App messages' })),
       expect(text('Application state transitions')).toExist(),
       expect(text('SelectedTab')).toExist(),
@@ -853,6 +868,63 @@ describe('out in the world', () => {
       click(role('button', { name: 'Open step 11' })),
       Command.resolve(EnterDomain, Message.FailedEnterDomain()),
       expect(text('crane at the dock (simulated)')).toExist(),
+    )
+  })
+})
+
+describe('the canvas by keyboard', () => {
+  test('Enter on a lit slot opens what is behind it', () => {
+    scene(
+      { update, view },
+      given({
+        ...initialModel,
+        station: 'fetch',
+        maybeSelected: Option.none(),
+      }),
+      keydown(role('button', { name: /^Read: fetch_page/ }), 'Enter'),
+      expect(
+        text(
+          'Under the hood: what the model receives, what gets sent, what Lens reads',
+        ),
+      ).toExist(),
+    )
+  })
+})
+
+describe('your server, asked by address', () => {
+  test('a listing fetched by address is drawn like a pasted one', () => {
+    scene(
+      { update, view },
+      given({
+        ...initialModel,
+        screen: 'home',
+        atlasView: 'yours',
+        remoteUrl: 'https://example.com/mcp',
+      }),
+      click(role('button', { name: 'Ask for its tools' })),
+      expect(text('Asking the server for its tool list…')).toExist(),
+      Command.resolve(
+        AskRemote,
+        Message.CompletedAskRemote({
+          json: JSON.stringify({
+            tools: [
+              {
+                name: 'search_notes',
+                description: 'Search stored notes.',
+                inputSchema: { type: 'object', properties: {} },
+                annotations: { readOnlyHint: true },
+              },
+            ],
+          }),
+          tools: 1,
+        }),
+      ),
+      expect(
+        text(
+          'The server listed 1 tool. Only initialize and tools/list were sent; nothing was called.',
+        ),
+      ).toExist(),
+      expect(text('Unknown room')).toExist(),
     )
   })
 })

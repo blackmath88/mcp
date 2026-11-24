@@ -1225,7 +1225,14 @@ const backstageView = (model: Model, h: H): Html =>
       h.div(
         [h.Class('panehead')],
         [
-          h.span([h.Class('eyebrow')], ['Backstage · what actually happened']),
+          h.span(
+            [h.Class('eyebrow')],
+            [
+              model.backstage === 'collapsed'
+                ? 'Backstage · frames, console, Lens, engine events, recordings'
+                : 'Backstage · what actually happened',
+            ],
+          ),
           h.button(
             [
               h.Type('button'),
@@ -1237,19 +1244,21 @@ const backstageView = (model: Model, h: H): Html =>
           ),
         ],
       ),
-      h.div(
-        [h.Class('tabs'), h.Role('group'), h.AriaLabel('Evidence')],
-        Array.map(tabs, tab =>
-          h.button(
-            [
-              h.Type('button'),
-              h.AriaPressed(model.tab === tab.id ? 'true' : 'false'),
-              h.OnClick(Message.SelectedTab({ tab: tab.id })),
-            ],
-            [tab.label],
+      model.backstage === 'collapsed'
+        ? h.empty
+        : h.div(
+            [h.Class('tabs'), h.Role('group'), h.AriaLabel('Evidence')],
+            Array.map(tabs, tab =>
+              h.button(
+                [
+                  h.Type('button'),
+                  h.AriaPressed(model.tab === tab.id ? 'true' : 'false'),
+                  h.OnClick(Message.SelectedTab({ tab: tab.id })),
+                ],
+                [tab.label],
+              ),
+            ),
           ),
-        ),
-      ),
       model.backstage === 'collapsed'
         ? h.empty
         : model.tab === 'console'

@@ -162,7 +162,12 @@ const mapRowView = (model: Model, story: Html, h: H): Html => {
               : 'the lab’s catalogue, drawn as a workshop · click a slot or a tool to look behind it',
             h,
           ),
-          mcpMapView(serverMap(model), h, model.canvasFull),
+          mcpMapView(
+            serverMap(model),
+            h,
+            model.canvasFull,
+            h.div([h.Class('ws-full-aside')], [drawerView(model, h)]),
+          ),
         ],
       ),
     ],
@@ -408,7 +413,7 @@ export const toolbenchView = (model: Model, parts: BenchParts, h: H): Html =>
     [
       mapRowView(model, parts.story, h),
       h.div([h.Class('tb-controls')], [parts.controls, hostView(model, h)]),
-      drawerView(model, h),
+      model.canvasFull ? h.empty : drawerView(model, h),
       h.div(
         [h.Class('tb-main')],
         [

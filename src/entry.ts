@@ -1,5 +1,6 @@
 import { Runtime } from 'foldkit'
 
+import { closePopoversOnOutsideClick } from './lab/popovers.ts'
 import { Message, Model, init, subscriptions, update, view } from './main.ts'
 
 const application = Runtime.makeApplication({
@@ -15,3 +16,5 @@ const application = Runtime.makeApplication({
 })
 
 Runtime.run(application)
+
+closePopoversOnOutsideClick(document)
