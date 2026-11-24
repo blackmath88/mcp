@@ -4,225 +4,209 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MCP Lab — A field guide to connected AI</title>
-<meta name="description" content="MCP is just a list of tools. Then it escalates. A hands-on field guide to the Model Context Protocol: what an AI assistant is handed, who decides what a tool is, and where it gets strange.">
+<meta name="description" content="MCP is just a list of tools. Then it escalates. A hands-on workbench for the Model Context Protocol: what an AI assistant is handed, who decides what a tool is, and where it gets strange.">
 <meta property="og:title" content="MCP Lab — A field guide to connected AI">
 <meta property="og:description" content="MCP is just a list of tools. Then it escalates quickly. Try it with fictional data, no account and no live AI.">
 <meta property="og:type" content="website">
-<meta name="theme-color" content="#0d1511">
+<meta property="og:image" content="img/workbench.jpg">
+<meta name="theme-color" content="#1c1e20">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="preload" href="fonts/fraunces-latin-full-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/jetbrains-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="landing.css">
 <script>try{if(localStorage.getItem('mcplab-motion')==='reduce')document.documentElement.classList.add('reduce')}catch(e){}document.documentElement.classList.add('js')</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-<header class="nav" id="nav">
+<header class="topbar">
   <a class="brand" href="#top" aria-label="MCP Lab, back to top">
-    <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1v22M1 12h22M4 4l16 16M4 20 20 4"/><circle cx="12" cy="12" r="4"/></svg>
-    <span>MCP&nbsp;LAB</span>
+    <svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1v22M1 12h22M4 4l16 16M4 20 20 4"/><circle cx="12" cy="12" r="4"/></svg>
+    <strong>MCP LAB</strong>
   </a>
-  <nav class="nav-links" aria-label="Sections">
-    <a href="#what">What’s MCP</a>
-    <a href="#escalation">Escalation</a>
-    <a href="#lab">The lab</a>
-  </nav>
-  <div class="nav-actions">
-    <button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="false"><span class="switch" aria-hidden="true"><i></i></span><span class="label">Reduce motion</span></button>
-    <a class="btn btn-small" href="lab/">Open the workbench</a>
+  <span class="project">A field guide to connected AI</span>
+  <div class="top-actions">
+    <button id="motion-toggle" type="button" aria-pressed="false">Reduce motion</button>
+    <a class="btn-primary" href="lab/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 4 12 8-12 8Z"/></svg>Open the workbench</a>
   </div>
 </header>
 
-<main id="main">
+<div class="shell">
+  <!-- Explorer: the page's own table of contents, styled like the workbench explorer -->
+  <nav class="explorer" aria-label="Sections">
+    <div class="panel-label">EXPLORER <span>05 sections</span></div>
+    <section class="nav-group"><h2>GUIDE</h2>
+      <a class="usecase" href="#top" data-spy="top"><span class="ic">↳</span><span>README<small>What this is · why</small></span></a>
+      <a class="usecase" href="#what" data-spy="what"><span class="ic">↳</span><span>What’s MCP?<small>Basics</small></span></a>
+      <a class="usecase" href="#hook" data-spy="hook"><span class="ic">↳</span><span>Just a list<small>The hook</small></span></a>
+    </section>
+    <section class="nav-group"><h2>ESCALATION</h2>
+      <a class="usecase" href="#escalation" data-spy="escalation"><span class="ic">◇</span><span>That escalated quickly<small>8 steps · <b id="nav-step">01</b>/08</small></span></a>
+    </section>
+    <section class="nav-group"><h2>LAB</h2>
+      <a class="usecase" href="#decide" data-spy="decide"><span class="ic">↳</span><span>Who decides?<small>Four hands</small></span></a>
+      <a class="usecase" href="#lab" data-spy="lab"><span class="ic">↳</span><span>Exhibits<small>1 playable · 7 previews</small></span></a>
+    </section>
+    <p class="sidebar-note">This page is a scripted model. Nothing here talks to an AI or an MCP server.</p>
+  </nav>
 
-<!-- ───────── Hero: what is this and why ───────── -->
-<section class="hero" id="top">
-  <div class="hero-glow" aria-hidden="true"></div>
-  <div class="hero-grid" aria-hidden="true"></div>
-  <div class="wrap hero-inner">
-    <div class="hero-copy">
-      <p class="eyebrow" data-reveal>MCP Lab <span>·</span> a field guide to connected AI</p>
-      <h1 class="display" data-split>See what your AI is <em>handed</em>.</h1>
-      <p class="lede" data-reveal>AI assistants now read your notes, file your bugs and drive your browser. They do it through the Model Context Protocol. This lab lets you try it slowly and watch what actually travels, with fictional data, no account and no live AI.</p>
-      <div class="hero-cta" data-reveal>
-        <a class="btn" href="lab/">Open the workbench <span aria-hidden="true">→</span></a>
-        <a class="btn btn-ghost" href="#what">Start with the basics</a>
-      </div>
-      <p class="why" data-reveal><strong>Why it exists.</strong> Most explanations stop at a diagram of boxes and arrows. The interesting part happens at the edges, where a sentence becomes an action.</p>
-    </div>
+  <main class="editor" id="main">
+    <div class="toolbar"><div><strong id="crumb">README</strong><span class="badge" id="crumb-badge">FIELD GUIDE</span></div><span class="hint">Scroll to step through · no live AI</span></div>
 
-    <figure class="receipt" aria-label="Example: a server’s list of tools">
-      <div class="receipt-head"><span class="dot"></span><code>tools/list</code><span class="receipt-meta">server → host</span></div>
-      <ol class="receipt-body">
-        <li data-stagger><code>search_notes</code><span>Search the user’s notes by keyword.</span></li>
-        <li data-stagger><code>read_note</code><span>Return the full text of one note.</span></li>
-        <li data-stagger><code>update_note</code><span>Replace the contents of a note.</span></li>
-      </ol>
-      <figcaption>This is all a server hands your assistant. <span>Names. Sentences. Inputs.</span></figcaption>
-    </figure>
-  </div>
-  <a class="scroll-cue" href="#what" aria-label="Scroll to: what is MCP"><span></span></a>
-</section>
+    <div class="surface">
 
-<!-- ───────── What's MCP ───────── -->
-<section class="what paper" id="what">
-  <div class="wrap what-inner">
-    <div class="what-q">
-      <p class="eyebrow dark" data-reveal>01 · Basics</p>
-      <h2 class="display-2" data-split>What’s MCP?</h2>
-    </div>
-    <div class="what-a">
-      <p class="big" data-reveal>A common plug between AI applications and everything outside them.</p>
-      <p data-reveal>The <strong>Model Context Protocol</strong> is an open standard. An AI application, the <em>host</em>, connects to <em>MCP servers</em>. Each server describes what it can do. The model chooses, the host sends the request, and the server does the work in your notes, your repository or your browser.</p>
-    </div>
-  </div>
-
-  <div class="wrap">
-    <ol class="flow" data-flow aria-label="How a request travels">
-      <li><span class="flow-k">You</span><strong>ask</strong><small>“Find my packing list”</small></li>
-      <li><span class="flow-k">Host · model</span><strong>chooses</strong><small>picks a tool from the list</small></li>
-      <li class="flow-mcp"><span class="flow-k">MCP</span><strong>carries</strong><small>request ⇄ result</small></li>
-      <li><span class="flow-k">Server</span><strong>acts</strong><small>runs the operation</small></li>
-      <li><span class="flow-k">Your stuff</span><strong>changes</strong><small>or doesn’t, if it was only read</small></li>
-    </ol>
-  </div>
-
-  <div class="wrap hook">
-    <p class="hook-1" data-split>MCP is just a list of tools.</p>
-    <p class="hook-2" data-reveal>Then it escalates quickly.</p>
-    <p class="hook-3" data-reveal>Because who decides what a tool <em>is</em>?</p>
-  </div>
-</section>
-
-<!-- ───────── Escalation ───────── -->
-<section class="escalation" id="escalation" aria-labelledby="esc-title">
-  <div class="wrap esc-head">
-    <p class="eyebrow" data-reveal>02 · That escalated quickly</p>
-    <h2 class="display-2" id="esc-title" data-split>Eight steps from a menu to a program.</h2>
-  </div>
-
-  <div class="wrap esc-body">
-    <div class="stage-col">
-      <div class="stage" id="stage" aria-live="polite">
-        <div class="stage-top">
-          <span class="stage-title"><span class="dot"></span><code>tools/list</code></span>
-          <span class="stage-count"><b id="tool-count">2</b> tools</span>
+      <!-- README -->
+      <section class="sec hero" id="top" data-title="README" data-badge="FIELD GUIDE">
+        <div class="topline"><span>00 / README</span><span class="status-dot"><i></i>Scripted model</span></div>
+        <h1 data-reveal>See what your AI is&nbsp;handed.</h1>
+        <p class="lede" data-reveal>AI assistants now read your notes, file your bugs and drive your browser. They do it through the <strong>Model Context Protocol</strong>. MCP Lab is a workbench where you try it slowly and watch what actually travels, with fictional data, no account and no live AI.</p>
+        <div class="actions" data-reveal>
+          <a class="btn-primary lg" href="lab/#notes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 4 12 8-12 8Z"/></svg>Try the first exhibit</a>
+          <a class="btn-quiet lg" href="#what">Start with the basics</a>
         </div>
-        <div class="stage-prompt" id="stage-prompt" hidden><span>You</span><q>Find my packing list</q></div>
+
+        <figure class="window" data-reveal>
+          <div class="window-bar"><span class="dots"><i></i><i></i><i></i></span><code>lab/#notes</code><span class="window-meta">THE ACTUAL WORKBENCH</span></div>
+          <a href="lab/#notes" class="shot"><img src="img/workbench.jpg" width="2160" height="1350" alt="The MCP Lab workbench: an explorer of exhibits on the left, an interactive model of an assistant finding a packing list in the centre, an inspector on the right and an activity console below." loading="eager" decoding="async"></a>
+        </figure>
+
+        <div class="why">
+          <p class="why-label">WHY IT EXISTS</p>
+          <p class="why-text" data-reveal>Most explanations stop at boxes and arrows. The interesting part happens at the edges, where a sentence becomes an action. Every exhibit has the same three views:</p>
+          <ol class="trio">
+            <li data-stagger><span class="tab-name">Try</span><p>Do the task yourself, step by step, and see each request and result.</p></li>
+            <li data-stagger><span class="tab-name">Compare</span><p>What the assistant last read, next to what is actually there now.</p></li>
+            <li data-stagger><span class="tab-name">Evidence</span><p>What is real, what is modelled, and the sources behind both.</p></li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- What's MCP -->
+      <section class="sec" id="what" data-title="What’s MCP?" data-badge="BASICS">
+        <div class="topline"><span>01 / BASICS</span><button class="replay" id="replay-flow" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v5h5"/></svg>Replay</button></div>
+        <h2 data-reveal>What’s MCP?</h2>
+        <p class="lede" data-reveal>A common plug between AI applications and everything outside them. The AI application, the <em>host</em>, connects to <em>MCP servers</em>. Each server describes what it can do. The model chooses, the host’s MCP client sends the request, and the server does the work in your notes, your repository or your browser.</p>
+
+        <div class="lens" id="flow" aria-label="How one request travels: you ask, the model inside the host chooses, the MCP client sends the request over MCP, the server runs the operation on your notes.">
+          <div class="human-request" data-n="0"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 21v-2a7 7 0 0 1 14 0v2"/></svg><span>You</span><q>Find my packing list</q></div>
+          <div class="diagram">
+            <div class="host-group" data-n="1">
+              <div class="window-title"><span class="window-dot"></span>AI application<span class="window-meta">HOST</span></div>
+              <div class="host-modules">
+                <div class="node-inline" data-n="1"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3M6 6h12v12H6zM10 10h4v4h-4z"/></svg><span><strong>Model</strong><small>chooses the action</small></span></div>
+                <span class="inner-wire" aria-hidden="true">→</span>
+                <div class="node-inline" data-n="2"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v12H4zM8 21h8M12 17v4M8 9l3 2-3 2M13 13h3"/></svg><span><strong>MCP client</strong><small>sends the request</small></span></div>
+              </div>
+            </div>
+            <div class="mcp-link" data-n="3"><span class="protocol-badge">MCP</span><span class="wire"><i></i><b class="packet"></b><i></i></span><small>request ⇄ result</small></div>
+            <div class="node" data-n="4"><span class="actor-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16v7H4zM4 14h16v7H4zM8 6.5h.01M8 17.5h.01M12 6.5h5M12 17.5h5"/></svg></span><strong>MCP server</strong><small>exposes operations</small></div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <div class="node app" data-n="5"><span class="actor-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h7"/></svg></span><strong>Notes</strong><small>stores your data</small></div>
+          </div>
+          <p class="lens-caption"><span class="caption-dot"></span><span id="flow-caption">One common interface connects an AI app to many different tools.</span></p>
+        </div>
+      </section>
+
+      <!-- Hook -->
+      <section class="sec hook" id="hook" data-title="Just a list" data-badge="THE HOOK">
+        <div class="topline"><span>02 / THE HOOK</span></div>
+        <pre class="code-card" data-reveal><span class="c">// what a server hands your assistant</span>
+<span class="k">tools</span>: [ <span class="s">search_notes</span>, <span class="s">read_note</span> ]</pre>
+        <p class="hook-1" data-reveal>MCP is just a list of tools.</p>
+        <p class="hook-2" data-reveal>Then it escalated quickly.</p>
+        <p class="hook-3" data-reveal>Because who decides what a tool <em>is</em>?</p>
+      </section>
+
+      <!-- Escalation -->
+      <section class="sec escalation" id="escalation" data-title="That escalated quickly" data-badge="ESCALATION">
+        <div class="topline"><span>03 / ESCALATION</span><span class="status-dot"><i></i>Watch the inspector</span></div>
+        <h2 data-reveal>Eight steps from a menu to a program.</h2>
+        <p class="lede" data-reveal>Each step changes the same list. The inspector shows what the assistant is handed; the activity log shows what crossed the wire.</p>
+
+        <div class="stage-slot" id="stage-slot-inline"></div>
+
+        <ol class="steps" id="steps">
+          <li class="step" data-step="0" id="step-1"><span class="step-n">STEP 01</span><h3>It’s a list.</h3><p>Connect an MCP server and the host asks one question: <em>what can you do?</em> The answer is a list. Each tool has a name, a sentence of description and the inputs it accepts.</p></li>
+          <li class="step" data-step="1" id="step-2"><span class="step-n">STEP 02</span><h3>Someone has to choose.</h3><p>You ask for your packing list. The model reads the names and descriptions and picks one. It never sees the code behind them, only the sentence.</p></li>
+          <li class="step" data-step="2" id="step-3"><span class="step-n">STEP 03</span><h3>Reading is not changing.</h3><p>A tool that edits looks just like one that reads. Servers can add hints such as <code>readOnlyHint</code> or <code>destructiveHint</code>, but the spec tells hosts to treat them as untrusted. The host decides what to ask you before a change.</p></li>
+          <li class="step" data-step="3" id="step-4"><span class="step-n">STEP 04</span><h3>The list can change while you talk.</h3><p>A server can announce that its tools changed. The host fetches the list again: something you relied on is gone, and something new is there, mid-conversation.</p></li>
+          <li class="step" data-step="4" id="step-5"><span class="step-n">STEP 05</span><h3>A tool can ask back.</h3><p>With <em>elicitation</em>, a server can pause and ask you a question through the host. The conversation is no longer one-way.</p></li>
+          <li class="step" data-step="5" id="step-6"><span class="step-n">STEP 06</span><h3>A tool can bring its own screen.</h3><p><em>MCP Apps</em> let a tool return an interactive interface, a <code>ui://</code> resource, that the host shows inside the chat. Your drag becomes the assistant’s next input.</p></li>
+          <li class="step" data-step="6" id="step-7"><span class="step-n">STEP 07</span><h3>One tool can hold a whole program.</h3><p>Some servers offer just <code>search</code> and <code>execute</code>. The model writes code that composes many API operations. Two tools, unbounded behaviour: counting tools tells you almost nothing.</p></li>
+          <li class="step danger" data-step="7" id="step-8"><span class="step-n">STEP 08</span><h3>And the description is a program, too.</h3><p>The model treats descriptions as guidance. A description can carry instructions you are never shown. Researchers call this <em>tool poisoning</em>. Whoever writes the list shapes the behaviour.</p></li>
+        </ol>
+      </section>
+
+      <!-- Who decides -->
+      <section class="sec" id="decide" data-title="Who decides?" data-badge="SYNTHESIS">
+        <div class="topline"><span>04 / SO WHO DECIDES?</span></div>
+        <h2 data-reveal>Everyone, a little.</h2>
+        <ol class="hands">
+          <li data-stagger><span class="actor-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16v7H4zM4 14h16v7H4zM8 6.5h.01M8 17.5h.01M12 6.5h5M12 17.5h5"/></svg></span><div><strong>The server author</strong><p>writes the name, the sentence and the inputs. That is the tool’s whole public self.</p></div><span class="verb">writes</span></li>
+          <li data-stagger><span class="actor-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v12H4zM8 21h8M12 17v4M8 9l3 2-3 2M13 13h3"/></svg></span><div><strong>The host</strong><p>chooses what to show you, what to confirm and what to hide.</p></div><span class="verb">presents</span></li>
+          <li data-stagger><span class="actor-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3M6 6h12v12H6zM10 10h4v4h-4z"/></svg></span><div><strong>The model</strong><p>interprets the sentence and decides when it applies.</p></div><span class="verb">interprets</span></li>
+          <li data-stagger><span class="actor-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 21v-2a7 7 0 0 1 14 0v2"/></svg></span><div><strong>You</strong><p>approve the action, or don’t. Often without seeing any of the above.</p></div><span class="verb">approve</span></li>
+        </ol>
+        <p class="note-line" data-reveal>Each hand-off is a place where meaning can shift. The lab puts each one under glass.</p>
+      </section>
+
+      <!-- Exhibits -->
+      <section class="sec" id="lab" data-title="Exhibits" data-badge="8 EXHIBITS">
+        <div class="topline"><span>05 / EXHIBITS</span><span class="status-dot"><i></i>Sources checked Nov 2026</span></div>
+        <h2 data-reveal>Simple to strange.</h2>
+        <p class="lede" data-reveal>Real products, ordered for learning, not by popularity. <strong>One is playable today.</strong> Seven are researched previews with their sources. Every exhibit says whether it is a model, a recording or a live connection.</p>
+
+        <div class="filter-row">
+          <div class="filters" role="tablist" aria-label="Filter exhibits" id="filters">
+            <button role="tab" aria-selected="true" data-filter="all">All</button>
+            <button role="tab" aria-selected="false" data-filter="Basics">Basics</button>
+            <button role="tab" aria-selected="false" data-filter="Possibilities">Possibilities</button>
+            <button role="tab" aria-selected="false" data-filter="Edges">Edges</button>
+            <span class="filter-ink" id="filter-ink" aria-hidden="true"></span>
+          </div>
+          <button id="weird" type="button" aria-pressed="false">◇ Weird only</button>
+        </div>
+        <ul class="exhibits" id="exhibits">
+          <li data-group="Basics"><a href="lab/#notes"><span class="ic">↳</span><span class="ex-main"><strong>Find and change a note</strong><small>Notion · How can an assistant read something outside the conversation, and then change it?</small></span><span class="pill live">TRY IT</span></a></li>
+          <li data-group="Basics"><a href="lab/#search"><span class="ic">↳</span><span class="ex-main"><strong>Look something up</strong><small>Brave Search · Where does an answer get its information?</small></span><span class="pill">PREVIEW</span></a></li>
+          <li data-group="Basics"><a href="lab/#github"><span class="ic">↳</span><span class="ex-main"><strong>Turn a bug into an issue</strong><small>GitHub · What makes an intention a precise application action?</small></span><span class="pill">PREVIEW</span></a></li>
+          <li data-group="Possibilities"><a href="lab/#browser"><span class="ic">↳</span><span class="ex-main"><strong>Operate a website</strong><small>Playwright · Can a tool expose an instrument instead of one app?</small></span><span class="pill">PREVIEW</span></a></li>
+          <li data-group="Possibilities"><a href="lab/#design"><span class="ic">↳</span><span class="ex-main"><strong>Work with a design</strong><small>Figma · What can structured design access reveal that an image cannot?</small></span><span class="pill">PREVIEW</span></a></li>
+          <li data-group="Possibilities" data-weird><a href="lab/#canvas"><span class="ic">◇</span><span class="ex-main"><strong>Draw together</strong><small>tldraw MCP App · Can your gesture become the assistant’s next input?</small></span><span class="pill">PREVIEW</span></a></li>
+          <li data-group="Edges" data-weird><a href="lab/#recipe"><span class="ic">◇</span><span class="ex-main"><strong>Put a recipe inside a tool</strong><small>Cloudflare Code Mode · How much can a single tool call contain?</small></span><span class="pill">PREVIEW</span></a></li>
+          <li data-group="Edges" data-weird><a href="lab/#toolbox"><span class="ic">◇</span><span class="ex-main"><strong>Acquire another tool</strong><small>Docker Dynamic MCP · Can the available toolbox change during the task?</small></span><span class="pill">PREVIEW</span></a></li>
+        </ul>
+        <p class="empty" id="empty" hidden>No exhibits match. <button type="button" id="clear">Clear filters</button></p>
+
+        <div class="final" data-reveal>
+          <div><span class="experiment-label">TRY IT YOURSELF</span><p>Find the note. Try to change it. Switch the access, then try again.</p></div>
+          <a class="btn-primary lg" href="lab/#notes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 4 12 8-12 8Z"/></svg>Open the workbench</a>
+        </div>
+        <p class="fine">Not affiliated with any product shown; names belong to their owners.</p>
+      </section>
+    </div>
+  </main>
+
+  <!-- Inspector: the live tools/list and the activity log -->
+  <aside class="inspector" aria-label="Inspector">
+    <div class="panel-label">INSPECTOR <span>What the assistant is handed</span></div>
+    <div class="stage-slot" id="stage-slot-side">
+      <div class="stage" id="stage" aria-live="polite">
+        <div class="stage-top"><code>tools/list</code><span class="stage-count"><b id="tool-count">2</b> tools</span></div>
+        <div class="stage-prompt" id="stage-prompt" hidden><span>YOU</span><q>Find my packing list</q></div>
         <ul class="tools" id="tools"></ul>
         <div class="stage-toast" id="stage-toast" hidden><code>notifications/tools/list_changed</code></div>
-        <div class="meter" aria-hidden="true">
-          <span class="meter-label">Strangeness</span>
-          <span class="meter-track"><span class="meter-fill" id="meter"></span></span>
-          <span class="meter-step"><b id="step-num">01</b>/08</span>
-        </div>
+        <div class="meter"><span>STRANGENESS</span><span class="meter-track"><span class="meter-fill" id="meter"></span></span><span><b id="step-num">01</b>/08</span></div>
       </div>
     </div>
+    <section class="console" aria-label="Activity">
+      <div class="console-head"><strong>ACTIVITY</strong><span id="event-count">0 events</span></div>
+      <ol class="log" id="log"></ol>
+    </section>
+  </aside>
+</div>
 
-    <ol class="steps" id="steps">
-      <li class="step" data-step="0">
-        <span class="step-n">01</span>
-        <h3>It’s a list.</h3>
-        <p>Connect an MCP server and the host asks one question: <em>what can you do?</em> The answer is a list. Each tool has a name, a sentence of description and the inputs it accepts.</p>
-      </li>
-      <li class="step" data-step="1">
-        <span class="step-n">02</span>
-        <h3>Someone has to choose.</h3>
-        <p>You ask for your packing list. The model reads the names and descriptions and picks one. It never sees the code behind them, only the sentence.</p>
-      </li>
-      <li class="step" data-step="2">
-        <span class="step-n">03</span>
-        <h3>Reading is not changing.</h3>
-        <p>A tool that edits looks just like one that reads. Servers can add hints such as <code>readOnlyHint</code> or <code>destructiveHint</code>, but the spec tells hosts to treat them as untrusted. The host decides what to ask you before a change.</p>
-      </li>
-      <li class="step" data-step="3">
-        <span class="step-n">04</span>
-        <h3>The list can change while you talk.</h3>
-        <p>A server can announce that its tools changed. The host fetches the list again: something you relied on is gone, and something new is available mid-conversation.</p>
-      </li>
-      <li class="step" data-step="4">
-        <span class="step-n">05</span>
-        <h3>A tool can ask back.</h3>
-        <p>With <em>elicitation</em>, a server can pause and ask you a question through the host. The conversation is no longer one-way.</p>
-      </li>
-      <li class="step" data-step="5">
-        <span class="step-n">06</span>
-        <h3>A tool can bring its own screen.</h3>
-        <p><em>MCP Apps</em> let a tool return an interactive interface (a <code>ui://</code> resource) that the host shows inside the chat. Your drag becomes the assistant’s next input.</p>
-      </li>
-      <li class="step" data-step="6">
-        <span class="step-n">07</span>
-        <h3>One tool can hold a whole program.</h3>
-        <p>Some servers offer just <code>search</code> and <code>execute</code>. The model writes code that composes many API operations. Two tools, unbounded behaviour: counting tools tells you almost nothing.</p>
-      </li>
-      <li class="step" data-step="7">
-        <span class="step-n">08</span>
-        <h3>And the description is a program, too.</h3>
-        <p>The model treats descriptions as guidance. A description can carry instructions you are never shown. Researchers call this <em>tool poisoning</em>. Whoever writes the list shapes the behaviour.</p>
-      </li>
-    </ol>
-  </div>
-</section>
-
-<!-- ───────── Who decides ───────── -->
-<section class="decide paper" id="decide" aria-labelledby="decide-title">
-  <div class="wrap">
-    <p class="eyebrow dark" data-reveal>03 · So who decides?</p>
-    <h2 class="display-2" id="decide-title" data-split>Everyone, a little.</h2>
-    <ol class="quartet">
-      <li data-stagger><span>01</span><h3>The server author</h3><p>writes the name, the sentence and the inputs. That is the tool’s whole public self.</p></li>
-      <li data-stagger><span>02</span><h3>The host</h3><p>chooses what to show you, what to confirm and what to hide.</p></li>
-      <li data-stagger><span>03</span><h3>The model</h3><p>interprets the sentence and decides when it applies.</p></li>
-      <li data-stagger><span>04</span><h3>You</h3><p>approve the action, or don’t. Often without seeing any of the above.</p></li>
-    </ol>
-    <p class="decide-close" data-reveal>Each hand-off is a place where meaning can shift. The lab puts each one under glass.</p>
-  </div>
-</section>
-
-<!-- ───────── The lab ───────── -->
-<section class="lab" id="lab" aria-labelledby="lab-title">
-  <div class="wrap lab-head">
-    <div>
-      <p class="eyebrow" data-reveal>04 · The lab</p>
-      <h2 class="display-2" id="lab-title" data-split>Eight exhibits, simple to strange.</h2>
-    </div>
-    <p class="lab-note" data-reveal>Real products, ordered for learning. <strong>One is playable today.</strong> Seven are researched previews with their sources. Every exhibit says whether it is a model, a recording or a live connection.</p>
-  </div>
-
-  <div class="wrap">
-    <div class="filters" role="tablist" aria-label="Filter exhibits" id="filters">
-      <button role="tab" aria-selected="true" data-filter="all">All</button>
-      <button role="tab" aria-selected="false" data-filter="Basics">Basics</button>
-      <button role="tab" aria-selected="false" data-filter="Possibilities">Possibilities</button>
-      <button role="tab" aria-selected="false" data-filter="Edges">Edges</button>
-      <span class="filter-ink" id="filter-ink" aria-hidden="true"></span>
-    </div>
-    <ul class="exhibits" id="exhibits">
-      <li data-group="Basics"><a href="lab/#notes"><span class="ex-n">01</span><span class="ex-main"><small>Notion</small><strong>Find and change a note</strong><em>How can an assistant read something outside the conversation, and then change it?</em></span><span class="pill pill-live">Try it</span></a></li>
-      <li data-group="Basics"><a href="lab/#search"><span class="ex-n">02</span><span class="ex-main"><small>Brave Search</small><strong>Look something up</strong><em>Where does an answer get its information?</em></span><span class="pill">Preview</span></a></li>
-      <li data-group="Basics"><a href="lab/#github"><span class="ex-n">03</span><span class="ex-main"><small>GitHub</small><strong>Turn a bug into an issue</strong><em>What makes an intention a precise application action?</em></span><span class="pill">Preview</span></a></li>
-      <li data-group="Possibilities"><a href="lab/#browser"><span class="ex-n">04</span><span class="ex-main"><small>Playwright</small><strong>Operate a website</strong><em>Can a tool expose an instrument instead of one app?</em></span><span class="pill">Preview</span></a></li>
-      <li data-group="Possibilities"><a href="lab/#design"><span class="ex-n">05</span><span class="ex-main"><small>Figma</small><strong>Work with a design</strong><em>What can structured design access reveal that an image cannot?</em></span><span class="pill">Preview</span></a></li>
-      <li data-group="Possibilities"><a href="lab/#canvas"><span class="ex-n">06</span><span class="ex-main"><small>tldraw MCP App</small><strong>Draw together</strong><em>Can your gesture become the assistant’s next input?</em></span><span class="pill pill-weird">Preview · weird</span></a></li>
-      <li data-group="Edges"><a href="lab/#recipe"><span class="ex-n">07</span><span class="ex-main"><small>Cloudflare Code Mode</small><strong>Put a recipe inside a tool</strong><em>How much can a single tool call contain?</em></span><span class="pill pill-weird">Preview · weird</span></a></li>
-      <li data-group="Edges"><a href="lab/#toolbox"><span class="ex-n">08</span><span class="ex-main"><small>Docker Dynamic MCP</small><strong>Acquire another tool</strong><em>Can the available toolbox change during the task?</em></span><span class="pill pill-weird">Preview · weird</span></a></li>
-    </ul>
-
-    <div class="final-cta" data-reveal>
-      <p>Start with the note. Read it, try to change it, then switch the access and try again.</p>
-      <a class="btn" href="lab/#notes">Open the first exhibit <span aria-hidden="true">→</span></a>
-    </div>
-  </div>
-</section>
-</main>
-
-<footer class="foot">
-  <div class="wrap foot-inner">
-    <a class="brand" href="#top"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1v22M1 12h22M4 4l16 16M4 20 20 4"/><circle cx="12" cy="12" r="4"/></svg><span>MCP&nbsp;LAB</span></a>
-    <p>Interactive models and researched previews. Fictional data, no live AI, no accounts.<br>Not affiliated with any product shown; names belong to their owners. Sources were checked in November 2026.</p>
-  </div>
-</footer>
+<footer class="statusbar"><span id="status" role="status">Ready</span><span>Interactive models &amp; previews · no live account or AI</span></footer>
 
 <script type="module" src="landing.js"></script>
 </body>

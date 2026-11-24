@@ -1,5 +1,9 @@
 # Handoff
 
+## Landing page redesign — 24 November 2026
+
+Owner feedback: the first version looked generic ("like every page Claude has done") and used a serif font. Rebuilt the landing page from the workbench's own interface: dark topbar, explorer as a scroll-spy table of contents, sage working surface with sticky toolbar crumb, inspector holding the live `tools/list` stage and an activity log of what crossed the wire, and the status bar. The "What's MCP?" diagram reuses the lab's connection-diagram language with a replayable request. The hero shows a real screenshot of the workbench (`site/img/workbench.jpg`, captured from `lab/` at this commit; refresh it when the lab UI changes). Fonts: Inter + JetBrains Mono (self-hosted, OFL); Fraunces and Plex Mono removed. Applied the ui-ux-pro-max skill for structure (product-demo hero, 150–300 ms micro-motion, exit faster than enter, 44 px targets, reduced motion); its suggested slate/indigo "Modern Dark" palette was rejected in favour of the lab's palette. Checked in headless Chromium at 1440, 1024 and 390 px: no console errors, no horizontal overflow, stage reaches step 08.
+
 ## Public landing page — 24 November 2026
 
 Learned: the owner wants to publish on Cloudflare without hosting an MCP service, with a premium landing page explaining what MCP is and the hook "MCP is just a list of tools; who decides what a tool is?". Motion reference: Wardic on Foldkit (staggered entrances, layout/FLIP, presence exits, sliding tab ink, reduced-motion toggle).
