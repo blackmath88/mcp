@@ -1,5 +1,19 @@
 # Handoff
 
+## Public landing page — 24 November 2026
+
+Learned: the owner wants to publish on Cloudflare without hosting an MCP service, with a premium landing page explaining what MCP is and the hook "MCP is just a list of tools; who decides what a tool is?". Motion reference: Wardic on Foldkit (staggered entrances, layout/FLIP, presence exits, sliding tab ink, reduced-motion toggle).
+
+Decided: the owner chose plain static for now; Foldkit/Effect remains the planned application stack and is not implemented. The landing page can be ported later.
+
+Changed: added `site/` (landing page, self-hosted OFL fonts with licences, favicon, `_headers`) and `scripts/build-site.sh`, which copies only lab runtime files into `dist/` (ignored). Sections: what this is and why; what MCP is; the hook; an eight-step sticky escalation stage (list, choice, read/write hints, list_changed, elicitation, MCP Apps ui://, code mode, tool poisoning); who decides; exhibit list with filters linking into `lab/#id`.
+
+Evidence: headless Chromium at 1440px and 390px, and with reduced motion. No console errors, no horizontal overflow, correct stage state at steps 2/4/5/8, exhibit deep link opens the right lab view. Foundation check and 12 lab tests pass. `_headers`/CSP not exercised (local server ignores it); verify after the first Cloudflare deploy. No human-learning evaluation.
+
+Practice: development-practice source not resolved in this session (repository outside GitHub scope); local AGENTS.md followed. Limitation disclosed.
+
+Next: first Cloudflare Pages deploy and header check; decide whether to add a public source link and a LICENSE; fix or retire `lab/concept.html` (missing charset, overstates exhibit status).
+
 ## Linuc synchronization — 24 November 2026
 
 Preserved the local `lab/` workbench, `tooling/` factory and selected synthetic evidence alongside all 22 newer GitHub commits. Resolved four documentation conflicts by retaining the newer direction and appending the dated local records. Original working checkout and its staging remain intact. No services, model calls or deployments were started.

@@ -9,3 +9,9 @@ The reusable coordination system is [Lab Factory](tooling/README.md): bounded na
 Project direction: [CONCEPT.md](CONCEPT.md). Current evidence and next work: [docs/HANDOFF.md](docs/HANDOFF.md). Historical experiments remain under `tooling/docs/experiments/`; they are engineering evidence, not the new learner curriculum.
 
 The local workbench above preserves the 18 November prototype. The newer [exploration concept](CONCEPT.md), [specimen-host milestone](docs/concept/ADDENDUM-SPECIMENS-LENS-AND-EMBEDDING.md) and [plan](docs/PLAN.md) describe the current direction; preservation of this implementation does not claim that milestone is complete.
+
+## Public site
+
+`site/` holds the landing page (plain HTML/CSS/JS, self-hosted fonts, no build dependencies). `sh scripts/build-site.sh` assembles `dist/`: the landing page at `/` and only the runtime files of `lab/` at `/lab/`. Repository docs, notes, tests and `lab/concept.html` are not published.
+
+Cloudflare Pages: build command `sh scripts/build-site.sh`, output directory `dist`, no framework preset. `site/_headers` sets security headers and long caching for fonts.
