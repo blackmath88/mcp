@@ -1,6 +1,6 @@
 {
   "schema": "observstory.knowledge-manifest/v1",
-  "title": "New project",
+  "title": "MCP Lab",
   "selection_policy": "explicit-declaration/v1",
   "audience": "private",
   "records": [
@@ -8,7 +8,7 @@
       "id": "direction",
       "type": "concept",
       "path": "CONCEPT.md",
-      "status": "candidate"
+      "status": "current"
     },
     {
       "id": "decisions",
@@ -45,6 +45,66 @@
       "type": "module",
       "path": "docs/DEVELOPMENT-PRACTICE.md",
       "status": "optional"
+    },
+    {
+      "id": "tooling-concept",
+      "type": "concept",
+      "path": "tooling/docs/CONCEPT.md",
+      "status": "current"
+    },
+    {
+      "id": "tooling-implementation",
+      "type": "module",
+      "path": "tooling/docs/IMPLEMENTATION.md",
+      "status": "current"
+    },
+    {
+      "id": "first-experiment",
+      "type": "research",
+      "path": "tooling/docs/experiments/01-move-one-room/README.md",
+      "status": "input"
+    },
+    {
+      "id": "scrolly",
+      "type": "module",
+      "path": "tooling/explainers/one-room/README.md",
+      "status": "current"
+    },
+    {
+      "id": "mcp-lab-mission",
+      "type": "plan",
+      "path": "docs/MCP-LAB-MISSION.md",
+      "status": "current"
+    },
+    {
+      "id": "curriculum-research",
+      "type": "research",
+      "path": "docs/research/mcp-real-world-curriculum.md",
+      "status": "input"
+    },
+    {
+      "id": "learning-design",
+      "type": "plan",
+      "path": "docs/research/mcp-learning-workbench-design.md",
+      "status": "proposed"
+    },
+    {
+      "id": "exhibit-review",
+      "type": "module",
+      "path": "tooling/docs/EXHIBIT-REVIEW.md",
+      "status": "draft"
+    },
+    {
+      "id": "basics-learning",
+      "type": "plan",
+      "path": "docs/research/mcp-basics-learning-layers.md",
+      "status": "proposed"
+    },
+    {
+      "id": "basics-visual",
+      "type": "plan",
+      "path": "docs/research/mcp-basics-visual-system.md",
+      "status": "proposed"
     }
   ],
   "links": []

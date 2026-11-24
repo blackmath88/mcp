@@ -59,3 +59,11 @@ PDF Lab and XL Lab put a visible document beside the evidence a reader or tool c
 | Keep the comparison | Compose a comparison from two public datasets, validate it with DataFit, and offer it as a Blackboard pane. Reopen it with a different assistant and change the district. | A saved recipe with inputs, compatibility checks and provenance that explains why the second result changed. |
 
 A visitor should leave able to answer five questions about a single run. **Who chose the action? Who authorised it? Where did it execute? Which state changed? What evidence reached the model and the person?** The most interesting failure may be a perfectly successful tool call that answered the wrong question.
+
+## Executed local experiment — 18 November 2026
+
+Observed on Personas feature revision `4a9b9ae3285c9acba78d5ec1a74cb717aae96b99`: moving `pilot` from `onboarding` to `campus` passes source validation after scene root and note repair, but the combined house/Teams slide fails its layout budget. Exact diagnostic: `Folie 2: Inhalt passt nicht (Arbeitsbereich: Häuser passen nicht auf die Folie)`.
+
+An explicitly adapted baseline and candidate both use `workspace-scene` for the preview. They render successfully. The overview still shows houses. Structured diffs preserve channel/file identities; all four exported images were visually inspected by the coordinator and show the expected move with readable content. This is an observation of this fixture, not a general visual-quality score.
+
+Independent review exposed wrong SDK timeout positioning, partial render persistence and ambiguous node identities. Corrections and regression checks are in the implementation. A further criterion was narrowed to PNG signature/header dimensions; it never establishes decoding or human understanding. Source dependencies now make derived evidence stale when the source revision changes.

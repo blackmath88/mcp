@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import{createPlayback}from'./motion.mjs';
+function setup(){let tasks=new Map(),id=0;const steps=[];const p=createPlayback({onStep:i=>steps.push(i),schedule:fn=>{tasks.set(++id,fn);return id},cancel:id=>tasks.delete(id)});return {p,steps,tasks,tick(){const [id,fn]=tasks.entries().next().value;tasks.delete(id);fn()}}}
+test('playback visits each selected event once and stops',()=>{const t=setup();t.p.play(3,5);t.tick();t.tick();assert.deepEqual(t.steps,[3,4,5]);assert.equal(t.p.state().playing,false);assert.equal(t.tasks.size,0)});
+test('pause and dispose cancel pending callbacks',()=>{const t=setup();t.p.play(0,4);t.p.pause();assert.equal(t.tasks.size,0);assert.deepEqual(t.steps,[0]);t.p.play(1,4);t.p.dispose();assert.equal(t.tasks.size,0)});
+test('speed changes retain one timer; restarting replaces previous sequence',()=>{const t=setup();t.p.play(0,5);t.p.speed(450);assert.equal(t.tasks.size,1);t.p.play(7,8);assert.equal(t.tasks.size,1);t.tick();assert.deepEqual(t.steps,[0,7,8])});
+test('single step range never schedules playback',()=>{const t=setup();t.p.play(2,2);assert.deepEqual(t.steps,[2]);assert.equal(t.tasks.size,0)});

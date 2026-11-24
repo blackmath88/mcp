@@ -1,7 +1,8 @@
 {
   "schema": "knowledge-lab.project/v1",
-  "project_id": "new-project",
-  "title": "New project",
+  "project_id": "mcp",
+  "title": "MCP Lab",
   "event_ids": [],
-  "note": "Template seed; run scripts/init_project.py. Registration and connectors are separate."
+  "note": "Registration and connectors are separate.",
+  "repository": "blackmath88/mcp"
 }

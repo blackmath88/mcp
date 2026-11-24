@@ -1,0 +1,100 @@
+{
+  "schema": "lab-factory/exhibit-export/v1",
+  "missionId": "mission-13ead2da-7233-435e-a8ff-5a902dc00f9d",
+  "source": {
+    "repository": "https://github.com/blackmath88/msteams-personas",
+    "revision": "4a9b9ae3285c9acba78d5ec1a74cb717aae96b99",
+    "branch": "feat/workspace-house-views"
+  },
+  "artifacts": [
+    {
+      "file": "original.json",
+      "originalName": "before.json",
+      "artifactId": "artifact-20db25d7-bc9d-4a4b-9a16-2e458268caad",
+      "sha256": "91a8195dbae9ad18a5a01be228186e425df5d4e758fbaf2dde7240bbd671c606",
+      "size": 6364
+    },
+    {
+      "file": "before.json",
+      "originalName": "before-compact.json",
+      "artifactId": "artifact-be5edba3-69ee-4718-a17e-089837cc92a0",
+      "sha256": "7dfadb2327e37918092a15f788e1a555ac1998b1f424a23e91eb1caf7e18b2bb",
+      "size": 6358
+    },
+    {
+      "file": "after.json",
+      "originalName": "project.json",
+      "artifactId": "artifact-9e738d16-24cd-46b5-8047-dd6da43b22ea",
+      "sha256": "fe2fe7911f72cb52fe9f9b06ddec5cea621fd4b15b6037d254c1e911714c24d4",
+      "size": 6362
+    },
+    {
+      "file": "recipe.json",
+      "originalName": "move-artifact-9e738d16-24cd-46b5-8047-dd6da43b22ea.json",
+      "artifactId": "artifact-db22f8ba-16b6-4910-bb76-00d24681e558",
+      "sha256": "9e552c9a72682b0cb7286043d75d3bb651ac195e6df39564ff4cb59041ca7a28",
+      "size": 379
+    },
+    {
+      "file": "before-houses.png",
+      "originalName": "before-1.png",
+      "artifactId": "artifact-8b6bfe41-3a80-4377-b1f2-c455ed7d265e",
+      "sha256": "8c30806fc06c82d3fbd17fae610a4e7f0523a72d14a3a5f034d56a149735cd5e",
+      "size": 684915
+    },
+    {
+      "file": "before-teams.png",
+      "originalName": "before-2.png",
+      "artifactId": "artifact-f2ac1a09-a375-4916-a29f-51bcdbb8f0a2",
+      "sha256": "5c50f61a64b6f7c4eebbd8caa522a5497c1d0edac86c7212cacdc761ba41dbc8",
+      "size": 165751
+    },
+    {
+      "file": "after-houses.png",
+      "originalName": "after-1.png",
+      "artifactId": "artifact-0d41f362-3465-486b-88d3-9e0c0355b04b",
+      "sha256": "3d56f412723173f8148d6499bfd6a2c1425db44f1303a6878cdcb49992ca4dfc",
+      "size": 726994
+    },
+    {
+      "file": "after-teams.png",
+      "originalName": "after-2.png",
+      "artifactId": "artifact-901404c8-8da6-4519-8a83-51be4aad9c8c",
+      "sha256": "8feb25100b331624737a912f690de9873c5ce20caa19e75ad95b9f109f41f3ca",
+      "size": 177918
+    }
+  ],
+  "criteria": [
+    {
+      "id": "move",
+      "kind": "check",
+      "status": "satisfied"
+    },
+    {
+      "id": "images",
+      "kind": "check",
+      "status": "satisfied"
+    },
+    {
+      "id": "integrity",
+      "kind": "check",
+      "status": "satisfied"
+    },
+    {
+      "id": "explanation",
+      "kind": "judge",
+      "status": "satisfied"
+    },
+    {
+      "id": "learning",
+      "kind": "human",
+      "status": "unverified"
+    }
+  ],
+  "scope": "Selected fictional exhibit artifacts only. No worker conversations, credentials or runtime database.",
+  "failure": {
+    "missionId": "mission-787c79ee-93ba-4da6-8aff-8476387e1686",
+    "diagnostic": "Folie 2: Inhalt passt nicht (Arbeitsbereich: Häuser passen nicht auf die Folie)",
+    "adaptation": "Change preview profile from workspace-house-teams to workspace-scene in both baseline and candidate; preserve house overview."
+  }
+}

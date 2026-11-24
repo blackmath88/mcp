@@ -9,3 +9,9 @@ observstory/
 test-output/
 
 .practice/cache/
+
+node_modules/
+.lab/
+*.sqlite*
+
+.codex/config.toml

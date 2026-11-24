@@ -5,8 +5,8 @@
       "id": "discovery",
       "title": "Understand the problem",
       "kind": "workstream",
-      "status": "proposed",
-      "context": "Seed workstream; replace with actual project context.",
+      "status": "active",
+      "context": "Investigate MCP through concrete exhibits and source evidence.",
       "members": [
         "direction",
         "observations"
@@ -16,13 +16,13 @@
       "id": "delivery",
       "title": "Build and verify a useful slice",
       "kind": "workstream",
-      "status": "proposed",
+      "status": "active",
       "members": [
         "plan"
       ],
       "resume": {
-        "stopping_point": "Project scaffold only.",
-        "next_action": "Define one acceptance check in docs/PLAN.md."
+        "stopping_point": "First local MCP exhibit executed; review and evidence available.",
+        "next_action": "Inspect the report with the user and select the next experiment."
       }
     }
   ],

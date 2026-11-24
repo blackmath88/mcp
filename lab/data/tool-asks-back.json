@@ -1,0 +1,2871 @@
+{
+  "schema": "mcp-lab/tool-asks-back/v1",
+  "executedAt": "2026-11-18T14:07:51.023Z",
+  "runtime": {
+    "node": "v26.12.0",
+    "clientSdk": "2.4.0",
+    "serverSdk": "2.4.0",
+    "transport": "stdio"
+  },
+  "sourceHashes": {
+    "server.mjs": "100f657d2cfdac0effa1472c7bbc6eb7bfc4df6a2db08ce21858e0383f23e575",
+    "run.mjs": "c791a8bd0236f927ccbfcce24d8c67ef4100c758e3be4b86b635f59a90ec3d2f"
+  },
+  "limits": [
+    "Host answers are deterministic fixtures, not real user consent.",
+    "No model provider or real Teams action is involved.",
+    "This tests the pinned SDK pair, not all MCP hosts.",
+    "Elicitation is not an authentication boundary; no security guarantee against forged client responses."
+  ],
+  "results": [
+    {
+      "era": "2026-07-28",
+      "case": "unsupported",
+      "capabilities": {},
+      "prompts": 0,
+      "status": "unsupported",
+      "error": null,
+      "toolError": null,
+      "snapshot": {
+        "room": {
+          "id": "pilot",
+          "parent": "onboarding",
+          "files": [
+            "pilot-checklist"
+          ]
+        },
+        "writes": 0,
+        "events": [
+          {
+            "event": "handler.entered",
+            "response": "missing"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              },
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {}
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "This client has not declared form elicitation. No move."
+                }
+              ],
+              "structuredContent": {
+                "status": "unsupported",
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0
+              },
+              "resultType": "complete"
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "inspect_room",
+              "arguments": {},
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {}
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"room\":{\"id\":\"pilot\",\"parent\":\"onboarding\",\"files\":[\"pilot-checklist\"]},\"writes\":0,\"events\":[{\"event\":\"handler.entered\",\"response\":\"missing\"}]}"
+                }
+              ],
+              "structuredContent": {
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0,
+                "events": [
+                  {
+                    "event": "handler.entered",
+                    "response": "missing"
+                  }
+                ]
+              },
+              "resultType": "complete"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "era": "2026-07-28",
+      "case": "accept",
+      "capabilities": {
+        "elicitation": {
+          "form": {}
+        }
+      },
+      "prompts": 1,
+      "status": "moved",
+      "error": null,
+      "toolError": null,
+      "snapshot": {
+        "room": {
+          "id": "pilot",
+          "parent": "campus",
+          "files": [
+            "pilot-checklist"
+          ]
+        },
+        "writes": 1,
+        "events": [
+          {
+            "event": "handler.entered",
+            "response": "missing"
+          },
+          {
+            "event": "input.requested"
+          },
+          {
+            "event": "handler.entered",
+            "response": "accept"
+          },
+          {
+            "event": "room.moved",
+            "target": "campus"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              },
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "resultType": "input_required",
+              "inputRequests": {
+                "move": {
+                  "method": "elicitation/create",
+                  "params": {
+                    "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+                    "requestedSchema": {
+                      "type": "object",
+                      "properties": {
+                        "confirm": {
+                          "type": "boolean",
+                          "title": "Move the fictional room"
+                        }
+                      },
+                      "required": [
+                        "confirm"
+                      ]
+                    },
+                    "mode": "form"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "direction": "host-decision",
+          "synthetic": true,
+          "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+          "action": "accept",
+          "confirm": true
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              },
+              "inputResponses": {
+                "move": {
+                  "action": "accept",
+                  "content": {
+                    "confirm": true
+                  }
+                }
+              },
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The synthetic host supplied confirm=true; the room moved. This is not authenticated human consent."
+                }
+              ],
+              "structuredContent": {
+                "status": "moved",
+                "room": {
+                  "id": "pilot",
+                  "parent": "campus",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 1
+              },
+              "resultType": "complete"
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "inspect_room",
+              "arguments": {},
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 2
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"room\":{\"id\":\"pilot\",\"parent\":\"campus\",\"files\":[\"pilot-checklist\"]},\"writes\":1,\"events\":[{\"event\":\"handler.entered\",\"response\":\"missing\"},{\"event\":\"input.requested\"},{\"event\":\"handler.entered\",\"response\":\"accept\"},{\"event\":\"room.moved\",\"target\":\"campus\"}]}"
+                }
+              ],
+              "structuredContent": {
+                "room": {
+                  "id": "pilot",
+                  "parent": "campus",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 1,
+                "events": [
+                  {
+                    "event": "handler.entered",
+                    "response": "missing"
+                  },
+                  {
+                    "event": "input.requested"
+                  },
+                  {
+                    "event": "handler.entered",
+                    "response": "accept"
+                  },
+                  {
+                    "event": "room.moved",
+                    "target": "campus"
+                  }
+                ]
+              },
+              "resultType": "complete"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "era": "2026-07-28",
+      "case": "unchecked",
+      "capabilities": {
+        "elicitation": {
+          "form": {}
+        }
+      },
+      "prompts": 1,
+      "status": "not-confirmed",
+      "error": null,
+      "toolError": null,
+      "snapshot": {
+        "room": {
+          "id": "pilot",
+          "parent": "onboarding",
+          "files": [
+            "pilot-checklist"
+          ]
+        },
+        "writes": 0,
+        "events": [
+          {
+            "event": "handler.entered",
+            "response": "missing"
+          },
+          {
+            "event": "input.requested"
+          },
+          {
+            "event": "handler.entered",
+            "response": "accept"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              },
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "resultType": "input_required",
+              "inputRequests": {
+                "move": {
+                  "method": "elicitation/create",
+                  "params": {
+                    "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+                    "requestedSchema": {
+                      "type": "object",
+                      "properties": {
+                        "confirm": {
+                          "type": "boolean",
+                          "title": "Move the fictional room"
+                        }
+                      },
+                      "required": [
+                        "confirm"
+                      ]
+                    },
+                    "mode": "form"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "direction": "host-decision",
+          "synthetic": true,
+          "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+          "action": "accept",
+          "confirm": false
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              },
+              "inputResponses": {
+                "move": {
+                  "action": "accept",
+                  "content": {
+                    "confirm": false
+                  }
+                }
+              },
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The form was submitted with confirm=false. No move."
+                }
+              ],
+              "structuredContent": {
+                "status": "not-confirmed",
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0
+              },
+              "resultType": "complete"
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "inspect_room",
+              "arguments": {},
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 2
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"room\":{\"id\":\"pilot\",\"parent\":\"onboarding\",\"files\":[\"pilot-checklist\"]},\"writes\":0,\"events\":[{\"event\":\"handler.entered\",\"response\":\"missing\"},{\"event\":\"input.requested\"},{\"event\":\"handler.entered\",\"response\":\"accept\"}]}"
+                }
+              ],
+              "structuredContent": {
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0,
+                "events": [
+                  {
+                    "event": "handler.entered",
+                    "response": "missing"
+                  },
+                  {
+                    "event": "input.requested"
+                  },
+                  {
+                    "event": "handler.entered",
+                    "response": "accept"
+                  }
+                ]
+              },
+              "resultType": "complete"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "era": "2026-07-28",
+      "case": "decline",
+      "capabilities": {
+        "elicitation": {
+          "form": {}
+        }
+      },
+      "prompts": 1,
+      "status": "decline",
+      "error": null,
+      "toolError": null,
+      "snapshot": {
+        "room": {
+          "id": "pilot",
+          "parent": "onboarding",
+          "files": [
+            "pilot-checklist"
+          ]
+        },
+        "writes": 0,
+        "events": [
+          {
+            "event": "handler.entered",
+            "response": "missing"
+          },
+          {
+            "event": "input.requested"
+          },
+          {
+            "event": "handler.entered",
+            "response": "decline"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              },
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "resultType": "input_required",
+              "inputRequests": {
+                "move": {
+                  "method": "elicitation/create",
+                  "params": {
+                    "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+                    "requestedSchema": {
+                      "type": "object",
+                      "properties": {
+                        "confirm": {
+                          "type": "boolean",
+                          "title": "Move the fictional room"
+                        }
+                      },
+                      "required": [
+                        "confirm"
+                      ]
+                    },
+                    "mode": "form"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "direction": "host-decision",
+          "synthetic": true,
+          "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+          "action": "decline"
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              },
+              "inputResponses": {
+                "move": {
+                  "action": "decline"
+                }
+              },
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The host returned decline. The room stays put."
+                }
+              ],
+              "structuredContent": {
+                "status": "decline",
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0
+              },
+              "resultType": "complete"
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "inspect_room",
+              "arguments": {},
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 2
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"room\":{\"id\":\"pilot\",\"parent\":\"onboarding\",\"files\":[\"pilot-checklist\"]},\"writes\":0,\"events\":[{\"event\":\"handler.entered\",\"response\":\"missing\"},{\"event\":\"input.requested\"},{\"event\":\"handler.entered\",\"response\":\"decline\"}]}"
+                }
+              ],
+              "structuredContent": {
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0,
+                "events": [
+                  {
+                    "event": "handler.entered",
+                    "response": "missing"
+                  },
+                  {
+                    "event": "input.requested"
+                  },
+                  {
+                    "event": "handler.entered",
+                    "response": "decline"
+                  }
+                ]
+              },
+              "resultType": "complete"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "era": "2026-07-28",
+      "case": "cancel",
+      "capabilities": {
+        "elicitation": {
+          "form": {}
+        }
+      },
+      "prompts": 1,
+      "status": "cancel",
+      "error": null,
+      "toolError": null,
+      "snapshot": {
+        "room": {
+          "id": "pilot",
+          "parent": "onboarding",
+          "files": [
+            "pilot-checklist"
+          ]
+        },
+        "writes": 0,
+        "events": [
+          {
+            "event": "handler.entered",
+            "response": "missing"
+          },
+          {
+            "event": "input.requested"
+          },
+          {
+            "event": "handler.entered",
+            "response": "cancel"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              },
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "resultType": "input_required",
+              "inputRequests": {
+                "move": {
+                  "method": "elicitation/create",
+                  "params": {
+                    "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+                    "requestedSchema": {
+                      "type": "object",
+                      "properties": {
+                        "confirm": {
+                          "type": "boolean",
+                          "title": "Move the fictional room"
+                        }
+                      },
+                      "required": [
+                        "confirm"
+                      ]
+                    },
+                    "mode": "form"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "direction": "host-decision",
+          "synthetic": true,
+          "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+          "action": "cancel"
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              },
+              "inputResponses": {
+                "move": {
+                  "action": "cancel"
+                }
+              },
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The host returned cancel. The room stays put."
+                }
+              ],
+              "structuredContent": {
+                "status": "cancel",
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0
+              },
+              "resultType": "complete"
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "inspect_room",
+              "arguments": {},
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 2
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"room\":{\"id\":\"pilot\",\"parent\":\"onboarding\",\"files\":[\"pilot-checklist\"]},\"writes\":0,\"events\":[{\"event\":\"handler.entered\",\"response\":\"missing\"},{\"event\":\"input.requested\"},{\"event\":\"handler.entered\",\"response\":\"cancel\"}]}"
+                }
+              ],
+              "structuredContent": {
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0,
+                "events": [
+                  {
+                    "event": "handler.entered",
+                    "response": "missing"
+                  },
+                  {
+                    "event": "input.requested"
+                  },
+                  {
+                    "event": "handler.entered",
+                    "response": "cancel"
+                  }
+                ]
+              },
+              "resultType": "complete"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "era": "2026-07-28",
+      "case": "declared-without-handler",
+      "capabilities": {
+        "elicitation": {
+          "form": {}
+        }
+      },
+      "prompts": 0,
+      "status": "client-error",
+      "error": {
+        "name": "SdkError",
+        "message": "Cannot fulfil input request 'move': no handler is registered for 'elicitation/create' on this client. Declare the corresponding capability and register a handler, or handle input_required results manually.",
+        "code": "CAPABILITY_NOT_SUPPORTED"
+      },
+      "toolError": null,
+      "snapshot": {
+        "room": {
+          "id": "pilot",
+          "parent": "onboarding",
+          "files": [
+            "pilot-checklist"
+          ]
+        },
+        "writes": 0,
+        "events": [
+          {
+            "event": "handler.entered",
+            "response": "missing"
+          },
+          {
+            "event": "input.requested"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              },
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "resultType": "input_required",
+              "inputRequests": {
+                "move": {
+                  "method": "elicitation/create",
+                  "params": {
+                    "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+                    "requestedSchema": {
+                      "type": "object",
+                      "properties": {
+                        "confirm": {
+                          "type": "boolean",
+                          "title": "Move the fictional room"
+                        }
+                      },
+                      "required": [
+                        "confirm"
+                      ]
+                    },
+                    "mode": "form"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "inspect_room",
+              "arguments": {},
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"room\":{\"id\":\"pilot\",\"parent\":\"onboarding\",\"files\":[\"pilot-checklist\"]},\"writes\":0,\"events\":[{\"event\":\"handler.entered\",\"response\":\"missing\"},{\"event\":\"input.requested\"}]}"
+                }
+              ],
+              "structuredContent": {
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0,
+                "events": [
+                  {
+                    "event": "handler.entered",
+                    "response": "missing"
+                  },
+                  {
+                    "event": "input.requested"
+                  }
+                ]
+              },
+              "resultType": "complete"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "era": "2026-07-28",
+      "case": "overconstrained-form",
+      "capabilities": {
+        "elicitation": {
+          "form": {}
+        }
+      },
+      "prompts": 0,
+      "status": "tool-error",
+      "error": null,
+      "toolError": [
+        {
+          "type": "text",
+          "text": "Elicitation requestedSchema contains unsupported JSON Schema constraint(s) after Standard Schema conversion: additionalProperties"
+        }
+      ],
+      "snapshot": {
+        "room": {
+          "id": "pilot",
+          "parent": "onboarding",
+          "files": [
+            "pilot-checklist"
+          ]
+        },
+        "writes": 0,
+        "events": [
+          {
+            "event": "handler.entered",
+            "response": "missing"
+          },
+          {
+            "event": "input.requested"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "strict"
+              },
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Elicitation requestedSchema contains unsupported JSON Schema constraint(s) after Standard Schema conversion: additionalProperties"
+                }
+              ],
+              "isError": true,
+              "resultType": "complete"
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "inspect_room",
+              "arguments": {},
+              "_meta": {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientInfo": {
+                  "name": "synthetic-lab-host",
+                  "version": "0.1.0"
+                },
+                "io.modelcontextprotocol/clientCapabilities": {
+                  "elicitation": {
+                    "form": {}
+                  }
+                }
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "_meta": {
+                "io.modelcontextprotocol/serverInfo": {
+                  "name": "mcp-lab-tool-asks-back",
+                  "version": "0.1.0"
+                }
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"room\":{\"id\":\"pilot\",\"parent\":\"onboarding\",\"files\":[\"pilot-checklist\"]},\"writes\":0,\"events\":[{\"event\":\"handler.entered\",\"response\":\"missing\"},{\"event\":\"input.requested\"}]}"
+                }
+              ],
+              "structuredContent": {
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0,
+                "events": [
+                  {
+                    "event": "handler.entered",
+                    "response": "missing"
+                  },
+                  {
+                    "event": "input.requested"
+                  }
+                ]
+              },
+              "resultType": "complete"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "era": "legacy-default",
+      "case": "unsupported",
+      "capabilities": {},
+      "prompts": 0,
+      "status": "unsupported",
+      "error": null,
+      "toolError": null,
+      "snapshot": {
+        "room": {
+          "id": "pilot",
+          "parent": "onboarding",
+          "files": [
+            "pilot-checklist"
+          ]
+        },
+        "writes": 0,
+        "events": [
+          {
+            "event": "handler.entered",
+            "response": "missing"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "synthetic-lab-host",
+                "version": "0.1.0"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {
+                "tools": {
+                  "listChanged": true
+                }
+              },
+              "serverInfo": {
+                "name": "mcp-lab-tool-asks-back",
+                "version": "0.1.0"
+              }
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "This client has not declared form elicitation. No move."
+                }
+              ],
+              "structuredContent": {
+                "status": "unsupported",
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0
+              }
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "inspect_room",
+              "arguments": {}
+            },
+            "jsonrpc": "2.0",
+            "id": 2
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"room\":{\"id\":\"pilot\",\"parent\":\"onboarding\",\"files\":[\"pilot-checklist\"]},\"writes\":0,\"events\":[{\"event\":\"handler.entered\",\"response\":\"missing\"}]}"
+                }
+              ],
+              "structuredContent": {
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0,
+                "events": [
+                  {
+                    "event": "handler.entered",
+                    "response": "missing"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "era": "legacy-default",
+      "case": "accept",
+      "capabilities": {
+        "elicitation": {
+          "form": {}
+        }
+      },
+      "prompts": 1,
+      "status": "moved",
+      "error": null,
+      "toolError": null,
+      "snapshot": {
+        "room": {
+          "id": "pilot",
+          "parent": "campus",
+          "files": [
+            "pilot-checklist"
+          ]
+        },
+        "writes": 1,
+        "events": [
+          {
+            "event": "handler.entered",
+            "response": "missing"
+          },
+          {
+            "event": "input.requested"
+          },
+          {
+            "event": "handler.entered",
+            "response": "accept"
+          },
+          {
+            "event": "room.moved",
+            "target": "campus"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {
+                "elicitation": {
+                  "form": {}
+                }
+              },
+              "clientInfo": {
+                "name": "synthetic-lab-host",
+                "version": "0.1.0"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {
+                "tools": {
+                  "listChanged": true
+                }
+              },
+              "serverInfo": {
+                "name": "mcp-lab-tool-asks-back",
+                "version": "0.1.0"
+              }
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "elicitation/create",
+            "params": {
+              "_meta": {
+                "progressToken": 0
+              },
+              "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+              "requestedSchema": {
+                "type": "object",
+                "properties": {
+                  "confirm": {
+                    "type": "boolean",
+                    "title": "Move the fictional room"
+                  }
+                },
+                "required": [
+                  "confirm"
+                ]
+              },
+              "mode": "form"
+            }
+          }
+        },
+        {
+          "direction": "host-decision",
+          "synthetic": true,
+          "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+          "action": "accept",
+          "confirm": true
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "result": {
+              "action": "accept",
+              "content": {
+                "confirm": true
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The synthetic host supplied confirm=true; the room moved. This is not authenticated human consent."
+                }
+              ],
+              "structuredContent": {
+                "status": "moved",
+                "room": {
+                  "id": "pilot",
+                  "parent": "campus",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 1
+              }
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "inspect_room",
+              "arguments": {}
+            },
+            "jsonrpc": "2.0",
+            "id": 2
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"room\":{\"id\":\"pilot\",\"parent\":\"campus\",\"files\":[\"pilot-checklist\"]},\"writes\":1,\"events\":[{\"event\":\"handler.entered\",\"response\":\"missing\"},{\"event\":\"input.requested\"},{\"event\":\"handler.entered\",\"response\":\"accept\"},{\"event\":\"room.moved\",\"target\":\"campus\"}]}"
+                }
+              ],
+              "structuredContent": {
+                "room": {
+                  "id": "pilot",
+                  "parent": "campus",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 1,
+                "events": [
+                  {
+                    "event": "handler.entered",
+                    "response": "missing"
+                  },
+                  {
+                    "event": "input.requested"
+                  },
+                  {
+                    "event": "handler.entered",
+                    "response": "accept"
+                  },
+                  {
+                    "event": "room.moved",
+                    "target": "campus"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "era": "legacy-default",
+      "case": "unchecked",
+      "capabilities": {
+        "elicitation": {
+          "form": {}
+        }
+      },
+      "prompts": 1,
+      "status": "not-confirmed",
+      "error": null,
+      "toolError": null,
+      "snapshot": {
+        "room": {
+          "id": "pilot",
+          "parent": "onboarding",
+          "files": [
+            "pilot-checklist"
+          ]
+        },
+        "writes": 0,
+        "events": [
+          {
+            "event": "handler.entered",
+            "response": "missing"
+          },
+          {
+            "event": "input.requested"
+          },
+          {
+            "event": "handler.entered",
+            "response": "accept"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {
+                "elicitation": {
+                  "form": {}
+                }
+              },
+              "clientInfo": {
+                "name": "synthetic-lab-host",
+                "version": "0.1.0"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {
+                "tools": {
+                  "listChanged": true
+                }
+              },
+              "serverInfo": {
+                "name": "mcp-lab-tool-asks-back",
+                "version": "0.1.0"
+              }
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "elicitation/create",
+            "params": {
+              "_meta": {
+                "progressToken": 0
+              },
+              "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+              "requestedSchema": {
+                "type": "object",
+                "properties": {
+                  "confirm": {
+                    "type": "boolean",
+                    "title": "Move the fictional room"
+                  }
+                },
+                "required": [
+                  "confirm"
+                ]
+              },
+              "mode": "form"
+            }
+          }
+        },
+        {
+          "direction": "host-decision",
+          "synthetic": true,
+          "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+          "action": "accept",
+          "confirm": false
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "result": {
+              "action": "accept",
+              "content": {
+                "confirm": false
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The form was submitted with confirm=false. No move."
+                }
+              ],
+              "structuredContent": {
+                "status": "not-confirmed",
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0
+              }
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "inspect_room",
+              "arguments": {}
+            },
+            "jsonrpc": "2.0",
+            "id": 2
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"room\":{\"id\":\"pilot\",\"parent\":\"onboarding\",\"files\":[\"pilot-checklist\"]},\"writes\":0,\"events\":[{\"event\":\"handler.entered\",\"response\":\"missing\"},{\"event\":\"input.requested\"},{\"event\":\"handler.entered\",\"response\":\"accept\"}]}"
+                }
+              ],
+              "structuredContent": {
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0,
+                "events": [
+                  {
+                    "event": "handler.entered",
+                    "response": "missing"
+                  },
+                  {
+                    "event": "input.requested"
+                  },
+                  {
+                    "event": "handler.entered",
+                    "response": "accept"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "era": "legacy-default",
+      "case": "decline",
+      "capabilities": {
+        "elicitation": {
+          "form": {}
+        }
+      },
+      "prompts": 1,
+      "status": "decline",
+      "error": null,
+      "toolError": null,
+      "snapshot": {
+        "room": {
+          "id": "pilot",
+          "parent": "onboarding",
+          "files": [
+            "pilot-checklist"
+          ]
+        },
+        "writes": 0,
+        "events": [
+          {
+            "event": "handler.entered",
+            "response": "missing"
+          },
+          {
+            "event": "input.requested"
+          },
+          {
+            "event": "handler.entered",
+            "response": "decline"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {
+                "elicitation": {
+                  "form": {}
+                }
+              },
+              "clientInfo": {
+                "name": "synthetic-lab-host",
+                "version": "0.1.0"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {
+                "tools": {
+                  "listChanged": true
+                }
+              },
+              "serverInfo": {
+                "name": "mcp-lab-tool-asks-back",
+                "version": "0.1.0"
+              }
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "elicitation/create",
+            "params": {
+              "_meta": {
+                "progressToken": 0
+              },
+              "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+              "requestedSchema": {
+                "type": "object",
+                "properties": {
+                  "confirm": {
+                    "type": "boolean",
+                    "title": "Move the fictional room"
+                  }
+                },
+                "required": [
+                  "confirm"
+                ]
+              },
+              "mode": "form"
+            }
+          }
+        },
+        {
+          "direction": "host-decision",
+          "synthetic": true,
+          "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+          "action": "decline"
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "result": {
+              "action": "decline"
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The host returned decline. The room stays put."
+                }
+              ],
+              "structuredContent": {
+                "status": "decline",
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0
+              }
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "inspect_room",
+              "arguments": {}
+            },
+            "jsonrpc": "2.0",
+            "id": 2
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"room\":{\"id\":\"pilot\",\"parent\":\"onboarding\",\"files\":[\"pilot-checklist\"]},\"writes\":0,\"events\":[{\"event\":\"handler.entered\",\"response\":\"missing\"},{\"event\":\"input.requested\"},{\"event\":\"handler.entered\",\"response\":\"decline\"}]}"
+                }
+              ],
+              "structuredContent": {
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0,
+                "events": [
+                  {
+                    "event": "handler.entered",
+                    "response": "missing"
+                  },
+                  {
+                    "event": "input.requested"
+                  },
+                  {
+                    "event": "handler.entered",
+                    "response": "decline"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "era": "legacy-default",
+      "case": "cancel",
+      "capabilities": {
+        "elicitation": {
+          "form": {}
+        }
+      },
+      "prompts": 1,
+      "status": "cancel",
+      "error": null,
+      "toolError": null,
+      "snapshot": {
+        "room": {
+          "id": "pilot",
+          "parent": "onboarding",
+          "files": [
+            "pilot-checklist"
+          ]
+        },
+        "writes": 0,
+        "events": [
+          {
+            "event": "handler.entered",
+            "response": "missing"
+          },
+          {
+            "event": "input.requested"
+          },
+          {
+            "event": "handler.entered",
+            "response": "cancel"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {
+                "elicitation": {
+                  "form": {}
+                }
+              },
+              "clientInfo": {
+                "name": "synthetic-lab-host",
+                "version": "0.1.0"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {
+                "tools": {
+                  "listChanged": true
+                }
+              },
+              "serverInfo": {
+                "name": "mcp-lab-tool-asks-back",
+                "version": "0.1.0"
+              }
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "elicitation/create",
+            "params": {
+              "_meta": {
+                "progressToken": 0
+              },
+              "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+              "requestedSchema": {
+                "type": "object",
+                "properties": {
+                  "confirm": {
+                    "type": "boolean",
+                    "title": "Move the fictional room"
+                  }
+                },
+                "required": [
+                  "confirm"
+                ]
+              },
+              "mode": "form"
+            }
+          }
+        },
+        {
+          "direction": "host-decision",
+          "synthetic": true,
+          "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+          "action": "cancel"
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "result": {
+              "action": "cancel"
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "The host returned cancel. The room stays put."
+                }
+              ],
+              "structuredContent": {
+                "status": "cancel",
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0
+              }
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "inspect_room",
+              "arguments": {}
+            },
+            "jsonrpc": "2.0",
+            "id": 2
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"room\":{\"id\":\"pilot\",\"parent\":\"onboarding\",\"files\":[\"pilot-checklist\"]},\"writes\":0,\"events\":[{\"event\":\"handler.entered\",\"response\":\"missing\"},{\"event\":\"input.requested\"},{\"event\":\"handler.entered\",\"response\":\"cancel\"}]}"
+                }
+              ],
+              "structuredContent": {
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0,
+                "events": [
+                  {
+                    "event": "handler.entered",
+                    "response": "missing"
+                  },
+                  {
+                    "event": "input.requested"
+                  },
+                  {
+                    "event": "handler.entered",
+                    "response": "cancel"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "era": "legacy-default",
+      "case": "declared-without-handler",
+      "capabilities": {
+        "elicitation": {
+          "form": {}
+        }
+      },
+      "prompts": 0,
+      "status": "tool-error",
+      "error": null,
+      "toolError": [
+        {
+          "type": "text",
+          "text": "Fulfilling input required by 'tools/call' failed: Method not found"
+        }
+      ],
+      "snapshot": {
+        "room": {
+          "id": "pilot",
+          "parent": "onboarding",
+          "files": [
+            "pilot-checklist"
+          ]
+        },
+        "writes": 0,
+        "events": [
+          {
+            "event": "handler.entered",
+            "response": "missing"
+          },
+          {
+            "event": "input.requested"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {
+                "elicitation": {
+                  "form": {}
+                }
+              },
+              "clientInfo": {
+                "name": "synthetic-lab-host",
+                "version": "0.1.0"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {
+                "tools": {
+                  "listChanged": true
+                }
+              },
+              "serverInfo": {
+                "name": "mcp-lab-tool-asks-back",
+                "version": "0.1.0"
+              }
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "minimal"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "elicitation/create",
+            "params": {
+              "_meta": {
+                "progressToken": 0
+              },
+              "message": "Move the fictional Pilotphase room from Onboarding to Campus?",
+              "requestedSchema": {
+                "type": "object",
+                "properties": {
+                  "confirm": {
+                    "type": "boolean",
+                    "title": "Move the fictional room"
+                  }
+                },
+                "required": [
+                  "confirm"
+                ]
+              },
+              "mode": "form"
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "error": {
+              "code": -32601,
+              "message": "Method not found"
+            }
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Fulfilling input required by 'tools/call' failed: Method not found"
+                }
+              ],
+              "isError": true
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "inspect_room",
+              "arguments": {}
+            },
+            "jsonrpc": "2.0",
+            "id": 2
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"room\":{\"id\":\"pilot\",\"parent\":\"onboarding\",\"files\":[\"pilot-checklist\"]},\"writes\":0,\"events\":[{\"event\":\"handler.entered\",\"response\":\"missing\"},{\"event\":\"input.requested\"}]}"
+                }
+              ],
+              "structuredContent": {
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0,
+                "events": [
+                  {
+                    "event": "handler.entered",
+                    "response": "missing"
+                  },
+                  {
+                    "event": "input.requested"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "era": "legacy-default",
+      "case": "overconstrained-form",
+      "capabilities": {
+        "elicitation": {
+          "form": {}
+        }
+      },
+      "prompts": 0,
+      "status": "tool-error",
+      "error": null,
+      "toolError": [
+        {
+          "type": "text",
+          "text": "Elicitation requestedSchema contains unsupported JSON Schema constraint(s) after Standard Schema conversion: additionalProperties"
+        }
+      ],
+      "snapshot": {
+        "room": {
+          "id": "pilot",
+          "parent": "onboarding",
+          "files": [
+            "pilot-checklist"
+          ]
+        },
+        "writes": 0,
+        "events": [
+          {
+            "event": "handler.entered",
+            "response": "missing"
+          },
+          {
+            "event": "input.requested"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {
+                "elicitation": {
+                  "form": {}
+                }
+              },
+              "clientInfo": {
+                "name": "synthetic-lab-host",
+                "version": "0.1.0"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 0
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {
+                "tools": {
+                  "listChanged": true
+                }
+              },
+              "serverInfo": {
+                "name": "mcp-lab-tool-asks-back",
+                "version": "0.1.0"
+              }
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "move_room",
+              "arguments": {
+                "target": "campus",
+                "schemaMode": "strict"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Elicitation requestedSchema contains unsupported JSON Schema constraint(s) after Standard Schema conversion: additionalProperties"
+                }
+              ],
+              "isError": true
+            }
+          }
+        },
+        {
+          "direction": "client-to-server",
+          "message": {
+            "method": "tools/call",
+            "params": {
+              "name": "inspect_room",
+              "arguments": {}
+            },
+            "jsonrpc": "2.0",
+            "id": 2
+          }
+        },
+        {
+          "direction": "server-to-client",
+          "message": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"room\":{\"id\":\"pilot\",\"parent\":\"onboarding\",\"files\":[\"pilot-checklist\"]},\"writes\":0,\"events\":[{\"event\":\"handler.entered\",\"response\":\"missing\"},{\"event\":\"input.requested\"}]}"
+                }
+              ],
+              "structuredContent": {
+                "room": {
+                  "id": "pilot",
+                  "parent": "onboarding",
+                  "files": [
+                    "pilot-checklist"
+                  ]
+                },
+                "writes": 0,
+                "events": [
+                  {
+                    "event": "handler.entered",
+                    "response": "missing"
+                  },
+                  {
+                    "event": "input.requested"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

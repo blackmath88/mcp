@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createNotesState,setAccess,findNote,addItem,originalItems} from './notes.mjs';
+test('no access prevents retrieval without hiding the human application fixture',()=>{const s=createNotesState();setAccess(s,'none');findNote(s);assert.equal(s.retrieved,null);assert.deepEqual(s.items,originalItems);assert.equal(s.outcome,'no-access');});
+test('read-only edit fails without changing source or its retrieved snapshot',()=>{const s=createNotesState();findNote(s);addItem(s);assert.equal(s.outcome,'read-only');assert.deepEqual(s.items,originalItems);assert.deepEqual(s.retrieved,originalItems);});
+test('editable scenario applies one change; earlier read stays a snapshot',()=>{const s=createNotesState();setAccess(s,'edit');findNote(s);addItem(s);addItem(s);assert.deepEqual(s.items,[...originalItems,'Sunscreen']);assert.deepEqual(s.retrieved,originalItems);assert.equal(s.outcome,'already-present');});
+test('changing scenario explicitly creates fresh context but preserves application edits',()=>{const s=createNotesState();setAccess(s,'edit');findNote(s);addItem(s);setAccess(s,'none');assert.equal(s.retrieved,null);assert.equal(s.items.at(-1),'Sunscreen');assert.match(s.events.at(-1).detail,/context is cleared/);});
+test('reset fixture has independent arrays and no retained activity',()=>{const first=createNotesState();setAccess(first,'edit');findNote(first);addItem(first);const second=createNotesState();assert.deepEqual(second.items,originalItems);assert.deepEqual(second.events,[]);assert.equal(second.access,'read');});
