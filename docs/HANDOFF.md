@@ -8,6 +8,38 @@
 - Open: Swiss postal address, UID and phone are unknown and not shown; the Imprint link covers them. A listing at bridge-work.ai/lab/tool/mcp-lab/ and the subdomain mcp-lab.bridge-work.ai are not set up.
 - Checks: 229 tests, tooling tests, structure check, lint, typecheck, build.
 
+## Public deployment of the workshop lab — 2026-11-25
+
+Owner asked for the lab to be reachable on a public URL, then corrected a first attempt that had deployed the preserved
+`lab/` prototype from a pre-merge checkout instead of the merged workshop app.
+
+Learned: `origin/main` had advanced to `ddcf808` ("Merge the workshop lab"), which is what introduced the Vite/Foldkit
+application at `src/`. Any deployment must come from a freshly pulled `main` and from `npm run build`, not from the
+repository's static directories.
+
+Decided: D23 — serve `dist/` as Cloudflare Workers static assets. Static assets only. The Alchemy declaration and its
+deploy gate are untouched and still block the unrenamed `mcp-lab` stack; this deployment went around that gate rather
+than through it, which is a deliberate choice to record, not an approval of `npm run infra:deploy`.
+
+Changed: added `wrangler.jsonc` (Worker `mcp-lab`, assets `./dist`, SPA not-found handling, no `main`) and `.wrangler/`
+to `.gitignore`. No application code, dependency or Alchemy file was modified.
+
+Evidence, executed on 2026-11-25: `npm ci` (266 packages), `npm run build` (788 modules; `dist/` is 15 files and 16 MB,
+including a 9.2 MB `pyodide.asm.wasm`, under Cloudflare's 25 MiB per-asset limit), then `npx wrangler deploy` uploading
+all 15 assets. Verified in a browser: the landing screen shows "The AI only sees a list. Open the workshop behind it."
+with "Enter the lab"; that button opens "What is MCP?" with the route sidebar; no console errors on either view; a
+deep path returns `index.html`, confirming the SPA fallback. Repository checks rerun on this commit: `npm run
+typecheck` clean, `npm test` 228 passing in 16 files, `npm run test:infra-guard` 4 passing (the deploy gate still
+blocks), `npm run lint` with no reported findings.
+
+Limitations: the generated `workers.dev` hostname embeds the owner's account subdomain, no custom domain is attached,
+and nothing redeploys automatically — `npm run build` and `npx wrangler deploy` are manual. Pyodide is served but was
+not exercised in the browser check, so Python-backed benches are unverified on the deployed build. No learner
+evaluation was performed.
+
+Next: decide whether to attach a custom domain, whether pushes to `main` should redeploy, and whether Alchemy or
+wrangler owns the Worker long-term.
+
 ## A full-window landing page before the lab — 2026-11-24
 
 Owner: "we want fullwindow landing page like an intro, then enter to the lab".

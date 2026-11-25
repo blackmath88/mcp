@@ -19,3 +19,4 @@ dist/
 .alchemy/
 *.tsbuildinfo
 public/pyodide/
+.wrangler/
