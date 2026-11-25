@@ -1,5 +1,15 @@
 # Handoff
 
+## Public README, MIT licence, source link — 2026-11-25
+
+Owner: "update readme and make sure we have a nice repo for public"; "do we want to hint to GitHub, because it's open?"
+
+- README rewritten for visitors: the live address `https://mcp-lab.bridge-work.ai/`, two screenshots (`docs/media/`), what it is, what is real, run locally, layout, deploy, contributing, licence. The privacy section and "Also in this repository" are kept.
+- `LICENSE`: MIT, © 2026 blackmath88, the same as Sharing is Caring. `package.json` gains license, description, homepage and repository.
+- Credit row on every screen: "Built by bridge·work ↗" now opens the lab's own listing `https://bridge-work.ai/lab/tool/mcp-lab/`, and a new "Source on GitHub" link sits beside Imprint and Privacy. Scene test extended.
+- Checks: typecheck, lint, 229 tests, build. Looked at the status bar.
+- Not changed: deploys are still manual (`npm run build && npx wrangler deploy`). Pushing to main does not redeploy until Cloudflare Workers Builds is connected to the repository or a deploy workflow with an API token is added.
+
 ## Observatory switched off — 2026-11-25
 
 Owner asked to stop the Observatory workflow rather than fix it. Disabled at GitHub with `gh workflow disable

@@ -2,6 +2,10 @@
   "name": "mcp-lab",
   "private": true,
   "version": "0.1.0",
+  "license": "MIT",
+  "description": "An interactive lab for the Model Context Protocol: every server drawn as the same workshop, run in the browser.",
+  "homepage": "https://mcp-lab.bridge-work.ai/",
+  "repository": { "type": "git", "url": "https://github.com/blackmath88/mcp.git" },
   "type": "module",
   "scripts": {
     "dev": "vite",
