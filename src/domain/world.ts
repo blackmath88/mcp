@@ -1,0 +1,671 @@
+import { Array, Option, Schema, pipe } from 'effect'
+
+export const PlaceId = Schema.Literals([
+  'forge',
+  'mill',
+  'archive',
+  'kiln',
+  'dock',
+])
+export type PlaceId = typeof PlaceId.Type
+
+export const Place = Schema.Struct({
+  id: PlaceId,
+  name: Schema.String,
+  x: Schema.Number,
+  y: Schema.Number,
+})
+export type Place = typeof Place.Type
+
+export const Path = Schema.Struct({
+  from: PlaceId,
+  to: PlaceId,
+  span: Schema.Number,
+  builtInRevision: Schema.Number,
+})
+export type Path = typeof Path.Type
+
+export const Artifact = Schema.Struct({
+  id: Schema.String,
+  kind: Schema.Literals(['path', 'connection-report', 'delivery']),
+  revision: Schema.Number,
+  summary: Schema.String,
+})
+export type Artifact = typeof Artifact.Type
+
+export const FetchPolicy = Schema.Literals(['every-hop', 'first-hop', 'none'])
+export type FetchPolicy = typeof FetchPolicy.Type
+
+export const StoragePath = Schema.Literals(['package-cache', 'home'])
+export type StoragePath = typeof StoragePath.Type
+
+export const ThinkingMode = Schema.Literals(['record', 'compute', 'consult'])
+export type ThinkingMode = typeof ThinkingMode.Type
+
+export const Fact = Schema.Struct({
+  entity: Schema.String,
+  observation: Schema.String,
+})
+export type Fact = typeof Fact.Type
+
+export const Memory = Schema.Struct({
+  storagePath: StoragePath,
+  packageCache: Schema.Array(Fact),
+  home: Schema.Array(Fact),
+})
+export type Memory = typeof Memory.Type
+
+export const FsBuild = Schema.Literals(['default', 'confine', 'pre-fix'])
+export type FsBuild = typeof FsBuild.Type
+
+export const Files = Schema.Struct({
+  build: FsBuild,
+  allowed: Schema.Array(Schema.String),
+  rootsInForce: Schema.Boolean,
+  clientRoots: Schema.Array(Schema.String),
+  note: Schema.String,
+})
+export type Files = typeof Files.Type
+
+export const Perception = Schema.Literals(['snapshot', 'vision'])
+export type Perception = typeof Perception.Type
+
+export const Page = Schema.Struct({
+  mode: Perception,
+  revision: Schema.Number,
+  snapshotRevision: Schema.Number,
+  gate: Schema.Boolean,
+  lever: Schema.Boolean,
+  valve: Schema.Boolean,
+  bell: Schema.Number,
+})
+export type Page = typeof Page.Type
+
+export const Cli = Schema.Struct({
+  serverSchema: Schema.Number,
+  artifactSchema: Schema.Number,
+})
+export type Cli = typeof Cli.Type
+
+export const NO_ARTIFACT = 0
+
+export const GatewayBuild = Schema.Literals(['shared', 'per-connection'])
+export type GatewayBuild = typeof GatewayBuild.Type
+
+export const Child = Schema.Struct({
+  id: Schema.Number,
+  owner: Schema.String,
+  place: Schema.String,
+  orphaned: Schema.Boolean,
+})
+export type Child = typeof Child.Type
+
+export const Gateway = Schema.Struct({
+  build: GatewayBuild,
+  children: Schema.Array(Child),
+  nextChildId: Schema.Number,
+})
+export type Gateway = typeof Gateway.Type
+
+export const AppState = Schema.Struct({
+  tools: Schema.Literals(['on', 'off']),
+  shown: Schema.String,
+  view: Schema.String,
+  modelKnows: Schema.String,
+})
+export type AppState = typeof AppState.Type
+
+export const Ledger = Schema.Struct({
+  fault: Schema.Literals(['none', 'after-second']),
+  entries: Schema.Array(Schema.String),
+})
+export type Ledger = typeof Ledger.Type
+
+export const Handoff = Schema.Struct({
+  context: Schema.Literals(['full', 'none']),
+})
+export type Handoff = typeof Handoff.Type
+
+export const Loop = Schema.Struct({
+  criteria: Schema.Literals(['satisfiable', 'contradictory']),
+  engine: Schema.Literals(['in-memory', 'durable']),
+})
+export type Loop = typeof Loop.Type
+
+// Station 13. What the inspector is pointed at: a listing that is the same as
+// when it was pinned, or one that changed since.
+export const Inspection = Schema.Struct({
+  subject: Schema.Literals(['pinned', 'changed']),
+})
+export type Inspection = typeof Inspection.Type
+
+export const Net = Schema.Struct({
+  naming: Schema.Literals(['first-wins', 'prefixed']),
+  dock: Schema.Literals(['up', 'down']),
+})
+export type Net = typeof Net.Type
+
+// Ask: two carts at the forge. A server build either asks the person which one
+// (MCP elicitation) or quietly picks one itself.
+export const Cart = Schema.Struct({
+  id: Schema.Literals(['small', 'long']),
+  name: Schema.String,
+  reservedBy: Schema.String,
+})
+export type Cart = typeof Cart.Type
+
+export const AskState = Schema.Struct({
+  build: Schema.Literals(['asks', 'guesses']),
+  carts: Schema.Array(Cart),
+})
+export type AskState = typeof AskState.Type
+
+// Act in the world: a simulated crane at the dock. Nothing physical exists;
+// the controller, the arm and the sensor are three made-up parts.
+export const CraneSpot = Schema.Literals(['quay', 'cart', 'ship', 'halfway'])
+export type CraneSpot = typeof CraneSpot.Type
+
+export const ArmState = Schema.Struct({
+  obstacle: Schema.Literals(['none', 'blocked']),
+  confirm: Schema.Literals(['trust', 'sensor']),
+  crate: CraneSpot,
+  moves: Schema.Number,
+})
+export type ArmState = typeof ArmState.Type
+
+export const LAUNCH_DIRECTORIES: ReadonlyArray<string> = ['/valley/forge']
+export const NO_SNAPSHOT = -1
+
+export const World = Schema.Struct({
+  revision: Schema.Number,
+  maxSpan: Schema.Number,
+  fetchPolicy: FetchPolicy,
+  memory: Memory,
+  thinkingMode: ThinkingMode,
+  files: Files,
+  page: Page,
+  cli: Cli,
+  gateway: Gateway,
+  app: AppState,
+  ledger: Ledger,
+  handoff: Handoff,
+  loop: Loop,
+  net: Net,
+  inspection: Inspection,
+  ask: AskState,
+  arm: ArmState,
+  places: Schema.Array(Place),
+  paths: Schema.Array(Path),
+  artifacts: Schema.Array(Artifact),
+})
+export type World = typeof World.Type
+
+export const CALM_MAX_SPAN = 3
+export const STORM_MAX_SPAN = 2
+
+const seedPlaces: ReadonlyArray<Place> = [
+  { id: 'forge', name: 'Forge', x: 1, y: 3 },
+  { id: 'mill', name: 'Mill', x: 3, y: 3 },
+  { id: 'archive', name: 'Archive', x: 3, y: 1 },
+  { id: 'kiln', name: 'Kiln', x: 5, y: 2 },
+  { id: 'dock', name: 'Dock', x: 7, y: 3 },
+]
+
+export const placeIds: ReadonlyArray<PlaceId> = seedPlaces.map(
+  place => place.id,
+)
+
+const roundSpan = (value: number): number => Math.round(value * 10) / 10
+
+export const spanBetween = (from: Place, to: Place): number =>
+  roundSpan(Math.hypot(from.x - to.x, from.y - to.y))
+
+export const findPlace = (world: World, id: PlaceId): Option.Option<Place> =>
+  Array.findFirst(world.places, place => place.id === id)
+
+const seedPath = (from: PlaceId, to: PlaceId): Path => {
+  const fromPlace = seedPlaces.find(place => place.id === from)
+  const toPlace = seedPlaces.find(place => place.id === to)
+  return {
+    from,
+    to,
+    span:
+      fromPlace === undefined || toPlace === undefined
+        ? 0
+        : spanBetween(fromPlace, toPlace),
+    builtInRevision: 0,
+  }
+}
+
+const sharedGateway: Gateway = {
+  build: 'shared',
+  children: [{ id: 1, owner: 'shared', place: '', orphaned: false }],
+  nextChildId: 2,
+}
+
+export const seedWorld = (
+  maxSpan: number,
+  fetchPolicy: FetchPolicy = 'every-hop',
+  storagePath: StoragePath = 'package-cache',
+  thinkingMode: ThinkingMode = 'record',
+  fsBuild: FsBuild = 'default',
+  perception: Perception = 'snapshot',
+): World => ({
+  revision: 0,
+  maxSpan,
+  fetchPolicy,
+  memory: { storagePath, packageCache: [], home: [] },
+  thinkingMode,
+  files: {
+    build: fsBuild,
+    allowed: LAUNCH_DIRECTORIES,
+    rootsInForce: false,
+    clientRoots: [],
+    note: 'No roots received yet. The command-line directories apply.',
+  },
+  page: {
+    mode: perception,
+    revision: 1,
+    snapshotRevision: NO_SNAPSHOT,
+    gate: false,
+    lever: false,
+    valve: false,
+    bell: 0,
+  },
+  cli: { serverSchema: 1, artifactSchema: NO_ARTIFACT },
+  gateway: sharedGateway,
+  app: { tools: 'on', shown: '', view: '', modelKnows: '' },
+  ledger: { fault: 'none', entries: [] },
+  handoff: { context: 'full' },
+  loop: { criteria: 'satisfiable', engine: 'in-memory' },
+  net: { naming: 'first-wins', dock: 'up' },
+  inspection: { subject: 'pinned' },
+  ask: {
+    build: 'asks',
+    carts: [
+      { id: 'small', name: 'the small cart', reservedBy: '' },
+      { id: 'long', name: 'the long cart', reservedBy: '' },
+    ],
+  },
+  arm: { obstacle: 'none', confirm: 'trust', crate: 'quay', moves: 0 },
+  places: seedPlaces,
+  paths: [seedPath('forge', 'mill'), seedPath('kiln', 'dock')],
+  artifacts: [],
+})
+
+export const joins = (path: Path, a: PlaceId, b: PlaceId): boolean =>
+  (path.from === a && path.to === b) || (path.from === b && path.to === a)
+
+const neighbours = (world: World, id: PlaceId): ReadonlyArray<PlaceId> =>
+  pipe(
+    world.paths,
+    Array.flatMap(path =>
+      path.from === id ? [path.to] : path.to === id ? [path.from] : [],
+    ),
+  )
+
+export const reachableFrom = (
+  world: World,
+  start: PlaceId,
+): ReadonlyArray<PlaceId> => {
+  const visit = (
+    frontier: ReadonlyArray<PlaceId>,
+    seen: ReadonlyArray<PlaceId>,
+  ): ReadonlyArray<PlaceId> => {
+    const next = pipe(
+      frontier,
+      Array.flatMap(id => neighbours(world, id)),
+      Array.dedupe,
+      Array.filter(id => !seen.includes(id)),
+    )
+    return Array.isArrayEmpty(next) ? seen : visit(next, [...seen, ...next])
+  }
+  return visit([start], [start])
+}
+
+export const shortestRoute = (
+  world: World,
+  from: PlaceId,
+  to: PlaceId,
+): Option.Option<ReadonlyArray<PlaceId>> => {
+  const expand = (
+    routes: ReadonlyArray<ReadonlyArray<PlaceId>>,
+    seen: ReadonlyArray<PlaceId>,
+  ): Option.Option<ReadonlyArray<PlaceId>> => {
+    const arrived = routes.find(route => route[route.length - 1] === to)
+    if (arrived !== undefined) {
+      return Option.some(arrived)
+    }
+    const next = pipe(
+      routes,
+      Array.flatMap(route => {
+        const last = route[route.length - 1]
+        return last === undefined
+          ? []
+          : pipe(
+              neighbours(world, last),
+              Array.filter(id => !seen.includes(id)),
+              Array.map(id => [...route, id]),
+            )
+      }),
+    )
+    return Array.isArrayEmpty(next)
+      ? Option.none()
+      : expand(next, [
+          ...seen,
+          ...Array.flatMap(next, route => route.slice(-1)),
+        ])
+  }
+  return expand([[from]], [from])
+}
+
+export const routeSpan = (
+  world: World,
+  route: ReadonlyArray<PlaceId>,
+): number =>
+  roundSpan(
+    pipe(
+      Array.zip(route, route.slice(1)),
+      Array.map(([a, b]) =>
+        pipe(
+          world.paths,
+          Array.findFirst(path => joins(path, a, b)),
+          Option.match({ onNone: () => 0, onSome: path => path.span }),
+        ),
+      ),
+      Array.reduce(0, (total, span) => total + span),
+    ),
+  )
+
+export const factsAt = (memory: Memory): ReadonlyArray<Fact> =>
+  memory.storagePath === 'home' ? memory.home : memory.packageCache
+
+export const reinstallPackage = (world: World): World => ({
+  ...world,
+  memory: { ...world.memory, packageCache: [] },
+})
+
+export const useStoragePath = (
+  world: World,
+  storagePath: StoragePath,
+): World => ({
+  ...world,
+  memory: { ...world.memory, storagePath },
+})
+
+export const useThinkingMode = (
+  world: World,
+  thinkingMode: ThinkingMode,
+): World => ({ ...world, thinkingMode })
+
+const isInside = (path: string, directory: string): boolean =>
+  path === directory || path.startsWith(`${directory}/`)
+
+export const isAllowed = (files: Files, path: string): boolean =>
+  files.allowed.some(directory => isInside(path, directory))
+
+const confined = (roots: ReadonlyArray<string>): ReadonlyArray<string> =>
+  roots.flatMap(root =>
+    LAUNCH_DIRECTORIES.flatMap(directory =>
+      isInside(root, directory)
+        ? [root]
+        : isInside(directory, root)
+          ? [directory]
+          : [],
+    ),
+  )
+
+// NOTE: Models the behaviour described in the filesystem server README and
+// issues 3602 and 5094 as read on 2026-11-21. It is the lab's simulation, not
+// upstream code.
+export const applyRootsUpdate = (
+  world: World,
+  roots: ReadonlyArray<string>,
+): World => {
+  const files = world.files
+  const valid = files.build === 'confine' ? confined(roots) : roots
+  const next = (
+    allowed: ReadonlyArray<string>,
+    inForce: boolean,
+    note: string,
+  ) => ({
+    ...world,
+    files: {
+      ...files,
+      clientRoots: roots,
+      allowed,
+      rootsInForce: inForce,
+      note,
+    },
+  })
+  if (valid.length > 0) {
+    return next(
+      valid,
+      true,
+      files.build === 'confine'
+        ? 'Roots narrowed the command-line directories. They could not widen them.'
+        : 'The client’s roots replaced the command-line directories.',
+    )
+  }
+  if (!files.rootsInForce) {
+    return next(
+      files.allowed,
+      false,
+      'No valid roots, and none were in force before: the command-line directories stay.',
+    )
+  }
+  return files.build === 'pre-fix'
+    ? next(
+        files.allowed,
+        true,
+        'No valid roots, but this older build keeps the previous list. The client revoked; the server did not.',
+      )
+    : next(
+        [],
+        true,
+        'No valid roots after roots were in force: access is revoked.',
+      )
+}
+
+export const useFsBuild = (world: World, build: FsBuild): World => ({
+  ...world,
+  files: { ...world.files, build },
+})
+
+export const usePerception = (world: World, mode: Perception): World => ({
+  ...world,
+  page: { ...world.page, mode },
+})
+
+export const useServerSchema = (world: World, serverSchema: number): World => ({
+  ...world,
+  cli: { ...world.cli, serverSchema },
+})
+
+export const useGatewayBuild = (world: World, build: GatewayBuild): World => ({
+  ...world,
+  gateway:
+    build === 'shared'
+      ? sharedGateway
+      : { build, children: [], nextChildId: 1 },
+})
+
+// NOTE: Models behaviour described in the supergateway README and issues 35
+// and 160 as read on 2026-11-21. The lab's simulation, not upstream code.
+export const reconnectClient = (world: World, client: string): World =>
+  world.gateway.build === 'shared'
+    ? world
+    : {
+        ...world,
+        gateway: {
+          ...world.gateway,
+          children: world.gateway.children.filter(
+            child => child.owner !== client || child.orphaned,
+          ),
+        },
+      }
+
+export const vanishClient = (world: World, client: string): World =>
+  world.gateway.build === 'shared'
+    ? world
+    : {
+        ...world,
+        gateway: {
+          ...world.gateway,
+          children: world.gateway.children.map(child =>
+            child.owner === client ? { ...child, orphaned: true } : child,
+          ),
+        },
+      }
+
+export const passSessionTimeout = (world: World): World => ({
+  ...world,
+  gateway: {
+    ...world.gateway,
+    children: world.gateway.children.filter(child => !child.orphaned),
+  },
+})
+
+export const panMap = (world: World, place: string): World => ({
+  ...world,
+  app: { ...world.app, view: place },
+})
+
+export const withApp = (world: World, tools: AppState['tools']): World => ({
+  ...world,
+  app: { ...world.app, tools },
+})
+
+export const withLedgerFault = (
+  world: World,
+  fault: Ledger['fault'],
+): World => ({
+  ...world,
+  ledger: { fault, entries: [] },
+})
+
+export const withHandoff = (
+  world: World,
+  context: Handoff['context'],
+): World => ({
+  ...world,
+  handoff: { context },
+})
+
+export const withLoop = (world: World, loop: Partial<Loop>): World => ({
+  ...world,
+  loop: { ...world.loop, ...loop },
+})
+
+export const withNet = (world: World, net: Partial<Net>): World => ({
+  ...world,
+  net: { ...world.net, ...net },
+})
+
+export const withInspection = (
+  world: World,
+  subject: Inspection['subject'],
+): World => ({ ...world, inspection: { subject } })
+
+export const carrySettings = (fresh: World, previous: World): World => ({
+  ...fresh,
+  fetchPolicy: previous.fetchPolicy,
+  thinkingMode: previous.thinkingMode,
+  memory: { ...fresh.memory, storagePath: previous.memory.storagePath },
+  files: { ...fresh.files, build: previous.files.build },
+  page: { ...fresh.page, mode: previous.page.mode },
+  cli: { ...fresh.cli, serverSchema: previous.cli.serverSchema },
+  gateway: useGatewayBuild(fresh, previous.gateway.build).gateway,
+  app: { ...fresh.app, tools: previous.app.tools },
+  ledger: { ...fresh.ledger, fault: previous.ledger.fault },
+  handoff: previous.handoff,
+  loop: previous.loop,
+  net: { ...fresh.net, naming: previous.net.naming },
+  inspection: previous.inspection,
+  ask: { ...fresh.ask, build: previous.ask.build },
+  arm: {
+    ...fresh.arm,
+    obstacle: previous.arm.obstacle,
+    confirm: previous.arm.confirm,
+  },
+})
+
+export type StationSlice =
+  | 'valley'
+  | 'memory'
+  | 'filesystem'
+  | 'perception'
+  | 'cli'
+  | 'local-remote'
+  | 'apps'
+  | 'code-mode'
+  | 'delegation'
+  | 'network'
+  | 'ask'
+  | 'arm'
+
+// NOTE: Puts one station's state back to its starting point and leaves every
+// other station, and every bend, as it is.
+export const resetSlice = (world: World, slice: string): World => {
+  const fresh = carrySettings(seedWorld(world.maxSpan), world)
+  if (slice === 'valley') {
+    return {
+      ...world,
+      revision: fresh.revision,
+      paths: fresh.paths,
+      artifacts: fresh.artifacts,
+    }
+  }
+  if (slice === 'memory') {
+    return { ...world, memory: fresh.memory }
+  }
+  if (slice === 'filesystem') {
+    return { ...world, files: fresh.files }
+  }
+  if (slice === 'perception') {
+    return { ...world, page: fresh.page }
+  }
+  if (slice === 'cli') {
+    return { ...world, cli: fresh.cli }
+  }
+  if (slice === 'local-remote') {
+    return { ...world, gateway: fresh.gateway }
+  }
+  if (slice === 'apps') {
+    return { ...world, app: fresh.app }
+  }
+  if (slice === 'code-mode') {
+    return { ...world, ledger: fresh.ledger }
+  }
+  if (slice === 'delegation') {
+    return { ...world, artifacts: fresh.artifacts }
+  }
+  if (slice === 'ask') {
+    return { ...world, ask: fresh.ask }
+  }
+  if (slice === 'arm') {
+    return { ...world, arm: fresh.arm }
+  }
+  if (slice === 'network') {
+    return { ...world, net: { ...fresh.net, naming: world.net.naming } }
+  }
+  return world
+}
+
+export const useFetchPolicy = (
+  world: World,
+  fetchPolicy: FetchPolicy,
+): World => ({
+  ...world,
+  fetchPolicy,
+})
+
+export const withAsk = (world: World, build: AskState['build']): World => ({
+  ...world,
+  ask: { ...world.ask, build },
+})
+
+export const withArm = (
+  world: World,
+  arm: Partial<Pick<ArmState, 'obstacle' | 'confirm'>>,
+): World => ({ ...world, arm: { ...world.arm, ...arm } })

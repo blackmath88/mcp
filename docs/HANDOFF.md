@@ -1,5 +1,541 @@
 # Handoff
 
+## A full-window landing page before the lab — 2026-11-24
+
+Owner: "we want fullwindow landing page like an intro, then enter to the lab".
+
+- New first screen `landing` (`src/lab/landing.ts`): no sidebar or title bar. Headline "The AI only sees a list. Open the workshop behind it.", one paragraph, "Enter the lab" (to "What is MCP?"), "Straight to step 01", "Real servers, out in the world", the nine slot icons, and a one-line note on what is real.
+- On the right, the workshop drawn large with every call line moving: a showcase server of one tool from each of seven lab servers, labelled as a showcase under the drawing.
+- The MCP Lab mark in the sidebar now returns to the landing page.
+- Checks: 228 tests, lint, typecheck, build; looked at 1440×900 light and dark and 390 px (no horizontal overflow).
+
+## Closing gaps — 2026-11-24
+
+Owner: "close as many gaps as possible".
+
+- **Keyboard:** Enter and Space open a lit slot on the workshop canvas (test).
+- **Popovers** close on an outside click or Escape (`src/lab/popovers.ts`, wired in `src/entry.ts`).
+- **Full window:** the selected tool's details open beside the canvas; the inline drawer is hidden while the overlay is open.
+- **Backstage** shows one bar until opened; tabs appear when expanded (tests open it first).
+- **Your server by address:** "Ask for its tools" sends initialize and tools/list to a Streamable HTTP URL from the browser, then closes; the listing goes through the same parser and workshop as a pasted one (`src/adapters/remote-listing.ts`). Only https or localhost. Tested against the lab's own server over real HTTP (`remote-listing.test.ts`): three tools listed, no tools/call sent. Real servers must allow the page's origin (CORS) and not need a login; failures say which.
+- **Dead styles:** 161 rules from removed views pruned (styles.css 80 KB → 63 KB); screens re-checked.
+- **Bench cells** are separate cards; a row that is not full no longer shows grey filler.
+- **Library verified:** web searches on 2026-11-24 moved 59 of 64 cards to "checked". Replaced because the named project was not found: Metacog → brain-mcp's switchCognitiveMode; "Dead Cowboy" → sampling (research); joshuagillmore's planner → taco-ops seestar-mcp; Cloudflare "truncation" → "one approval, many requests" (from Cloudflare's build guide). Corrected: the fetch advisory ID was not found, the card now cites the May 2026 disclosure; Figma's capture is "flat layers" per its docs; Asana incident details (June 2025, ~1,000 customers). Five cards remain "research".
+- Still open: screen-reader test; a tool in two slots; gateway as several rooms; library examples drawn on the full canvas; a newcomer test; deploy.
+- Checks: 227 tests, lint, typecheck, build.
+
+## Out in the world: the example library as a second narrative — 2026-11-22
+
+Owner: "build the example library … real and popular for the specimens we have: most used, first, weird, and almost breaking the specimen … look in the repo for a catalogue … build this as second narrative".
+
+- Data: `specimens/library.json`, 64 entries, four per station (popular, first, weird, breaking), for all 16 stations of the route. Each entry: name, by, url, what it is, why it is here, the slots it lights and the neighbours it reaches (as its README describes, not run), and evidence.
+- Evidence labels: **checked** (confirmed in this session: npm or PyPI first-publish dates from the registries, or a web search that found the primary page), **research** (from `docs/research/REAL-MCP-SPECIMENS.md`, `2026-11-21-wild-examples.md` or `specimens/route.json`, not verified at source), **author** (named from knowledge, not checked; three entries).
+- Sources used from the repo: REAL-MCP-SPECIMENS (popularity signals, creative implementations, security cases), wild-examples (boundary-breaking leads), route.json anchors and diversions.
+- Not reachable here: GitHub API, npm download counts, PyPI download stats. So "most used" rests on the cited figures where they exist (Playwright 41.6M downloads, 22 Oct–20 Nov 2026, from the repo research) and is otherwise a judgement, said so in the note.
+- Gaps said plainly: no widely used server built around elicitation was found (Ask, "most used"); several "first" entries are first for the station, not dated firsts.
+- UI: `src/lab/library.ts`. Every bench ends with "Out in the world" (four cards). A new screen, "Out in the world" in the nav, walks the route again through real servers, each step with its idea and four cards and "Open this step". Each card has a slot fingerprint (nine icons lit where it has tools, then what it reaches).
+- Checks: 223 tests (incl. four kinds per station and an evidence label on every entry), lint, typecheck, build; screenshots at 1440 and 390 px.
+
+## One shell and one style across the platform — 2026-11-22
+
+Owner: "implement this style all over the whole platform".
+
+- Every screen now uses the same shell: title bar, the left route navigation, the main area, the status bar. The front page and All tools gained the left nav; the nav has two rows above the route, "What is MCP?" and "All tools and your server". The duplicate logo in the title bar is gone.
+- All tools: the three primer cards and the glossary moved into an "MCP in three sentences" popover; the doors are now "Start the route at step 01" and "Straight to the wire: raw JSON-RPC" (the old "Open the Memory bench" predated the route). The "How to read this" panel describes the workshop, not the old atlas ground.
+- "Thirteen questions" (the old 13-step ontology ladder) is replaced in the UI by "Nine slots": each slot's icon, what it means, and the tools that sit there. `src/domain/ladder.ts` remains as an authoring index and keeps its test.
+- The pixel-era tool belt at the bottom of All tools is deleted (`beltView`). `beltOf` stays: the bench and the keyboard shortcuts use it.
+- Kickers and eyebrows are muted ink instead of green; green remains for calls and success.
+- Checks: 220 tests, lint, typecheck, build; screenshots of front door, All tools, Nine slots; no horizontal overflow at 390 px.
+
+## Full-window map — 2026-11-22
+
+- A "Full window" button on the workshop canvas (bench and All tools) opens it over the whole window; "Close · Esc" or the Escape key closes it. Model field `canvasFull`, message `ClickedCanvasFull`, subscription `canvasEscape`. Tool chips and "How to read the map" stay available inside.
+- It is a CSS overlay, not the browser's Fullscreen API, so it also works inside the claude.ai viewer.
+- Checks: 220 tests, lint, typecheck, build; looked at at 1440×900, Escape closes it.
+
+## UI pass: a calmer route nav, secondary things behind popovers — 2026-11-22
+
+Owner: "adjust the left navigation … general UI pass … still busy, trim some things and have stuff behind pop ups".
+
+- Left nav (`journeyView` in `src/lab/view.ts`): grouped by the slot each step lights, each group headed by its line icon in place colours (Read, Ask, … Act, then Side trips and Your own server). Rows show only a small step number and the title; the current row has an ink bar and tint; visited rows get a green dot. Removed: tool counts, the dots column, the valley walk-through fold.
+- Popovers (`details.pop` with `.pop-panel`): "About this specimen" (anchor, diversions, where it bends, sources) replaces three folds under the question; "How to read the map" holds the canvas legend; "Host: Never ask" holds the approval rule. Bend, reset and host now share one row.
+- "About your last run" in the right column folds closed.
+- Popovers are plain details elements: they close by clicking their button again, not by clicking outside.
+- Checks: 219 tests, lint, typecheck, build; screenshots at 1440 and 390 px (no horizontal overflow).
+
+## Pixel art removed; one line-icon family in ink and place colours — 2026-11-22
+
+Owner: the pixel art breaks the workshop canvas; remove it all over, use SVG icons, soften the black, keep some of the pixel colour feel. Chose "ink on a soft tint" with violet ink, and asked for smoother icons.
+
+- `src/lab/icons.ts` is now the icon family: line icons on a 24 grid (one stroke weight, round ends), one per tool (34), slot (9) and neighbour (7). `iconView(name, h)` keeps its signature, so every place that showed a sprite now shows the line icon.
+- Colour by place in the workshop, softened from the pixel palette: shelf sky, workbench lemon, phone violet, loading dock orange, desk blush (`.place-*` classes, `--shelf`, `--shelf-t`, …). Colour says where, never success or permission.
+- `--ink` (#2b2350, the pixel art's outline colour) replaces black for every dark block: buttons, story card, AI app, the tools/list board. Dark mode: light ink, story card on a deep violet ground.
+- Deleted: `src/lab/sprites.ts`, `scripts/draw-sprites.mjs`, the `.px-*` paints and shading. Older entries below that mention sprites are history.
+- Also: the route server's header no longer shows the old valley walk-through prompt.
+- Checks: 219 tests, lint, typecheck, build; screenshots of the route bench and the inventory in light and dark.
+
+## The workshop canvas is the centerpiece of every specimen — 2026-11-22
+
+- `src/lab/mcpmap.ts` now draws the workshop: you and the AI app outside, MCP as the front desk with the tools/list board, the server's room with nine slots, neighbours outside. A call is desk → slot → neighbour; the last tool's line animates.
+- `src/domain/modules.ts`: slots renamed to one word each (Read, Ask, Write, Compute, Sequence, Share, Invent, Delegate, Act), neighbours, `placeOf(tool, world)` (thinking and cart move with the build), `moduleOf` is now a function.
+- `src/lab/scenes.ts`: per server, neighbour names, gates, desk traffic, building variant and the disclaimer notes ("Where the picture simplifies").
+- On each bench: story card, then the canvas, then the tool chips and notes, then the bend and the host rule, then the drawer and the bench. The front door shows the empty building; All tools shows every tool; Your server shows a fogged room with guessed slots.
+- Removed from the canvas: the inferred combination lines and the "behind the list" component strip (components remain in "How it happened").
+- Checks: 219 tests, lint, typecheck, build; screenshots of front door, fetch, ask, network; no horizontal overflow on a phone (the canvas scrolls inside its own frame below 720 px).
+
+## The map is back, and the route climbs the owner's ladder — 2026-11-22
+
+Owner: "where did the map go … keep the map … every MCP you see, you know exactly: these modules are on, these are off … why is the first one called the Valley … fetch a page first". Plus a nine-rung ladder (read → physical action). Decisions: rung 9 may be a simulated arm; garden: only real specimens.
+
+- **The map** (`src/lab/mcpmap.ts`, model in `src/domain/modules.ts`): nine slots in fixed places. Lit from the server's `tools/list` answer, ghosted where empty, lines for combinations (inferred). Shows the chain You → host → MCP → server → list → behind, and the parts behind the list lit along the last call. On the front door it is empty; on a bench it is section 1 under the story card; in All tools it holds all 34 tools; in Your server it places pasted tools by guesses and says the "interaction" slot cannot be seen in a list.
+- **The route** (`src/lab/story.ts`) follows the ladder and starts at fetch. Sidebar and front page are grouped by rung. Steps are numbered 01–16.
+- **Cart server** (`ask`, rung 2): `reserve_cart` makes the lab's MCP server send `elicitation/create` mid-call; the page shows the question, the answer goes back (`answerServer` in `src/adapters/in-tab-mcp.ts`, a DOM event to a Foldkit subscription). Bend: a build that picks itself with the same tool list.
+- **Crane server** (`arm`, rung 9): simulated controller, arm, sensor. With something in the way, "Moved." comes back while the crate hangs halfway; a build that checks the sensor fails honestly.
+- Removed: the authored "not offered" ghosts (the map's empty slots do this structurally) and the old family atlas layout.
+- Checks: 217 tests, lint, typecheck, build; screenshots of front door, fetch, ask (question and answer), arm, all tools, your server, phone (no horizontal overflow).
+- Open: a tool in two slots; the summary block in the map's empty corner could crowd on a server with many combinations.
+
+## The story is the front door again: "What is MCP?" and the agreed route — 2026-11-22
+
+Owner: "it doesn't tell the story … what is an MCP is the main question … the specimens should be in order from easy to complex … remember the order we agreed".
+
+- The lab opens on **What is MCP?** (`src/lab/intro.ts`): one definition, a picture (you → AI app, the host → MCP → server → tools → what is behind them), three facts, and the route listed in order with one idea per step. "Start at step 00" or "Or explore all tools freely" (the atlas).
+- **The agreed route** is data (`src/lab/story.ts`): the valley first, then the specimens in their `specimens/route.json` numbers, the inspector last. A test checks the order against `route.json`.
+- Every station shows a **story card**: "Step NN of 13", progress dots, the MCP idea, *Try this* (a real button on that bench), *What to notice*, Back / Next.
+- Sidebar is "The route · easy to strange" with step numbers again. Breadcrumb: ← What is MCP? / All tools / NN · station. The MCP Lab mark returns to the front door.
+- Note: this reverses part of D16 ("no course"). The atlas stays as the free way in; the route is the default way in.
+- Checks: 199 tests, lint, typecheck, build; browser screenshots of the front door and steps 00 and 02; no horizontal overflow on a phone.
+
+## Pin a pasted listing and compare it later — 2026-11-21
+
+- "Your server" can pin a listing (name, fingerprint, description per tool). A later paste marks each tool same / changed / new, shows the old description struck through above the new one, and lists tools that are gone. "The same example, later" loads a changed version of the invented server: `save_note` gains an instruction to email notes to an outside address, `get_weather` disappears, `delete_notes` appears.
+- Observed: Lens's wording rules do **not** flag the new `save_note` instruction ("Before saving, also call send_email …"); the comparison does. The screen says so. That is a real limit of L09, kept visible on purpose.
+- `typecheck`, `lint`, `test` (197 passed), `build` pass; scene test for pin → later → "1 changed, 1 new, 1 gone (get_weather)"; checked in headless Chromium without page errors (`docs/reports/toolbench/your-server-drift.png`).
+
+## Call path, "Your server", glossary — 2026-11-21
+
+Owner: "90 minutes go".
+
+### Changed
+
+- **The path a call took** (`src/lab/flow.ts`): the tray draws tool → each component reached, in order → result or error, read from the run's engine events. During "Watch it again" only components reached so far are lit; changes amber, failures red. Nothing on it is authored.
+- **Your server** (atlas view, `src/domain/foreign.ts`): paste any `tools/list` answer (`{"tools": [...]}`, a JSON-RPC response, or a plain array). Each tool gets a card with all four hints, absent ones shown as absent with the spec's default reading; Lens claims; a hidden-character check; a guessed family that names the rule it rests on; and a dashed "what it works on: not known from the list". Combination warnings (C01) and a "read these before approving" list sit on top. Nothing is sent or run. A load-an-example button fills an invented listing with one poisoned description and one hidden payload.
+- Lens L03 also reads `recipient` and `email` parameters as destinations.
+- Atlas primer has a seven-word glossary (server, host, client, tool, tools/list, tools/call, hint).
+
+### Evidence
+
+- `typecheck`, `lint`, `test` (196 passed), `build` pass. New tests: the call path from real runs (order, partial replay, failure marked); the parser's three accepted shapes and its error messages; absent hints stay absent; the example triggers L09, L10 and C01; the family guess names its basis; a scene test for the Your server view.
+- Headless Chromium: example listing rendered with the warnings; Valley `connect_places` replay with the path lit to "World store" at event 5 of 20; no page errors. Screenshots `docs/reports/toolbench/your-server.png`, `call-path-replay.png`.
+
+### Limits
+
+- The family guess is a heuristic over this lab's ten Lens rules; it will often be wrong for real servers, and says what it rests on.
+- Pasted listings are not pinned, so a later change to the same server is not diffed here (the in-tab Lens tab does that for the lab's own servers).
+
+## Every station is a toolbench; the host can ask first — 2026-11-21
+
+Owner: "take 100 minutes … build out the whole repo, test and judge … a place where somebody learns about MCP the first time but also the nerds get into the nitty gritty". Built from board F of the architecture canvas (white background, as asked) and the external review in `docs/research/2026-11-21-visualisation-research.md`.
+
+### Changed
+
+- **Toolbench on every station** (`src/lab/toolbench.ts`). Four numbered parts, the same on all 14 stations:
+  1. *Handed to you*: the server's tools as instrument cards with sprite, signature, `readOnlyHint`, a "called n×" badge and a "contains a workshop" mark for tools whose one call runs a whole process. Dashed cards show what the server does **not** give you (authored per station, e.g. `undo_entry()`: there is no undo).
+  2. *What they work on*: the existing touchable bench, labelled as drawn from the lab's own source.
+  3. *Comes back*: the result, the approval prompt, and "How it happened", the run's engine events with "Watch it again" (the existing replay cursor drives it).
+  4. *Stays changed*: a stamp listing state changes up to the replay cursor; "It failed after this. Nothing was rolled back." when that applies.
+- **Host approval** (`src/lab/approval.ts`): never ask / ask unless read-only / always ask. A waiting call sends nothing; Deny leaves the world untouched and says so; Allow sends it. A Python program is approved once for all its writes, and the screen says that. The inspector's "Was anyone asked?" now answers from what actually happened.
+- **Under the hood** for each instrument: the raw `tools/list` entry as received (kept now as JSON in the session), the exact `tools/call` that "Use it" would send, Lens claims, a hidden-character check of the description, what is known about it, and the three hints that are not sent with their spec defaults.
+- **Two doors on the atlas**: three sentences for a first-timer and "First time? Open the Memory bench"; "Straight to the wire: raw JSON-RPC" opens the call console.
+- The belt is shown on the atlas only; on a bench the instrument row replaces it. The inspector no longer repeats the selected instrument's card. A failed run no longer forces Backstage open.
+
+### Evidence (observed in this session)
+
+- `typecheck`, `lint`, `test` (187 passed), `build` pass. New tests: a write waits under "ask unless read-only" and sends no command; Deny leaves the world equal to before; Allow sends `RunCapability` and records it; read-only runs at once; the rule table; scene tests for ghosts, the approval prompt, Deny, the program prompt and both doors.
+- Headless Chromium 1440 wide: the first instrument used on all 14 stations without a page error; Memory write asked, allowed, replayed step by step; Ledger `run_as_program` with "third write fails": asked once, failed, two entries stayed, the stamp and the tray said so. iPhone 13: no horizontal overflow on the Memory bench.
+- Screenshots: `docs/reports/toolbench/`.
+
+### Limits
+
+- Ghost instruments and "contains a workshop" are authored by the lab, not read from any server.
+- The work area is still each station's existing bench; the instruments are not yet drawn as lines into it the way board F does.
+- "How it happened" lists engine events in text; the bench does not animate them yet.
+- Approval is a model of a host, not any real product's behaviour.
+
+## Segment 13 built; all thirteen ladder steps have a running tool — 2026-11-21
+
+Owner: "go on and make sure all segments are built". Read as the thirteen steps of the learning ladder in `docs/concept/MCP-LENS-ONTOLOGY.md`. Twelve had a specimen; step 13 existed only as a Backstage tab.
+
+### Changed
+
+- New specimen **Inspect the inspector** (station `inspector`, 14th server): tools `profile_server` and `profile_self`, reachable from the browser, the CLI (`npm run lab -- profile_server --name memory --set subject=changed`) and the stdio server. Bend: the inspected listing is as pinned, or changed since. Self-inspection is one snapshot; there is no tool that profiles a profile, and it names its own blind spot.
+- `src/domain/ladder.ts`: the thirteen distinctions with the capabilities that cover each. Shown under **Atlas → Thirteen questions**, labelled as an index and not an order.
+- Catalogue is now 30 capabilities on 14 servers; two new sprites.
+- Lens rule L05 tightened: it fired on "stored" in a read-only tool.
+- `specimens/route.json` entry 13 and `specimens/13-inspector/README.md` with an evidence record. `docs/PLAN.md` has a coverage table and names two thin spots.
+
+### Evidence (observed in this session)
+
+- `typecheck`, `lint`, `test` (179 passed), `build` pass. One test runs every capability listed on every rung; another checks no capability is left off the ladder.
+- CLI: `profile_self` and `profile_server --name memory --set subject=changed` printed their engine events (2 tools; 1 definition differs from the one pinned).
+- Headless Chromium: thirteen rows in the questions view; inspector bench with the changed listing showed `remember … changed since pinned` and `recall … matches its pin`; self-inspection showed the supported claim and "It read its own declaration, which is the claim in question". No page error.
+
+### Limits
+
+- Inside the inspector bench the inspected server is the lab's catalogue read in the engine; no second connection is made. The Backstage Lens tab is the place where a real `tools/list` answer is read.
+- The inspector's anchor, `modelcontextprotocol/inspector`, was not read. Nothing is attributed to it.
+- Step 11 (Resume) and step 2 (Query) are thin; see `docs/PLAN.md`.
+- Screenshots: `docs/reports/atlas/thirteen-questions.png`, `inspector-changed.png`, `inspector-self.png`, `atlas-30-tools.png`. The phone layout and dark mode were not re-checked after this change.
+
+## Lens, first working cut — 2026-11-21
+
+Owner note: "mcp recon does what we need for lens", with a text on how bounty hunters read MCP servers. The text is stored in `docs/research/2026-11-21-mcp-recon-and-bounty.md`, marked unverified, with a table of what the lab took from it.
+
+### Changed
+
+- `src/domain/lens.ts`: a pure classifier over a tool listing (name, title, description, read-only hint, parameter names). Ten rules L01 to L10, each claim carrying its rule id, the field it rests on, and whether it is declared by the server or inferred from wording. One combination rule C01 (a stored-data reader plus a destination-taking tool). A fingerprint per definition and pins that keep the first one seen.
+- Backstage has a **Lens** tab. On a bench it reads the server's real `tools/list` answer and says so; without a connection it reads the catalogue and says that instead.
+- **Bend: the server changes a description after you saw it.** The in-tab server appends an instruction-like sentence to one tool, sends `notifications/tools/list_changed`, the client lists again, and Lens shows a new fingerprint, "changed since you first saw it" and rule L09.
+- The full inventory shows Lens across all thirteen servers. C01 matches there (recall, read_file, fetch_page) and on no single server.
+- The session's tool listing now carries parameter names.
+
+### Evidence (observed in this session)
+
+- `typecheck`, `lint`, `test` (172 passed), `build` pass.
+- By test, over a real client and server on the in-memory transport: toggling the bend yields exactly `list_changed → tools/list → result`; the pinned tool drifts to "changed" and back to "unchanged" on restore; L09 fires on the changed listing. By test on fixtures: identical output for the same listing twice; invisible characters flagged; none of the lab's own descriptions is flagged.
+- Headless Chromium, Memory bench: fingerprint `9313a41a` → `f1aa5f86` with the red tag and L09, the wire rail ending in `notifications/tools/list_changed`, `tools/list`, `result`; restore not captured in output (the script ended before printing it). Screenshot `docs/reports/atlas/lens-changed-description.png`.
+
+### Limits, stated plainly
+
+- Lens is a teaching instrument over the lab's own simulated servers. It is not a scanner and connects to nothing else.
+- The wording rules are a handful of regular expressions written for this catalogue. They will miss most real poisoning and will misfire on innocent text elsewhere.
+- The fingerprint is a 32-bit hash for noticing change, not a signature.
+- Not built: behavioural checks (calling a tool repeatedly and inspecting replies), schema-aware fuzzing, any supply-chain check, a CLI or MCP entrance to Lens, pointing Lens at itself.
+- While the bend is on, the inspector card still shows the catalogue's description, not the changed one the server now lists.
+- In `npm run dev`, state restored from before a model change can lack new fields; restart the dev server after pulling.
+
+## Follow-up fixes after the atlas — 2026-11-21
+
+- Fetch: a URL chip fetches at once (`ClickedFetch`); the separate Fetch button is gone.
+- Backstage open now takes one third of the column instead of about 43% (observed: workbench 509 px, drawer 253 px at 900 px height).
+- Belt slot numbers sit outside the sprite plate so they stay visible in dark mode; atlas labels get a background so a link line does not run through the text.
+- Sidebar counts read "2 tools" instead of a bare number.
+- Screenshots in `docs/reports/atlas/` re-taken with the 24×24 sprites.
+
+Observed: typecheck, lint, 157 tests, build pass. Headless Chromium re-drive of atlas, belt keys, typing guard, inventory, dark and phone: no page error, no horizontal overflow; Fetch `/notice` in one click produced two hop cards. Not looked at: the phone screenshot of the bench was taken scrolled to the page end, so the belt's position on phones is unverified. Still open: valley map circles are mouse-only; selecting on the atlas does not ask the server.
+
+## Sprites at 24×24, vivid palette, drawn by a script — 2026-11-21
+
+Owner asked to go further and for "less brown, more vivid anime-style colours". All 28 sprites are now 24×24, built from shapes by `scripts/draw-sprites.mjs`, which writes `src/lab/sprites.ts` (generated; edit the script). The palette is 15 saturated paints with an indigo outline; shading is two overlay paths (white highlight upper-left, violet-tinted shadow lower-right). Atlas objects render at 48 px. Observed: typecheck, lint, 157 tests and build pass; atlas looked at in headless Chromium in light and dark (`docs/reports/atlas/sprites-24-light.png`, `sprites-24-dark.png`). Not looked at after this change: belt, inspector chips (20 px) and phone. Screenshots of the earlier 12×12 and 16×16 sprites in that folder are out of date.
+
+## Sprites redrawn at 16×16 with shading — 2026-11-21
+
+Owner asked for higher-fidelity pixel art. All 28 sprites were redrawn on a 16×16 grid (was 12×12) with more detail, and `iconView` adds a highlight path and a shadow path computed from each sprite (light from above). Observed: typecheck, lint, 157 tests, build pass; the atlas was looked at in headless Chromium in light mode (`docs/reports/atlas/sprites-16.png`). The dark-mode render was captured but not looked at. The earlier screenshots in `docs/reports/atlas/` still show the 12×12 sprites. The earlier rough edge about the four Compose sprites is reduced: each bench now carries a distinct 8-row object.
+
+## Capability atlas, pixel tool icons, tool belt — 2026-11-21
+
+Brief: `docs/briefs/2026-11-21-capability-atlas.md`. Owner: "Ok implement it".
+
+### Changed
+
+- **Atlas replaces the home screen.** 28 capabilities as objects on three hand-arranged grounds (Read and perceive / Remember and change / Compose and delegate), grouped into ten families. Selecting one shows its details and draws lines to what else the same server exposes. A second lens names the server under every object. `src/lab/atlas.ts`.
+- **One pixel sprite per capability** (12×12, original), used on the atlas, the belt, the inventory, the inspector, the wire rail and "Produced by". `src/lab/icons.ts`. Sprite colours are materials (paper, wood, metal); they do not encode family, success or permission.
+- **Tool belt** at the bottom of both screens: up to nine slots, keys 1–9, always labelled with whose tools they are and where the list came from ("its answer to tools/list, just now" versus "per the lab's catalogue · the server has not been asked"). It replaces the sidebar kit. `src/lab/belt.ts`, `src/lab/subscriptions.ts`.
+- **Full inventory**: all 28 tools grouped by server, as the conventional non-map route.
+- **Families** are a new field on each capability in `src/domain/capabilities.ts`, declared there as this lab's teaching groups, not protocol categories.
+- **No course.** Station numbers, the three ordered phases, "Start in the valley" and the visited tags are gone. The sidebar is "Specimens · any order". The valley's seven steps remain as a collapsed "Optional walk-through".
+- Research leads supplied by the owner are stored in `docs/research/2026-11-21-wild-examples.md`, marked unverified.
+
+### Why this visual model
+
+A list cannot show that a server's tools sit in different families, or that two servers offer the same kind of thing. Fixed positions plus on-selection links show both without a self-arranging graph. The belt is where "exposes / has access to / used" would most easily blur, so it carries the ownership and source label and can only select.
+
+### Preserved
+
+All 13 benches and their direct actions, the real in-tab MCP session, Backstage tabs and their mode labels, real Python in station 09, CLI and stdio entrances. No dependency added.
+
+### Evidence (observed in this session)
+
+- `typecheck`, `lint`, `test` (157 passed), `build` pass.
+- Headless Chromium 1440×900: selected Recall on the atlas; belt showed the Memory server's two tools from the catalogue; opened the specimen; belt source changed to the tools/list answer; pressed `1` (slot selected, frame count unchanged at 10, pill stayed Idle); ran Remember and Recall from the bench; wire rail and "Produced by" showed the Recall sprite; returned to the atlas with Recall still selected and marked "called". Typing `1` in the Python editor left the belt selection alone. Focus plus Enter selected an atlas object. Full inventory listed 28. Dark mode looked at. No page or console error.
+- iPhone 13 emulation: atlas falls back to grouped lists, no horizontal overflow on atlas or bench.
+- Screenshots: `docs/reports/atlas/`.
+- By test: slot key and slot click issue no command and change no world state; keys ignored while typing or with a modifier; belt source; called tools read from frames; every capability has a 12×12 sprite and a family; Remember and Recall sprites differ.
+
+### Left unknown on purpose
+
+"Caller authorised" and "Call approved" are shown as unknown for every capability: the simulation has no identity or approval step.
+
+### Rough edges
+
+- No single server exposes more than four tools, so the belt's "+N more" overflow is implemented but never appears with real data. More than nine is shown only by the full inventory.
+- The four Compose sprites share a workbench and differ in a 5×3 pixel detail; at belt size they are hard to tell apart without the name.
+- Family assignment is a judgement (for example Step planner under Compose, Click under Change). Not reviewed by anyone else.
+- Selecting an object on the atlas does not ask its server; "advertised" stays "not asked yet" until the specimen is opened.
+- In dark mode sprites sit on a light plate, which hides the slot number on the belt.
+- The selected link line can cross a neighbouring label.
+- Not re-checked in a browser after the last layout tweak: the server lens. Not checked at all: a screen reader.
+- Earlier items still open: Backstage takes half the workbench when open; Fetch needs two clicks; valley map circles are mouse-only.
+
+## Quality pass on the touchable benches — 2026-11-21
+
+Owner request: a quality check and a small UI/UX analysis, with fixes and a report.
+
+### Changed
+
+- The result of a run now sits directly under the Bend row, above the bench, with a dashed placeholder before the first run. Measured before: on 8 of 12 stations with the Backstage drawer open, and on the valley with it closed, the result was partly or fully below the fold.
+- Valley: place chips and the four action buttons moved above the map.
+- Station 09: a Python run now shows in the status pill, selects "Write one entry" in the inspector and opens the MCP frames tab. The error shows the last line; the full traceback is folded. Reset clears Python output.
+- Wording that still said "Execute" now says what the bench does. The goal line on the CLI station is left-aligned.
+
+### Evidence (observed in this session)
+
+- `typecheck`, `lint`, `test` (148 passed), `build` pass.
+- Headless Chromium, 1440×900, light: all 13 stations driven from a reset with two or three actions each, no page or console error; result top edge between 119 and 171 px inside the workbench on stations 01 to 12. Dark: home, valley, perception and station 09 looked at.
+- Station 09 with "Third write fails": Python printed two lines, the ledger held clay and timber, the third frame was `isError: true`.
+- Not re-run after the last two edits (valley reorder, traceback prefix): the browser drive. Tests pass on them.
+
+### Open UX items, not fixed
+
+See the session report: Backstage takes half the workbench when open; Fetch needs two clicks; the valley's seven steps are not tied to the new buttons; the map's circles are mouse-only; the kit list in the sidebar only inspects; phone order puts the journey below the bench.
+
+## Touchable benches on every station, real Python, home screen — 2026-11-21
+
+Owner request: "Do it for all station finish the nice ui with python stuff where it makes sense".
+
+### Changed
+
+- Every station's bench is now direct manipulation instead of a select plus an Execute button: files, page controls, places, tools and contracts are the buttons. All thirteen benches live in `src/lab/benches.ts`; `view.ts` shrank from about 3000 to about 1900 lines.
+- Station 09 holds an editable Python program. It runs in the tab through Pyodide, and each `await ledger.write(...)` is a real `tools/call write_entry` over the in-tab MCP session (`src/adapters/python-runner.ts`). A new capability `write_entry` backs it and is also reachable from the CLI (`--load`) and stdio server.
+- The page opens on a home screen: four stat tiles and the thirteen stations in the three phases. The brand mark returns to it.
+- Station names are friendlier ("A generated CLI", "An interactive map", "A loop that refines"); `specimens/route.json` keeps the research titles.
+- Pyodide is a dev dependency copied to `public/pyodide` by `scripts/copy-pyodide.mjs` before `dev` and `build`; nothing is fetched from a CDN.
+
+### Evidence (observed in this session)
+
+- `npm run typecheck`, `npm run lint`, `npm test` (147 passed), `npm run build`: all pass.
+- Headless Chromium at 1440×900: each of the 13 stations opened and its main action clicked without a page or console error. On station 09 the default program printed "wrote clay / timber / iron / all done", the ledger showed three entries, and the frames tab listed the `tools/call` frames.
+- iPhone 13 emulation: home and the Memory station have no horizontal overflow.
+- Screenshots: `docs/reports/first-slice/home-route.png`, `python-in-tab.png`, `touchable-fetch.png`.
+
+### Limitations
+
+- Python was only added where the program is the subject (station 09). Fetch has no Python "second reader".
+- Not observed in a browser: the Python path with the "third write fails" bend, an edited program, and the production build served from a sub-path. The reducer and view for a Python error are covered by tests only.
+- The Pyodide files add about 12 MB to `dist`. They load only when a program is first run.
+- In `npm run dev`, Foldkit's dev tools restore the previous state on reload, so the home screen does not reappear after a refresh there.
+- "Visited" on the home screen means a run was recorded on that station in this tab; a Python run alone does not count.
+- Still no upstream revision pinned, and nobody other than the author has used the page.
+
+## Live session, server-listed kit, call console, redesign — 2026-11-21
+
+Changed:
+
+- `src/adapters/in-tab-mcp.ts`: one long-lived session per page (the only mutable state outside the Foldkit model). `enterDomain`, `runOverMcp` and `sendRaw` each return the frames, tool list and world that resulted.
+- `src/adapters/lab-server.ts`: when a domain is set, `tools/list` returns only that domain's tools plus `enter_domain`; calling it switches domain and sends `notifications/tools/list_changed`. The stdio entry point sets no domain and still lists everything.
+- Lab: on load and on every station change an `EnterDomain` command runs; the sidebar kit shows what the server listed (falling back to the lab's own catalogue when offline, and saying so). Frames accumulate for the session (last 80).
+- Call console (Backstage tab): six presets and a free text box. Not-JSON text is refused in the page and never sent; anything that parses goes onto the wire past the SDK client's checks. A reply that ran a tool updates the lab state.
+- Redesign: new stylesheet written from scratch on the approved tokens; sidebar lists all thirteen stations under the three phases; breadcrumb bar; the question is the headline; right rail shows the last frames, the item and the run summary; Backstage is a light drawer. Inter and JetBrains Mono replace IBM Plex. Dark mode follows the system.
+
+Observed with SDK 1.32.2 through the console (real behaviour, covered by tests): an unknown method returns error -32601; `tools/call` without a tool name returns -32603, an internal error, not -32602; a message without `id` or without `jsonrpc` gets no reply; wrong arguments reach the tool and come back as a result with `isError: true`.
+
+Evidence: typecheck, lint, build pass; 139 tests pass. Headless Chromium on the production build at 1440, 1000 and 390 px: kit changes from four valley tools to two memory tools after a real `enter_domain`, with `list_changed` and `tools/list` visible; three console sends (unknown method, not JSON, valid call) behave as described; no console errors, no overflow. Screenshots: `docs/reports/first-slice/redesign-station-08.png`, `redesign-console.png`.
+
+Limits: `enter_domain` is the lab's own device for making kits change; it is not part of MCP. Station titles still come from the research route, not the friendlier names on the design canvas. Only station 08 has a direct-manipulation specimen. The home dashboard board from the canvas is not built. Resources, sampling and elicitation are still not on the wire. No light/dark toggle. Nobody has tried it.
+
+
+## Real MCP in the page — 2026-11-21
+
+Owner pointed to `blackmath88/lil-beavrs` (public; the name given was "lil-weavr", which does not exist) as the model: its lessons run real Python in the browser through Pyodide against an in-page mock, loaded lazily. The equivalent here is a real MCP client and server in the tab (D13).
+
+Changed:
+
+- `src/adapters/lab-server.ts`: the one MCP server of the lab, extracted from the stdio entry point. `src/adapters/mcp-server.ts` now only parses flags and connects it to stdio.
+- `src/adapters/in-tab-mcp.ts`: creates the server and an SDK `Client`, links them with `InMemoryTransport`, performs the handshake and one `tools/call`, and records every frame in both directions. The SDK and the server are dynamically imported.
+- The lab's run command uses that connection. If it fails to load, it falls back to calling the engine directly and the page says there was no MCP connection for that run.
+- Backstage has a new first tab, "MCP frames", labelled "Actual MCP connection" with what that means. The engine-events label now says those events come from inside the server handler and are not protocol messages. Header tag reads "Real MCP · made-up data".
+- `@modelcontextprotocol/sdk` moved from devDependencies to dependencies.
+
+Evidence: typecheck, lint, build pass; 127 tests pass, including four that drive the in-memory connection in Node and assert frame order (initialize, result, notifications/initialized, tools/call, result), equality with the direct engine, and `isError` on a domain failure. Headless Chromium on the production build: the frames appear after a click, a failing run ends in "result · isError: true", zero requests left the page other than fonts, no console errors. Screenshot: `docs/reports/first-slice/real-mcp-in-tab.png`.
+
+Limits: each run opens a fresh connection, so every run shows a handshake; there is no long-lived session, `tools/list` is not called by the page (the kit still comes from the shared catalogue), and resources, list-changed notifications, sampling and elicitation are not exercised. The client is the SDK's, not a real host: there is still no model and no approval step. The main bundle is now about 500 kB before gzip plus a 250 kB lazy chunk. A separate design canvas with the proposed new look exists outside the repository and is not yet ported.
+
+
+## Compact styling pass — 2026-11-21
+
+Owner feedback: everything looks bulky. CSS-only change at the end of `src/styles.css`: one type size down, tighter padding, the phases as slim tabs in a single-row title bar, narrower sidebar and inspector, the specimen's three folds on one line, the run status moved beside the title, and a collapsed Backstage reduced to one slim row. No behaviour changed; 121 tests pass; no overflow at 1440, 1000 and 390 px. Screenshot: `docs/reports/first-slice/compact-08.png`.
+
+The owner pointed to a clean dashboard in the Effect/Foldkit template repository as the look to aim for. It was not found: that repository contains only the counter example, and nothing named "takt" or "dashboard" appears in it, its reference catalog, or the linked starters that were checked. The exact reference is still needed.
+
+
+## Orientation and station 08 as the pattern — 2026-11-21
+
+Input: an external review supplied by the owner, who left the decision to the assistant. It proposed perfecting station 08 before more breadth, three jobs for navigation, and two fixes. Also merged: the owner's nine commits on `main` (learner journey, Lens ontology, real-specimen research, registry example). Draft PR #2 (phase navigation) was based on an older state of this branch; its navigation is re-implemented here on top of all twelve stations, so that PR is superseded.
+
+Changed:
+
+- Header: current location ("phase › station"), a visible simulation tag, and the three phases as permanent buttons. Sidebar: a source picker reaching every station, then the stations of the current phase. The valley's steps sit in a fold. The valley step "Open the workshop" is renamed "Run a program" so it no longer collides with the phase name.
+- Station 08: the map is the specimen. Click a place (or use the keyboard chips) to move it. Beside it, three readings of the same state: on your screen, the model's last view, the tool result. Selecting a reading highlights its marker on the map and explains it. One primary button: open the map, then ask the app where it is looking.
+- Every result has "What changed?" (from the run's state-changed events) and "Inspect run" (opens Backstage on the engine events). Backstage starts collapsed and opens on a failure.
+- "Bend it" and "Reset experiment" moved from the title bar onto the bench.
+- Inspector: "Who authorised it?" became "Was anyone asked?", answered from the run (no prompt in this simulation; names the component that applied a rule, if any). The contradiction with the state answer is gone.
+- Browsing no longer wipes anything. Each station keeps its world state and its last run; "Reset experiment" resets only the current station.
+
+Regression found and fixed: since the previous change, the Fetch station's policy switch no longer reached the engine, so every fetch ran with "check every hop". A test now asserts that policy, weather and file-server build each change the engine world.
+
+Evidence: typecheck, lint, build pass; 121 tests pass. Headless Chromium on desktop (1440 px) and an emulated iPhone 13: open the map, move it, see the model's view go out of date, leave to another station and return with the state intact, ask the app, inspect the run, reset. No console errors, no overflow. Screenshot: `docs/reports/first-slice/station-08-pattern.png`.
+
+Not done: only station 08 has the direct-manipulation pattern. The owner's single-map thread (route, moved bridge, print job) from LEARNER-JOURNEY.md is not implemented; stations still have separate small worlds. The phase grouping of stations follows PR #2 and has not been checked against the ontology keys. No person has tried it.
+
+
+## Stations 08 to 12 — 2026-11-21
+
+Owner direction: continue through 08 to 12 with stand-ins. All twelve stations on the route are now simulated.
+
+Sources read (fetch tool, 2026-11-21, not pinned): the ext-apps map-server README; cloudflare/mcp README; sammcj/mcp-llm README; mcp-agent `evaluator_optimizer.py` and the Temporal example README; IBM/mcp-context-forge README (truncated at about half). What each said is recorded per station in `specimens/route.json` under `checked`.
+
+Changed:
+
+- `src/domain/later.ts`: 08 `show_map`, `get_current_view` (tool result, screen and what the model was told can differ); 09 `run_as_calls`, `run_as_program` (same partial failure, three results versus one); 10 `ask_expert`, `review_plan`, `deliver_plan` (one stand-in, three contracts, map sent or left out); 11 `refine_plan`, `crash_and_resume` (loop rule as read in the reference code; in-memory versus durable); 12 `list_inventory`, `call_tool` (two backends behind one entrance; name collision; backend down).
+- `src/domain/settings.ts`: one `key=value` setting per bend for these stations; `carrySettings` keeps every bend across a reset. CLI `--set`, `--name`; MCP server `--set=`.
+- The capability dispatch is now a typed table of 27 entries.
+
+Evidence: typecheck, lint, build pass; 115 tests pass. Headless Chromium at 1440 and 400 px, no console errors, no overflow. Screenshots: `docs/reports/first-slice/station-08.png`, `-10`, `-11`, `-12`.
+
+Limits, stated plainly: every "model" in stations 03, 10 and 11 is fixed text or a fixed sequence of ratings; these stations show structure, not model behaviour. Station 08 has no real app or iframe. Station 09's sandbox runs nothing; the "program" is a fixed sequence. Station 12 has no repair bench: no malformed messages and no fuzzing, and context-forge's collision rule was not found in what was read, so both naming rules are the lab's own. The ext-apps README did not describe how a moved view reaches the model; the station's "nothing reported it" is the lab's framing of that gap, not a finding about the example.
+
+
+## CLI and gateway stations — 2026-11-21
+
+Sources read (fetch tool, 2026-11-21, not pinned): mcporter `docs/cli-generator.md` and README; supergateway README and issues 35, 126, 160.
+
+As read: mcporter says a generated CLI "embeds the resolved server definition and always targets that snapshot", and provides `inspect-cli` and `generate-cli --from` to refresh an artifact. Those pages do not settle whether tool schemas are fixed at generation time, so station 06 simulates that case as its question and says so. Supergateway's README says each SSE and each WebSocket connection gets its own server process; issue 35 (one child shared across connections) is reported fixed in v4.1.0 with the note that a reconnect gets a fresh child; issue 160 (children leaked after an ungraceful disconnect) is reported fixed in v4.1.0 with pings; issue 126 is reported fixed in v4.0.0. Release notes were not checked.
+
+Changed:
+
+- `src/domain/cli-snapshot.ts`: `generate_cli`, `call_generated`, `call_live` against a crate server whose schema can change from v1 to v2 (adds a required field). The artifact validates against its embedded schema without asking the server.
+- `src/domain/gateway.ts` and transforms in `world.ts`: `go_to` and `where_am_i` for clients A and B through a gateway that either shares one stateful process or spawns one per connection; reconnect, vanish and session timeout.
+- CLI flags `--server-schema`, `--gateway`, `--client`, `--place`; MCP server flag `--gateway=per-connection`.
+
+Evidence: typecheck, lint, build pass; 96 tests pass. Headless Chromium at 1440 and 400 px, no console errors, no overflow. Screenshots: `docs/reports/first-slice/cli-station.png`, `gateway-station.png`.
+
+Limits: the "clients" are a field in the request, not separate connections; the gateway and its child processes are records in the simulated world, not processes. Issue 126 (conflict error killing the child) is described in the specimen but not simulated. Seven of twelve stations are now simulated; none has a pinned upstream revision.
+
+
+## Filesystem and Perception stations — 2026-11-21
+
+Sources read this time (through a fetch tool, 2026-11-21, not pinned to a commit): the filesystem server README, issues 3602 and 5094 in modelcontextprotocol/servers, and the playwright-mcp README (truncated; tool descriptions rest on a summary). modelcontextprotocol.io did not resolve from the session, so nothing was checked against the specification.
+
+What those sources say, as read: for 2025-era clients, client Roots replace the command-line directories unless `--confine-roots` is set, in which case they can only narrow them; an update with no valid roots keeps the command-line list if no root was ever in force and revokes access otherwise; issue 3602 was closed as working as designed; issue 5094 (previous list kept after an empty update) is recorded as fixed; the README calls Roots deprecated as of protocol version 2026-07-28. Playwright MCP describes structured accessibility snapshots as the default and coordinate tools as opt-in through a vision capability.
+
+Changed:
+
+- `src/domain/files.ts` and `applyRootsUpdate` in `world.ts`: `read_file` over three made-up files, a launch directory, client roots, and three server builds (roots replace, roots only narrow, before the fix). The workbench shows launch list, client roots, the effective list with the reason, and which files are readable now.
+- `src/domain/perception.ts`: `take_snapshot` and `click` over a made-up page with four controls (two labelled buttons, an unlabelled picture, a canvas drawing). References go stale after every click. Bend: coordinates on.
+- CLI flags `--path`, `--roots`, `--fs-build`, `--target`, `--perception`; MCP server flags `--fs-build=`, `--perception=`.
+- A failed run no longer prints the valley's "nothing was built" line for other stations.
+
+Evidence: typecheck, lint, build pass; 84 tests pass. Headless Chromium at 1440 and 400 px, no console errors, no overflow. Screenshots: `docs/reports/first-slice/filesystem-station.png`, `perception-station.png`.
+
+Limits: roots updates are page-level events in the browser and a CLI flag; the MCP server does not exchange real Roots messages with its client. The "before the fix" build models the issue's description, not the old code. The perception page is four fixed controls, not a browser. Pull requests 5095 and 5096 were not opened, so their merge state is unverified.
+
+
+## Memory and Thinking stations — 2026-11-21
+
+Changed:
+
+- `src/domain/memory.ts`: simulated knowledge-graph memory. `remember` appends a statement, `recall` returns everything about an entity. Facts live in one of two made-up folders (package cache, home). The workbench shows four places: the conversation, the server process, and both folders. Bend: storage path. Lifecycle buttons: restart client, restart server, reinstall package.
+- `src/domain/thinking.ts`: one tool, `plan_steps`, with three builds: records the caller's thoughts, computes from the map, or passes on a reply from a scripted stand-in model that was never sent the map. Bend: which build is inside.
+- Both are in the catalogue, so the CLI and the MCP server expose them (`--memory-path`, `--reinstall`, `--thinking`, `--thought`).
+- Backstage can be collapsed and the workbench gets more height. The "what state changed" answer is now read from the run's state-changed events.
+
+Evidence: typecheck, lint, build pass; 67 tests pass, including memory surviving across calls on one MCP connection and being gone on the next, and one `plan_steps` schema returning different authorship per build. Headless Chromium at 1440 and 400 px, no console errors, no overflow. Screenshots: `docs/reports/first-slice/memory-station.png`, `thinking-station.png`.
+
+Limits: restart client, restart server and reinstall are app-level events in the browser, not engine operations, so they appear under App messages and not in the engine trace. The MCP server keeps memory in process, so "restart" there really loses it regardless of path; only the CLI with `--state` shows the path difference outside the browser. The stand-in model is fixed text. Relations between entities are not modelled. Upstream claims for both stations remain unverified.
+
+
+## Specimen route and Fetch station — 2026-11-21
+
+Owner supplied a research drop: twelve stations with anchor, diversion and experiment, and the direction that every chapter gets a bend (D10). Also: less text on screen (D11).
+
+Changed:
+
+- `specimens/route.json` (single source), `specimens/README.md` and one README per station with an empty evidence record; `docs/research/2026-11-21-specimen-route.md` as an editorial capture of the drop.
+- `src/domain/fetch.ts`: the lab's own simulation of a page fetcher on a four-page synthetic site, with three robots policies (every hop, first URL only, never), a redirect to a disallowed page and a redirect loop. New capability `fetch_page`, available in the browser, the CLI (`--url`, `--policy`) and the MCP server (`--policy=first-hop`).
+- Lab: sidebar lists the valley and the twelve stations; reference stations show their question with folded detail and sources; the Fetch station runs. The titlebar bend switches with the station. Item facts, five questions and the honesty note are fold-outs.
+- Recording refreshed, because the tool list grew to five.
+
+Evidence: typecheck, lint and build pass; 51 tests pass, including the same URL giving different results under different policies through the CLI and through MCP. Headless Chromium at 1440, 1000 and 400 px: no console errors, no overflow. Screenshot: `docs/reports/first-slice/fetch-station.png`.
+
+Not done: no upstream repository was opened, pinned or run; every claim in the route is the owner's research lead. The Fetch simulation models documented behaviour as described in the drop, not upstream code. The model-initiated versus user-initiated distinction in the reference server is not simulated. Stations 02 to 12 have no simulation.
+
+Caught during this work: `fetch_page` was executable but missing from the catalogue, so it had no kit entry and was not listed as an MCP tool. A test now asserts every executable capability has a catalogue entry.
+
+
+## IDE layout and MCP plan — 2026-11-21
+
+Owner direction: simulation is enough for now, plan the MCP work, and use an IDE-style layout with the workbench in the middle and the easy-to-complex navigation always visible (D08, D09).
+
+Changed: `src/lab/view.ts` and `src/styles.css` only, plus a `network` Backstage tab. Left sidebar holds the journey (seven working chapters, five listed as planned) and the kit; the workbench is centred with a "Next" button; the inspector on the right holds the item card and the five questions; Backstage is a bottom panel with four tabs; a status bar states the mode. The engine, adapters and state logic are unchanged.
+
+Evidence: typecheck, lint, build and 39 tests pass. Headless Chromium at 1440, 1000 and 400 px: no console errors, no horizontal overflow.
+
+Known UX gaps: panes are not resizable; the bottom panel is short on small laptop screens; planned chapters are not clickable; no light/dark toggle.
+
+Next: see "MCP work plan" in docs/PLAN.md.
+
+
+## First executable slice — 2026-11-21
+
+Status: implemented and checked locally. Not deployed. No learner evaluation.
+
+### Changed
+
+- Foundation from `blackmath88/effect-foldkit-alchemy-template` at 7b398a7: pinned dependencies, Vite, Vitest, oxlint/oxfmt config, `FOLDKIT.md`, gated `alchemy.run.ts` and its deploy guard. Governance files, reference catalog and Git history were not copied.
+- `src/domain`: valley map engine in Effect with typed errors and three services (world store, trace, pace). Operations emit their own events.
+- `src/adapters`: in-process (browser, slowed 350 ms per stage so a run can be cancelled), CLI (`npm run lab`), MCP stdio server (`npm run mcp:server`, low-level SDK `Server`, four tools and the map as a resource).
+- `src/lab`: Foldkit app. Chapter ladder, kit, Onstage/Backstage, replay (from start, step, play, pause, show all), weather as the one mutation, five questions and a network table derived from the last run's events.
+- `scripts/record-entrances.ts` and `src/recordings/entrances.json`: a real CLI run and real MCP frames (handshake, tools/list, tools/call) for calm and storm.
+
+### Evidence (executed in this session)
+
+- `npm run typecheck`, `npm run lint`, `npm run build`: pass.
+- `npm test`: 39 tests in 4 files pass. They cover valid and invalid domain operations, state transitions, reset and cancel with late results, replay, the UI path inventory → execution → trace, evidence labels, CLI execution, and MCP over stdio through the SDK client. CLI, MCP and in-process records are asserted equal.
+- `npm run test:infra-guard`, `python3 scripts/check.py`, `pytest tests`: pass.
+- Headless Chromium against the production build at 1280 px and 400 px: full journey, cancel, reset while running, keyboard selection of a kit item, no console errors, no horizontal overflow. Screenshot: `docs/reports/first-slice/storm-failure.png`.
+- The SDK negotiated protocol version 2025-11-25 in the recording. That is an observation of SDK 1.32.2, not a reviewed protocol choice.
+
+### Migrated from `lab/concept.html`
+
+Chapter ladder, kit bar with item cards, Onstage/Backstage split, step/play/reset, one "bend it" switch, five questions, visual tokens.
+
+### Left in the reference HTML
+
+The scripted model and its chat bubbles, and the exhibits on tool descriptions, changed tool definitions, sampling, elicitation, MCP Apps and the tool-list maze. Their protocol details remain unverified.
+
+### Limitations
+
+- The browser never speaks MCP. Live browser-to-MCP was left out to keep the SDK and a subprocess bridge out of the bundle; the MCP path is proven by tests and shown as a recording.
+- No model, approval or identity layer. The five questions say so.
+- Replay shows a finished run; events are not streamed while the engine works.
+- The network view is a table, not a graph. The app follows the system colour scheme only.
+- The starter's `package-lock.json` was out of sync with its `package.json` (TypeScript), so `npm ci` failed and `npm install` regenerated the lock. `npm audit` reports 3 advisories in dev tooling; not triaged.
+- No Node job was added to CI. `foundation-checks.yml` still runs only the Python checks.
+- Cancel and reset discard an in-flight result in the browser. The CLI and MCP adapters have no cancel.
+
+### Practice receipt
+
+`blackmath88/development-practice` is outside this session's repository access, so the live practice source was not read. Work followed local `AGENTS.md`, `FOLDKIT.md` and the starter's `AGENTS.md`.
+
+### Next
+
+1. Run the slice with one learner and record what they can explain.
+2. Decide the next slice: a live MCP path from the browser, or the local/remote placement chapter.
+3. Add a Node job to CI if this stack stays.
+
+## Concept documentation — 2026-11-21
+## Recurring aspects across phases · 2026-11-21
+
 ## Linuc synchronization — 24 November 2026
 
 Preserved the local `lab/` workbench, `tooling/` factory and selected synthetic evidence alongside all 22 newer GitHub commits. Resolved four documentation conflicts by retaining the newer direction and appending the dated local records. Original working checkout and its staging remain intact. No services, model calls or deployments were started.

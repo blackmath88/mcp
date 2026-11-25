@@ -1,0 +1,583 @@
+<title>Tool Map Prototypes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one canvas at a time, server picker above, the tools of the touched slot below. */
+:root {
+  --bg: #ffffff;
+  --panel: #f7f8f7;
+  --fg: #111613;
+  --fg2: #66706b;
+  --line: #dfe3e0;
+  --ghost: #c9cfcb;
+  --accent: #0f7a55;
+  --accentsub: rgba(15, 122, 85, 0.1);
+  --warm: #b86a12;
+  --display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121514; --panel: #191d1b; --fg: #eef2ef; --fg2: #94a09a; --line: #2a302d;
+    --ghost: #3a423e; --accent: #3ccf95; --accentsub: rgba(60, 207, 149, 0.14); --warm: #f0a649;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121514; --panel: #191d1b; --fg: #eef2ef; --fg2: #94a09a; --line: #2a302d;
+  --ghost: #3a423e; --accent: #3ccf95; --accentsub: rgba(60, 207, 149, 0.14); --warm: #f0a649;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 40px;
+}
+main { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1 { font-family: var(--display); font-size: 26px; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--fg2); max-width: 70ch; line-height: 1.5; }
+.row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.label { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); margin-right: 6px; }
+button.pill {
+  font: 500 13px var(--body); color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer;
+}
+button.pill[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+button.pill:focus-visible, .node:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tabs button.pill[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.idea { margin: 0; font-size: 14px; color: var(--fg2); min-height: 1.4em; }
+.canvas-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: var(--bg); }
+svg.canvas { display: block; width: 100%; min-width: 640px; height: auto; }
+.detail { min-height: 48px; padding: 10px 14px; border-radius: 12px; background: var(--panel); font-size: 14px; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.detail b { font-family: var(--display); }
+.tool { font: 12px var(--mono); padding: 2px 8px; border-radius: 6px; background: var(--bg); border: 1px solid var(--line); }
+.muted { color: var(--fg2); }
+
+/* SVG parts */
+.zone { fill: var(--panel); }
+.zone-label { font: 600 11px var(--body); letter-spacing: 0.08em; text-transform: uppercase; fill: var(--fg2); }
+.wire { fill: none; stroke: var(--line); stroke-width: 2; }
+.flow { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 6 7; animation: run 1.2s linear infinite; }
+@keyframes run { to { stroke-dashoffset: -26; } }
+@media (prefers-reduced-motion: reduce) { .flow { animation: none; } }
+.node { cursor: pointer; }
+.node .box { fill: var(--bg); stroke: var(--ghost); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.node .ico { fill: none; stroke: var(--ghost); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.node .name { font: 500 12px var(--body); fill: var(--ghost); text-anchor: middle; }
+.node .count { font: 600 10px var(--mono); fill: var(--bg); text-anchor: middle; }
+.node .badge { fill: var(--accent); }
+.node.lit .box { stroke: var(--accent); stroke-dasharray: none; fill: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+.node.lit .ico { stroke: var(--fg); }
+.node.lit .name { fill: var(--fg); }
+.node.picked .box { stroke-width: 3; }
+.end { fill: var(--fg); }
+.end-text { font: 600 12px var(--body); fill: var(--bg); text-anchor: middle; }
+.ring { fill: none; stroke: var(--line); stroke-width: 1.5; }
+.ring-label { font: 500 11px var(--body); fill: var(--fg2); }
+.wall { fill: none; stroke: var(--fg2); stroke-width: 3; }
+.furn { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+.furn-label { font: 500 11px var(--body); fill: var(--fg2); text-anchor: middle; }
+.yard { fill: var(--panel); opacity: 0.55; }
+.host { fill: var(--fg); }
+.ico.on { fill: none; stroke: var(--bg); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.host-name { font: 600 14px var(--display); fill: var(--bg); text-anchor: middle; }
+.host-sub { font: 400 10.5px var(--body); fill: var(--bg); opacity: 0.7; text-anchor: middle; }
+.lobby { fill: var(--bg); stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 3 5; }
+.lobby-sub { font: 400 10.5px var(--body); fill: var(--fg2); text-anchor: middle; }
+.board { fill: var(--fg); }
+.board-head { font: 600 10px var(--mono); fill: var(--accent); }
+.board-item { font: 400 10px var(--mono); fill: var(--bg); }
+.desk { fill: var(--fg2); }
+.flow.out { stroke-dasharray: 2 6; stroke-width: 2; }
+.node.nb .box { stroke-dasharray: 3 4; }
+.node.nb.lit .box { stroke-dasharray: none; }
+.flow.back { stroke: var(--warm); }
+.gate { fill: var(--warm); }
+.gate-label { font: 500 10.5px var(--body); fill: var(--warm); }
+.desk-msg { font: 500 10.5px var(--mono); fill: var(--warm); }
+.board.copy { fill: var(--panel); stroke: var(--fg2); stroke-dasharray: 3 3; }
+.board.copy + .board-head, .copy ~ .board-item { fill: var(--fg2); }
+.wall.thin { stroke-width: 2; stroke-dasharray: 6 6; }
+.fog { fill: var(--fg); opacity: 0.08; }
+.fog-text { font: 600 18px var(--display); fill: var(--fg); text-anchor: middle; }
+.fog-sub { font: 400 12px var(--body); fill: var(--fg2); text-anchor: middle; }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.note { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 13px; line-height: 1.5; color: var(--fg2); }
+.note b { color: var(--fg); font-family: var(--display); }
+</style>
+
+<main>
+  <h1>Where does a tool reach?</h1>
+  <p class="lede">The same nine slots, laid out as a place. Pick a server and watch which slots it lights, what it reaches outside, and how a call travels. Tap a slot or a neighbour to see its tools.</p>
+
+  <div class="row tabs" role="group" aria-label="Layout">
+    <span class="label">Layout</span>
+    <button class="pill" id="tab-world" data-layout="world" aria-pressed="true">C+ · Entrance, workshop, neighbours</button>
+    <button class="pill" id="tab-flow" data-layout="flow" aria-pressed="false">A · In, work, out</button>
+    <button class="pill" id="tab-reach" data-layout="reach" aria-pressed="false">B · How far it reaches</button>
+    <button class="pill" id="tab-room" data-layout="room" aria-pressed="false">C · The workshop</button>
+  </div>
+
+  <div class="row" id="servers" role="group" aria-label="Server"><span class="label">Server</span></div>
+  <div class="row" id="builds" role="group" aria-label="Server build"></div>
+  <p class="idea" id="idea"></p>
+
+  <div class="canvas-wrap"><svg class="canvas" id="canvas" role="img" aria-label="Map of the selected server's tools"></svg></div>
+  <div class="detail" id="detail"><span class="muted">Tap a lit slot or neighbour.</span></div>
+
+  <div class="notes">
+    <div class="note"><b>C+ · Entrance, workshop, neighbours.</b> You and the AI app stay outside. MCP is the front desk: the board is the tools/list, all the AI is shown, and everything crossing the desk is listed under it (roots in, questions out). Behind it is the server's workshop. Outside its walls are what the tools reach, named per server. Amber marks a rule in a wall opening, or something coming back out to you through the desk.</div>
+    <div class="note"><b>A · In, work, out.</b> A call enters from the AI, takes something in, works on it, leaves a mark, and returns. Top row touches records, bottom row touches people and the world. The green line is the route this server's tools can take.</div>
+    <div class="note"><b>B · How far it reaches.</b> The server sits in the middle. Rings are distance: inside the server, your records, then beyond the computer (you, another mind, the physical world). Further out means more consequence.</div>
+    <div class="note"><b>C · The workshop.</b> One room, things where you would expect them: the shelf of records, the workbench, the window to you, the phone to another mind, the loading dock to the world.</div>
+  </div>
+</main>
+
+<script>
+const SLOTS = {
+  read:     { name: 'Read',     what: 'takes something in from a record, a page, a file' },
+  ask:      { name: 'Ask',      what: 'stops the call and asks you' },
+  compute:  { name: 'Compute',  what: 'works out an answer from what it got' },
+  sequence: { name: 'Sequence', what: 'runs several steps in order behind one call' },
+  invent:   { name: 'Invent',   what: 'runs a procedure the AI wrote just now' },
+  delegate: { name: 'Delegate', what: 'hands the job to another model' },
+  write:    { name: 'Write',    what: 'changes a record someone else will see' },
+  share:    { name: 'Share',    what: 'opens a surface you and the AI both use' },
+  act:      { name: 'Act',      what: 'moves something outside the computer' },
+};
+const ZONE = { read: 'in', ask: 'in', compute: 'work', sequence: 'work', invent: 'work', delegate: 'work', write: 'out', share: 'out', act: 'out' };
+
+// [tool, slot, neighbours it reaches]
+// names: what each neighbour is for this server. gates: a rule sitting in a wall opening.
+// desk: what crosses the front desk besides calls and results. builds: same menu, different room.
+// building: 'room' | 'shared' (two visitors, one room) | 'mall' (one desk, two rooms) | 'copy' (a frozen copy of the menu outside) | 'dark' (only the menu is known)
+const SERVERS = [
+  { id: 'fetch', name: 'Fetch', idea: 'A read that crosses a rule at the wall: robots.txt is checked at every hop.',
+    tools: [['fetch_page', 'read', ['web']]], names: { web: 'valley.test pages' }, gates: { web: 'robots.txt, every hop' } },
+  { id: 'files', name: 'Files', idea: 'Reads files. The folder boundary sits in the wall, and the AI app can move it by sending roots.',
+    tools: [['read_file', 'read', ['files']]], names: { files: '/valley/forge' }, gates: { files: 'allowed folders' }, desk: ['→ roots'] },
+  { id: 'cart', name: 'Cart', idea: 'Stops halfway and asks you. The question leaves by the front desk; the server cannot reach you any other way.',
+    builds: [
+      { label: 'Asks you', tools: [['list_carts', 'read', ['store']], ['reserve_cart', 'ask', ['store']]], desk: ['← elicitation/create'] },
+      { label: 'Picks itself', tools: [['list_carts', 'read', ['store']], ['reserve_cart', 'write', ['store']]] },
+    ], names: { store: 'the cart list' } },
+  { id: 'memory', name: 'Memory', idea: 'Reads and writes one file. Where that file lives decides what survives a reinstall.',
+    tools: [['recall', 'read', ['store']], ['remember', 'write', ['store']]], names: { store: 'memory.jsonl in the package cache' } },
+  { id: 'route', name: 'Route', idea: 'Reads the map, works out a route on the bench, builds a path.',
+    tools: [['read_map', 'read', ['store']], ['find_route', 'compute', []], ['connect_places', 'sequence', ['store']], ['build_path', 'write', ['store']]], names: { store: 'the valley map' } },
+  { id: 'thinking', name: 'Thinking', idea: 'One menu item, three different rooms. Switch the build: the board does not change.',
+    builds: [
+      { label: 'Records your steps', tools: [['plan_steps', 'sequence', []]] },
+      { label: 'Computes a plan', tools: [['plan_steps', 'compute', ['store']]] },
+      { label: 'Asks another model', tools: [['plan_steps', 'delegate', ['llm']]] },
+    ], names: { store: 'the valley map', llm: 'expert (stand-in)' } },
+  { id: 'browser', name: 'Browser', idea: 'Reads a page and clicks on it, through a keyhole: it only sees controls with a name.',
+    tools: [['take_snapshot', 'read', ['web']], ['click', 'write', ['web']]], names: { web: 'a page with four controls' }, gates: { web: 'sees 2 of 4 controls' } },
+  { id: 'cli', name: 'Generated CLI', idea: 'Someone photocopied the menu board and took it away. The copy does not change when the board does.',
+    tools: [['generate_cli', 'compute', []], ['call_live', 'write', ['program']], ['call_generated', 'write', ['program']]], names: { program: 'the crate server' }, building: 'copy' },
+  { id: 'local', name: 'Local / remote', idea: 'Two visitors at one desk, one room behind it: client B finds itself where client A left.',
+    tools: [['go_to', 'write', ['store']], ['where_am_i', 'read', ['store']]], names: { store: 'the current place' }, building: 'shared' },
+  { id: 'app', name: 'Map app', idea: 'Hands back a surface. It is shown by the AI app, to you, outside the room.',
+    tools: [['show_map', 'share', []], ['get_current_view', 'share', []]], desk: ['← app view', '→ what you moved'] },
+  { id: 'ledger', name: 'Code mode', idea: 'The AI carries a program in through the desk; the bench runs it and it writes many times.',
+    tools: [['run_as_program', 'invent', ['store']], ['run_as_calls', 'sequence', ['store']], ['write_entry', 'write', ['store']]], names: { store: 'the ledger, no undo' }, desk: ['→ a program'] },
+  { id: 'expert', name: 'Expert', idea: 'The phone to another model. What goes down the line decides what it can know.',
+    tools: [['ask_expert', 'delegate', ['llm']], ['review_plan', 'delegate', ['llm']], ['deliver_plan', 'delegate', ['llm', 'store']]], names: { llm: 'expert (stand-in)', store: 'stored plans' } },
+  { id: 'loop', name: 'Loop', idea: 'Many rounds behind one call: a writer and a judge, until good enough or out of turns.',
+    tools: [['refine_plan', 'sequence', ['llm']], ['crash_and_resume', 'sequence', ['llm', 'store']]], names: { llm: 'writer and judge (stand-ins)', store: 'checkpoints' } },
+  { id: 'gateway', name: 'Gateway', idea: 'One desk, two rooms behind it. Their menus are merged on one board; a shared name hides a tool.',
+    tools: [['list_inventory', 'read', ['program']], ['call_tool', 'delegate', ['program']]], names: { program: 'forge and dock servers' }, building: 'mall' },
+  { id: 'crane', name: 'Crane', idea: 'Moves a crate through the loading dock. Only the sensor says whether it arrived.',
+    tools: [['move_crate', 'act', ['world']], ['read_sensor', 'read', ['world']]], names: { world: 'crane at the dock (simulated)' }, gates: { world: 'sensor' } },
+  { id: 'yours', name: 'Your server', idea: 'A pasted list is only the menu board. The room is dark: slots are guesses, neighbours unknown.',
+    tools: [['search_notes', 'read', []], ['save_note', 'write', []], ['send_email', 'write', []], ['summarise_inbox', 'compute', []], ['get_weather', 'compute', []]], building: 'dark' },
+];
+SERVERS.forEach(s => { if (s.builds) { s.build = 0; s.tools = s.builds[0].tools; } });
+SERVERS.push({ id: 'all', name: 'All', idea: 'Every server in the lab on one map.', tools: SERVERS.filter(s => s.building !== 'dark').flatMap(s => s.tools) });
+
+const NEIGHBOURS = {
+  web: { name: 'web pages', icon: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.5 3.5 3.5 14.5 0 18M12 3c-3.5 3.5-3.5 14.5 0 18"/>' },
+  files: { name: 'files', icon: '<path d="M3 6h7l2 2h9v11H3z"/><path d="M3 10h18"/>' },
+  store: { name: 'stored data', icon: '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3 3 7 3s7-1.3 7-3"/>' },
+  llm: { name: 'another model', icon: '<rect x="5" y="7" width="14" height="11" rx="3"/><path d="M12 3v4M9.5 11.5v1M14.5 11.5v1M9 15h6"/>' },
+  program: { name: 'another program', icon: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 8h18M7 12l3 2-3 2M12 16h4"/>' },
+  you: { name: 'you', icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>' },
+  world: { name: 'the world', icon: '<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>' },
+};
+
+const ICONS = {
+  read: '<path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.6"/>',
+  ask: '<path d="M4 5h16v11H10l-4 4v-4H4z"/><path d="M10 9a2 2 0 1 1 2.6 1.9c-.5.2-.6.6-.6 1.1"/><path d="M12 14.2v.1"/>',
+  compute: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"/>',
+  sequence: '<path d="M4 6h3M4 12h3M4 18h3"/><path d="M10 6h10M10 12h10M10 18h10"/><path d="M7 6c2 0 1 6 3 6M7 12c2 0 1 6 3 6"/>',
+  invent: '<path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/><path d="M13 5l-2 14"/>',
+  delegate: '<circle cx="7" cy="8" r="3"/><circle cx="17" cy="8" r="3"/><path d="M2 20c0-3 2.2-5 5-5s5 2 5 5M12 20c0-3 2.2-5 5-5s5 2 5 5"/><path d="M10 6.5h4M12.5 5l1.5 1.5L12.5 8"/>',
+  write: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>',
+  share: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/><path d="M8 9l2 3M14 8l2 3"/>',
+  act: '<path d="M4 21h8M8 21v-6l5-6 4 3"/><circle cx="8" cy="15" r="1.4"/><circle cx="13" cy="9" r="1.4"/><path d="M17 12v3h3v-3"/>',
+};
+
+const NS = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs = {}, parent) => {
+  const node = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+  if (parent) parent.appendChild(node);
+  return node;
+};
+const text = (parent, x, y, cls, value, extra = {}) => {
+  const t = el('text', { x, y, class: cls, ...extra }, parent);
+  t.textContent = value;
+  return t;
+};
+
+let layout = 'world';
+let pickedNeighbour = null;
+let server = SERVERS.find(s => s.id === 'route');
+let picked = null;
+
+const toolsIn = slot => server.tools.filter(([, s]) => s === slot).map(([n]) => n);
+const reachOf = slot => [...new Set(server.tools.filter(([, s]) => s === slot).flatMap(([, , r]) => r ?? []))];
+const toolsReaching = id => server.tools.filter(([, , r]) => (r ?? []).includes(id)).map(([n]) => n);
+
+function nodeAt(svg, slot, x, y, size = 78) {
+  const tools = toolsIn(slot);
+  const lit = tools.length > 0;
+  const g = el('g', { class: `node ${lit ? 'lit' : ''} ${picked === slot ? 'picked' : ''}`, tabindex: lit ? 0 : -1, role: 'button', 'aria-label': `${SLOTS[slot].name}: ${lit ? tools.length + ' tools' : 'not offered'}` }, svg);
+  el('rect', { class: 'box', x: x - size / 2, y: y - size / 2, width: size, height: size, rx: 16 }, g);
+  const s = size / 34;
+  const icon = el('g', { class: 'ico', transform: `translate(${x - 12 * s} ${y - 12 * s - 6}) scale(${s})` }, g);
+  icon.innerHTML = ICONS[slot];
+  text(g, x, y + size / 2 - 9, 'name', SLOTS[slot].name);
+  if (lit) {
+    el('circle', { class: 'badge', cx: x + size / 2 - 4, cy: y - size / 2 + 4, r: 10 }, g);
+    text(g, x + size / 2 - 4, y - size / 2 + 7.5, 'count', String(tools.length));
+  }
+  const pick = () => { if (lit) { picked = slot; pickedNeighbour = null; render(); } };
+  g.addEventListener('click', pick);
+  g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+  return { x, y, lit };
+}
+
+const curve = (a, b) => {
+  const mx = (a.x + b.x) / 2;
+  return `M ${a.x} ${a.y} C ${mx} ${a.y}, ${mx} ${b.y}, ${b.x} ${b.y}`;
+};
+
+function endCap(svg, x, y, label, w = 74) {
+  el('rect', { class: 'end', x: x - w / 2, y: y - 18, width: w, height: 36, rx: 18 }, svg);
+  text(svg, x, y + 4, 'end-text', label);
+  return { x, y };
+}
+
+/* A · in, work, out */
+function drawFlow(svg) {
+  svg.setAttribute('viewBox', '0 0 1000 470');
+  const zones = [['in', 'Takes in', 150, 200], ['work', 'Works on it', 380, 270], ['out', 'Leaves a mark', 680, 200]];
+  for (const [, label, x, w] of zones) {
+    el('rect', { class: 'zone', x, y: 30, width: w, height: 410, rx: 18 }, svg);
+    text(svg, x + 16, 56, 'zone-label', label);
+  }
+  text(svg, 900, 72, 'zone-label', 'records', { 'text-anchor': 'end', opacity: 0 });
+  const P = {
+    read: [250, 150], ask: [250, 330],
+    compute: [455, 150], sequence: [575, 150], invent: [455, 330], delegate: [575, 330],
+    write: [780, 120], share: [780, 240], act: [780, 360],
+  };
+  const start = { x: 70, y: 240 }, end = { x: 930, y: 240 };
+  // quiet wires between zones
+  el('path', { class: 'wire', d: `M 106 240 H 150 M 350 240 H 380 M 650 240 H 680 M 880 240 H 893` }, svg);
+  const lit = Object.keys(P).filter(s => toolsIn(s).length > 0);
+  const stages = ['in', 'work', 'out'].map(z => lit.filter(s => ZONE[s] === z).map(s => ({ x: P[s][0], y: P[s][1] })));
+  let prev = [start];
+  const flows = [];
+  for (const stage of stages) {
+    if (stage.length === 0) continue;
+    for (const a of prev) for (const b of stage) flows.push(curve(a, b));
+    prev = stage;
+  }
+  for (const a of prev) flows.push(curve(a, end));
+  for (const d of flows) el('path', { class: 'flow', d }, svg);
+  endCap(svg, start.x, start.y, 'AI');
+  endCap(svg, end.x, end.y, 'result');
+  for (const [slot, [x, y]] of Object.entries(P)) nodeAt(svg, slot, x, y);
+}
+
+/* B · how far it reaches */
+function drawReach(svg) {
+  svg.setAttribute('viewBox', '0 0 1000 600');
+  const c = { x: 560, y: 300 };
+  const rings = [[95, 'inside the server'], [175, 'your records'], [255, 'beyond the computer']];
+  for (const [r, label] of rings) {
+    el('circle', { class: 'ring', cx: c.x, cy: c.y, r }, svg);
+    const [lx, ly] = [c.x + r * Math.cos(-2.2), c.y + r * Math.sin(-2.2)];
+    text(svg, lx, ly - 6, 'ring-label', label, { 'text-anchor': 'end' });
+  }
+  const polar = (r, deg) => [c.x + r * Math.cos(deg * Math.PI / 180), c.y + r * Math.sin(deg * Math.PI / 180)];
+  const P = {
+    compute: polar(95, 200), sequence: polar(95, 320), invent: polar(95, 80),
+    read: polar(175, 150), write: polar(175, 20),
+    ask: polar(255, 150), share: polar(255, 100), delegate: polar(255, -55), act: polar(255, 35),
+  };
+  const ai = { x: 90, y: 300 };
+  el('path', { class: 'wire', d: `M ${ai.x + 37} ${ai.y} L ${c.x - 22} ${c.y}` }, svg);
+  for (const [slot, [x, y]] of Object.entries(P)) {
+    if (toolsIn(slot).length > 0) el('path', { class: 'flow', d: `M ${c.x} ${c.y} L ${x} ${y}` }, svg);
+  }
+  el('circle', { class: 'end', cx: c.x, cy: c.y, r: 24 }, svg);
+  text(svg, c.x, c.y + 4, 'end-text', server.name.length > 7 ? 'server' : server.name);
+  endCap(svg, ai.x, ai.y, 'AI');
+  for (const [slot, [x, y]] of Object.entries(P)) nodeAt(svg, slot, x, y, 70);
+}
+
+/* C · the workshop */
+function drawRoom(svg) {
+  svg.setAttribute('viewBox', '0 0 1000 540');
+  // the room
+  el('path', { class: 'wall', d: 'M 120 40 H 880 V 500 H 120 V 300 M 120 180 V 40' }, svg);
+  text(svg, 70, 236, 'furn-label', 'door');
+  text(svg, 70, 252, 'furn-label', 'from the AI');
+  el('path', { class: 'flow', d: 'M 40 270 H 120' }, svg);
+  // furniture
+  const furn = [
+    [170, 60, 660, 44, 'shelf of records'],
+    [330, 200, 340, 120, 'workbench'],
+    [140, 460, 330, 40, 'window to you'],
+    [800, 150, 70, 160, 'phone'],
+    [560, 456, 300, 44, 'loading dock'],
+  ];
+  for (const [x, y, w, h, label] of furn) {
+    el('rect', { class: 'furn', x, y, width: w, height: h, rx: 8 }, svg);
+  }
+  text(svg, 500, 132, 'furn-label', 'shelf of records');
+  text(svg, 500, 345, 'furn-label', 'workbench');
+  text(svg, 305, 445, 'furn-label', 'window to you');
+  text(svg, 835, 330, 'furn-label', 'another mind');
+  text(svg, 710, 445, 'furn-label', 'loading dock · the world');
+  const P = {
+    read: [360, 82], write: [640, 82],
+    compute: [390, 260], sequence: [500, 260], invent: [610, 260],
+    delegate: [835, 230],
+    ask: [235, 380], share: [375, 380],
+    act: [710, 380],
+  };
+  const door = { x: 120, y: 270 };
+  for (const [slot, [x, y]] of Object.entries(P)) {
+    if (toolsIn(slot).length > 0) el('path', { class: 'flow', d: curve(door, { x, y }) }, svg);
+  }
+  for (const [slot, [x, y]] of Object.entries(P)) nodeAt(svg, slot, x, y, 70);
+}
+
+/* C+ · entrance, workshop, neighbours */
+const nbName = id => (server.names && server.names[id]) || NEIGHBOURS[id].name;
+const deskOf = () => [...(server.desk || []), ...((server.builds && server.builds[server.build].desk) || [])];
+
+function neighbourAt(svg, id, x, y) {
+  const tools = toolsReaching(id);
+  const lit = tools.length > 0;
+  const g = el('g', { class: `node nb ${lit ? 'lit' : ''} ${pickedNeighbour === id ? 'picked' : ''}`, tabindex: lit ? 0 : -1, role: 'button', 'aria-label': `${nbName(id)}: ${lit ? 'reached by ' + tools.join(', ') : 'not reached'}` }, svg);
+  el('circle', { class: 'box', cx: x, cy: y, r: 30 }, g);
+  const icon = el('g', { class: 'ico', transform: `translate(${x - 14} ${y - 14}) scale(1.17)` }, g);
+  icon.innerHTML = NEIGHBOURS[id].icon;
+  const label = lit ? nbName(id) : NEIGHBOURS[id].name;
+  text(g, x, y + 48, 'name', label.length > 26 ? label.slice(0, 25) + '…' : label);
+  const pick = () => { if (lit) { pickedNeighbour = id; picked = null; render(); } };
+  g.addEventListener('click', pick);
+  g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+}
+
+function hostAt(svg, x, y, label, sub) {
+  el('rect', { class: 'host', x, y, width: 150, height: 120, rx: 16 }, svg);
+  const icon = el('g', { class: 'ico on', transform: `translate(${x + 54} ${y + 18}) scale(1.75)` }, svg);
+  icon.innerHTML = NEIGHBOURS.llm.icon;
+  text(svg, x + 75, y + 82, 'host-name', label);
+  text(svg, x + 75, y + 100, 'host-sub', sub);
+}
+
+function boardAt(svg, x, y, names, cls = 'board', head = 'tools/list') {
+  const shown = names.slice(0, 9);
+  el('rect', { class: cls, x, y, width: 132, height: 30 + shown.length * 15 + (names.length > 9 ? 15 : 0), rx: 6 }, svg);
+  text(svg, x + 10, y + 18, 'board-head', head);
+  shown.forEach((n, i) => text(svg, x + 10, y + 35 + i * 15, 'board-item', n.length > 18 ? n.slice(0, 17) + '…' : n));
+  if (names.length > 9) text(svg, x + 10, y + 35 + 9 * 15, 'board-item', `+${names.length - 9} more`);
+}
+
+function drawWorld(svg) {
+  svg.setAttribute('viewBox', '0 0 1240 800');
+  const R = { x: 380, y: 130, w: 600, h: 530 };
+  const { x, y, w, h } = R;
+  const building = server.building || 'room';
+  el('rect', { class: 'yard', x: 4, y: 4, width: 1232, height: 792, rx: 14 }, svg);
+
+  // outside, on the left: you and the AI app. The server never reaches you directly.
+  hostAt(svg, 20, 300, 'AI app', 'the model stays here');
+  if (building === 'shared') hostAt(svg, 20, 470, 'AI app B', 'another visitor');
+  const you = { x: 95, y: 200 };
+  el('path', { class: 'wire', d: `M ${you.x} ${you.y + 34} V 300` }, svg);
+  neighbourYou(svg, you.x, you.y);
+
+  // the entrance: MCP, the front desk
+  el('rect', { class: 'lobby', x: 205, y: 170, width: 175, height: 450, rx: 4 }, svg);
+  text(svg, 292, 196, 'zone-label', 'MCP', { 'text-anchor': 'middle' });
+  text(svg, 292, 212, 'lobby-sub', 'the front desk');
+  const names = server.tools.map(([n]) => n);
+  boardAt(svg, 226, 226, names);
+  deskOf().forEach((m, i) => text(svg, 292, 506 + i * 16, 'desk-msg', m, { 'text-anchor': 'middle' }));
+  text(svg, 292, 600, 'lobby-sub', 'the AI sees only the board');
+  el('path', { class: 'flow', d: 'M 170 360 H 300' }, svg);
+  if (building === 'shared') el('path', { class: 'flow', d: 'M 170 530 C 240 530, 240 360, 300 360' }, svg);
+  if (building === 'copy') {
+    boardAt(svg, 30, 470, names.slice(0, 2).concat(['(schema v1)']), 'board copy', 'generated CLI');
+    text(svg, 96, 580, 'lobby-sub', 'a copy, taken away');
+  }
+
+  // walls with openings: front door (left), records (top), phone (right), dock (bottom)
+  el('path', { class: 'wall', d: [
+    `M ${x} ${y + 200} V ${y} H ${x + 40}`,
+    `M ${x + 120} ${y} H ${x + 200}`, `M ${x + 280} ${y} H ${x + 380}`, `M ${x + 460} ${y} H ${x + w} V ${y + 140}`,
+    `M ${x + w} ${y + 300} V ${y + h} H ${x + 490}`, `M ${x + 410} ${y + h} H ${x} V ${y + 290}`,
+  ].join(' ') }, svg);
+  text(svg, x + 16, y + 26, 'zone-label', building === 'mall' ? 'Two servers behind one desk' : 'The server · its workshop');
+
+  const furn = [
+    [x + 30, y + 46, w - 60, 40], [x + 170, y + 200, 300, 120], [x + w - 60, y + 140, 44, 160],
+    [x + 330, y + h - 24, 240, 14],
+  ];
+  for (const [fx, fy, fw, fh] of furn) el('rect', { class: 'furn', x: fx, y: fy, width: fw, height: fh, rx: 8 }, svg);
+  text(svg, x + w / 2, y + 108, 'furn-label', 'shelf · records');
+  text(svg, x + 320, y + 340, 'furn-label', 'workbench');
+  text(svg, x + w - 38, y + 318, 'furn-label', 'phone');
+  text(svg, x + 450, y + h - 32, 'furn-label', 'loading dock');
+  text(svg, x + 120, y + 390, 'furn-label', 'back to the desk');
+
+  const P = {
+    read: [x + 160, y + 66], write: [x + 420, y + 66],
+    compute: [x + 230, y + 260], sequence: [x + 320, y + 260], invent: [x + 410, y + 260],
+    delegate: [x + w - 38, y + 220],
+    ask: [x + 120, y + 180], share: [x + 120, y + 330],
+    act: [x + 450, y + h - 90],
+  };
+  const N = {
+    web: [x + 80, 50], files: [x + 240, 50], store: [x + 420, 50],
+    llm: [1120, y + 140], program: [1120, y + 330],
+    world: [x + 450, 740],
+  };
+  const door = { x: 300, y: 360 };
+  const opening = { web: [x + 80, y], files: [x + 240, y], store: [x + 420, y], llm: [x + w, y + 220], program: [x + w, y + 220], world: [x + 450, y + h] };
+  const gates = server.gates || {};
+  const dark = building === 'dark';
+  for (const [slot, [sx, sy]] of Object.entries(P)) {
+    if (toolsIn(slot).length === 0) continue;
+    const back = slot === 'ask' || slot === 'share';
+    el('path', { class: `flow ${back ? 'back' : ''}`, d: curve(door, { x: sx, y: sy }) }, svg);
+    for (const nb of reachOf(slot)) {
+      const [nx, ny] = N[nb];
+      el('path', { class: 'flow out', d: `M ${sx} ${sy} L ${nx} ${ny}` }, svg);
+    }
+  }
+  // gates sit in the wall openings
+  for (const [nb, label] of Object.entries(gates)) {
+    if (toolsReaching(nb).length === 0) continue;
+    const [gx, gy] = opening[nb];
+    const vertical = gy === y || gy === y + h;
+    el('rect', { class: 'gate', x: vertical ? gx - 30 : gx - 5, y: vertical ? gy - 5 : gy - 30, width: vertical ? 60 : 10, height: vertical ? 10 : 60, rx: 3 }, svg);
+    text(svg, vertical ? gx + 36 : gx - 10, vertical ? gy + (gy === y ? 22 : -12) : gy - 38, 'gate-label', label, { 'text-anchor': vertical ? 'start' : 'end' });
+  }
+  if (dark) {
+    el('rect', { class: 'fog', x: x + 4, y: y + 4, width: w - 8, height: h - 8, rx: 6 }, svg);
+    text(svg, x + w / 2, y + h - 70, 'fog-text', 'Unknown room');
+    text(svg, x + w / 2, y + h - 50, 'fog-sub', 'slots are guesses from the wording; what they reach is not in the list');
+  }
+  for (const [slot, [sx, sy]] of Object.entries(P)) nodeAt(svg, slot, sx, sy, 64);
+  for (const [id, [nx, ny]] of Object.entries(N)) neighbourAt(svg, id, nx, ny);
+}
+
+function neighbourYou(svg, x, y) {
+  const lit = toolsIn('ask').length + toolsIn('share').length > 0;
+  const g = el('g', { class: `node nb ${lit ? 'lit' : ''}` }, svg);
+  el('circle', { class: 'box', cx: x, cy: y, r: 30 }, g);
+  const icon = el('g', { class: 'ico', transform: `translate(${x - 14} ${y - 14}) scale(1.17)` }, g);
+  icon.innerHTML = NEIGHBOURS.you.icon;
+  text(g, x + 40, y + 4, 'name', 'you', { 'text-anchor': 'start' });
+}
+
+function renderDetail() {
+  const box = document.getElementById('detail');
+  box.replaceChildren();
+  if (pickedNeighbour) {
+    const b = document.createElement('b');
+    b.textContent = NEIGHBOURS[pickedNeighbour].name;
+    const what = document.createElement('span');
+    what.className = 'muted';
+    what.textContent = 'reached by';
+    box.append(b, what, ...toolsReaching(pickedNeighbour).map(name => {
+      const t = document.createElement('span');
+      t.className = 'tool';
+      t.textContent = name;
+      return t;
+    }));
+    return;
+  }
+  if (!picked || toolsIn(picked).length === 0) {
+    const span = document.createElement('span');
+    span.className = 'muted';
+    span.textContent = 'Tap a lit slot or neighbour.';
+    box.append(span);
+    return;
+  }
+  const b = document.createElement('b');
+  b.textContent = SLOTS[picked].name;
+  const what = document.createElement('span');
+  what.className = 'muted';
+  what.textContent = SLOTS[picked].what;
+  const reach = reachOf(picked).map(id => NEIGHBOURS[id].name);
+  if (reach.length) what.textContent += ` · reaches ${reach.join(', ')}`;
+  box.append(b, what, ...toolsIn(picked).map(name => {
+    const t = document.createElement('span');
+    t.className = 'tool';
+    t.textContent = name;
+    return t;
+  }));
+}
+
+function render() {
+  const svg = document.getElementById('canvas');
+  svg.replaceChildren();
+  ({ world: drawWorld, flow: drawFlow, reach: drawReach, room: drawRoom })[layout](svg);
+  document.getElementById('idea').textContent = server.idea;
+  const builds = document.getElementById('builds');
+  builds.replaceChildren();
+  if (server.builds) {
+    const lab = document.createElement('span');
+    lab.className = 'label';
+    lab.textContent = 'Build';
+    builds.append(lab, ...server.builds.map((bd, i) => {
+      const b = document.createElement('button');
+      b.className = 'pill';
+      b.id = `build-${i}`;
+      b.textContent = bd.label;
+      b.setAttribute('aria-pressed', String(server.build === i));
+      b.addEventListener('click', () => { server.build = i; server.tools = bd.tools; picked = null; pickedNeighbour = null; render(); });
+      return b;
+    }));
+  }
+  document.querySelectorAll('#servers button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.id === server.id)));
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.layout === layout)));
+  renderDetail();
+}
+
+const bar = document.getElementById('servers');
+for (const s of SERVERS) {
+  const b = document.createElement('button');
+  b.className = 'pill';
+  b.id = `server-${s.id}`;
+  b.dataset.id = s.id;
+  b.textContent = s.name;
+  b.addEventListener('click', () => { server = s; picked = null; pickedNeighbour = null; render(); });
+  bar.append(b);
+}
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => { layout = b.dataset.layout; render(); }));
+render();
+</script>

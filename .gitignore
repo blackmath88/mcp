@@ -15,3 +15,7 @@ node_modules/
 *.sqlite*
 
 .codex/config.toml
+dist/
+.alchemy/
+*.tsbuildinfo
+public/pyodide/

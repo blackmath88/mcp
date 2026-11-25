@@ -1,0 +1,1781 @@
+{
+  "recordedAt": "2026-11-21T16:10:10.270Z",
+  "node": "v22.23.5",
+  "mcpSdk": "1.32.2",
+  "calm": {
+    "cli": {
+      "command": "npm run lab -- connect_places --from forge --to dock --json",
+      "exitCode": 0,
+      "stdout": {
+        "capability": "connect_places",
+        "inputJson": "{\"from\":\"forge\",\"to\":\"dock\"}",
+        "outcome": {
+          "_tag": "Succeeded",
+          "output": {
+            "_tag": "PlacesConnected",
+            "route": {
+              "places": ["forge", "mill", "kiln", "dock"],
+              "span": 6.4
+            },
+            "builtPaths": [
+              {
+                "from": "mill",
+                "to": "kiln",
+                "span": 2.2,
+                "builtInRevision": 1
+              }
+            ],
+            "revision": 1,
+            "artifact": {
+              "id": "connection-report-2",
+              "kind": "connection-report",
+              "revision": 1,
+              "summary": "Connected forge → mill → kiln → dock (span 6.4) by building mill–kiln (span 2.2)"
+            }
+          }
+        },
+        "events": [
+          {
+            "seq": 1,
+            "component": "catalogue",
+            "calledBy": "adapter",
+            "kind": "started",
+            "operation": "resolve connect_places",
+            "detail": ""
+          },
+          {
+            "seq": 2,
+            "component": "catalogue",
+            "calledBy": "adapter",
+            "kind": "succeeded",
+            "operation": "resolve connect_places",
+            "detail": "input accepted"
+          },
+          {
+            "seq": 3,
+            "component": "planner",
+            "calledBy": "catalogue",
+            "kind": "started",
+            "operation": "connect forge → dock",
+            "detail": ""
+          },
+          {
+            "seq": 4,
+            "component": "map",
+            "calledBy": "planner",
+            "kind": "started",
+            "operation": "read map",
+            "detail": ""
+          },
+          {
+            "seq": 5,
+            "component": "world-store",
+            "calledBy": "map",
+            "kind": "succeeded",
+            "operation": "read world",
+            "detail": "revision 0"
+          },
+          {
+            "seq": 6,
+            "component": "map",
+            "calledBy": "planner",
+            "kind": "succeeded",
+            "operation": "read map",
+            "detail": "5 places, 2 paths, revision 0"
+          },
+          {
+            "seq": 7,
+            "component": "map",
+            "calledBy": "planner",
+            "kind": "started",
+            "operation": "look for route forge → dock",
+            "detail": ""
+          },
+          {
+            "seq": 8,
+            "component": "world-store",
+            "calledBy": "map",
+            "kind": "succeeded",
+            "operation": "read world",
+            "detail": "revision 0"
+          },
+          {
+            "seq": 9,
+            "component": "map",
+            "calledBy": "planner",
+            "kind": "succeeded",
+            "operation": "look for route forge → dock",
+            "detail": "none yet"
+          },
+          {
+            "seq": 10,
+            "component": "planner",
+            "calledBy": "planner",
+            "kind": "succeeded",
+            "operation": "plan",
+            "detail": "shortest missing link is mill–kiln (span 2.2). The planner proposes; it does not check the limit."
+          },
+          {
+            "seq": 11,
+            "component": "validator",
+            "calledBy": "planner",
+            "kind": "started",
+            "operation": "check path mill–kiln",
+            "detail": ""
+          },
+          {
+            "seq": 12,
+            "component": "world-store",
+            "calledBy": "validator",
+            "kind": "succeeded",
+            "operation": "read world",
+            "detail": "revision 0"
+          },
+          {
+            "seq": 13,
+            "component": "validator",
+            "calledBy": "planner",
+            "kind": "succeeded",
+            "operation": "check path mill–kiln",
+            "detail": "span 2.2 is within the limit"
+          },
+          {
+            "seq": 14,
+            "component": "world-store",
+            "calledBy": "planner",
+            "kind": "state-changed",
+            "operation": "commit path",
+            "detail": "revision 0 → 1: added mill–kiln (span 2.2)"
+          },
+          {
+            "seq": 15,
+            "component": "artifact-store",
+            "calledBy": "planner",
+            "kind": "artifact-produced",
+            "operation": "store path",
+            "detail": "path-1: Path mill–kiln (span 2.2), built in revision 1"
+          },
+          {
+            "seq": 16,
+            "component": "map",
+            "calledBy": "planner",
+            "kind": "started",
+            "operation": "find route forge → dock",
+            "detail": ""
+          },
+          {
+            "seq": 17,
+            "component": "world-store",
+            "calledBy": "map",
+            "kind": "succeeded",
+            "operation": "read world",
+            "detail": "revision 1"
+          },
+          {
+            "seq": 18,
+            "component": "map",
+            "calledBy": "planner",
+            "kind": "succeeded",
+            "operation": "find route forge → dock",
+            "detail": "forge → mill → kiln → dock (span 6.4)"
+          },
+          {
+            "seq": 19,
+            "component": "artifact-store",
+            "calledBy": "planner",
+            "kind": "artifact-produced",
+            "operation": "store connection-report",
+            "detail": "connection-report-2: Connected forge → mill → kiln → dock (span 6.4) by building mill–kiln (span 2.2)"
+          },
+          {
+            "seq": 20,
+            "component": "planner",
+            "calledBy": "catalogue",
+            "kind": "succeeded",
+            "operation": "connect forge → dock",
+            "detail": "connection-report-2: Connected forge → mill → kiln → dock (span 6.4) by building mill–kiln (span 2.2)"
+          }
+        ],
+        "revisionBefore": 0,
+        "revisionAfter": 1
+      }
+    },
+    "mcp": [
+      {
+        "direction": "client → server",
+        "message": {
+          "method": "initialize",
+          "params": {
+            "protocolVersion": "2025-11-25",
+            "capabilities": {},
+            "clientInfo": {
+              "name": "mcp-lab-recorder",
+              "version": "0.1.0"
+            }
+          },
+          "jsonrpc": "2.0",
+          "id": 0
+        }
+      },
+      {
+        "direction": "server → client",
+        "message": {
+          "jsonrpc": "2.0",
+          "id": 0,
+          "result": {
+            "protocolVersion": "2025-11-25",
+            "capabilities": {
+              "tools": {},
+              "resources": {}
+            },
+            "serverInfo": {
+              "name": "mcp-lab-valley",
+              "version": "0.1.0"
+            }
+          }
+        }
+      },
+      {
+        "direction": "client → server",
+        "message": {
+          "method": "notifications/initialized",
+          "jsonrpc": "2.0"
+        }
+      },
+      {
+        "direction": "client → server",
+        "message": {
+          "method": "tools/list",
+          "jsonrpc": "2.0",
+          "id": 1
+        }
+      },
+      {
+        "direction": "server → client",
+        "message": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "result": {
+            "tools": [
+              {
+                "name": "read_map",
+                "title": "Map",
+                "description": "Read the map of the valley: every place, every path and the span limit.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "find_route",
+                "title": "Route finder",
+                "description": "Find the shortest route between two places along existing paths.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    },
+                    "to": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    }
+                  },
+                  "required": ["from", "to"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "build_path",
+                "title": "Path builder",
+                "description": "Build one new path between two places. Refused when the span exceeds the limit or the path exists.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    },
+                    "to": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    }
+                  },
+                  "required": ["from", "to"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "connect_places",
+                "title": "Connection workshop",
+                "description": "Connect two places by any means: inspect the map, plan the shortest missing link, validate it, build it and report.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    },
+                    "to": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    }
+                  },
+                  "required": ["from", "to"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "fetch_page",
+                "title": "Page fetcher",
+                "description": "Fetch a page of the synthetic site valley.test and return it as Markdown. Follows redirects.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "enum": [
+                        "https://valley.test/welcome",
+                        "https://valley.test/notice",
+                        "https://valley.test/ledger",
+                        "https://valley.test/loop"
+                      ]
+                    }
+                  },
+                  "required": ["url"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "remember",
+                "title": "Remember",
+                "description": "Store one observation about an entity in the knowledge graph.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "type": "string",
+                      "enum": ["Workshop A", "Workshop B"]
+                    },
+                    "observation": {
+                      "type": "string",
+                      "enum": [
+                        "belongs to Team Blue",
+                        "belongs to Team Red",
+                        "contains a renderer"
+                      ]
+                    }
+                  },
+                  "required": ["entity", "observation"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "recall",
+                "title": "Recall",
+                "description": "Return everything stored about an entity.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "type": "string",
+                      "enum": ["Workshop A", "Workshop B"]
+                    }
+                  },
+                  "required": ["entity"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "plan_steps",
+                "title": "Step planner",
+                "description": "Think step by step about a goal and return an ordered plan.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    },
+                    "to": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    },
+                    "thoughts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": ["from", "to"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "read_file",
+                "title": "File reader",
+                "description": "Read a text file inside the allowed directories.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "enum": [
+                        "/valley/forge/orders.txt",
+                        "/valley/forge/plans/bridge.txt",
+                        "/valley/mill/ledger.txt"
+                      ]
+                    }
+                  },
+                  "required": ["path"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "take_snapshot",
+                "title": "Page snapshot",
+                "description": "Capture the accessibility snapshot of the page: every control that has a role and a name.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "click",
+                "title": "Click",
+                "description": "Click one control on the page.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "target": {
+                      "type": "string",
+                      "enum": ["gate", "lever", "valve", "bell"]
+                    }
+                  },
+                  "required": ["target"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "generate_cli",
+                "title": "CLI generator",
+                "description": "Generate a standalone CLI from the server’s current tool schema.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "call_live",
+                "title": "Live call",
+                "description": "Ship crates by listing the server’s tools first, then calling.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "call_generated",
+                "title": "Generated CLI",
+                "description": "Ship crates through the generated CLI and its embedded schema.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "go_to",
+                "title": "Go to",
+                "description": "Tell the server to move to a place. It remembers one current place.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "client": {
+                      "type": "string",
+                      "enum": ["A", "B"]
+                    },
+                    "place": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "kiln", "dock"]
+                    }
+                  },
+                  "required": ["client", "place"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "where_am_i",
+                "title": "Where am I",
+                "description": "Ask the server for its current place.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "client": {
+                      "type": "string",
+                      "enum": ["A", "B"]
+                    }
+                  },
+                  "required": ["client"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "show_map",
+                "title": "Show map",
+                "description": "Open an interactive map centred on a place. The person can move it afterwards.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "place": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "kiln", "dock"]
+                    }
+                  },
+                  "required": ["place"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "get_current_view",
+                "title": "Current view",
+                "description": "Ask the open map app where it is looking right now.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "run_as_calls",
+                "title": "Three calls",
+                "description": "Write three ledger entries as three separate tool calls.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "run_as_program",
+                "title": "One program",
+                "description": "Write three ledger entries by executing one small program in a sandbox.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "ask_expert",
+                "title": "Ask",
+                "description": "Ask the expert whether the Forge and the Dock are connected.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "review_plan",
+                "title": "Review",
+                "description": "Ask the expert to review the plan \"go through the Archive\".",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "deliver_plan",
+                "title": "Deliver",
+                "description": "Have the expert produce and store a route plan from the Forge to the Dock.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "refine_plan",
+                "title": "Refine",
+                "description": "Write a draft, have it rated, and refine it until it is good enough or the limit is reached.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "crash_and_resume",
+                "title": "Crash and resume",
+                "description": "Run the same loop, crash after two drafts, and continue.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "list_inventory",
+                "title": "Inventory",
+                "description": "List the tools offered through the one entrance in front of two backends.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "call_tool",
+                "title": "Call",
+                "description": "Call one tool from the merged inventory.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["name"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "direction": "client → server",
+        "message": {
+          "method": "tools/call",
+          "params": {
+            "name": "connect_places",
+            "arguments": {
+              "from": "forge",
+              "to": "dock"
+            }
+          },
+          "jsonrpc": "2.0",
+          "id": 2
+        }
+      },
+      {
+        "direction": "server → client",
+        "message": {
+          "jsonrpc": "2.0",
+          "id": 2,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "OK connection-report-2: Connected forge → mill → kiln → dock (span 6.4) by building mill–kiln (span 2.2)\nrevision 0 → 1\nengine events:\n 1  adapter → catalogue  started  resolve connect_places\n 2  adapter → catalogue  succeeded  resolve connect_places  [input accepted]\n 3  catalogue → planner  started  connect forge → dock\n 4  planner → map  started  read map\n 5  map → world-store  succeeded  read world  [revision 0]\n 6  planner → map  succeeded  read map  [5 places, 2 paths, revision 0]\n 7  planner → map  started  look for route forge → dock\n 8  map → world-store  succeeded  read world  [revision 0]\n 9  planner → map  succeeded  look for route forge → dock  [none yet]\n10  planner → planner  succeeded  plan  [shortest missing link is mill–kiln (span 2.2). The planner proposes; it does not check the limit.]\n11  planner → validator  started  check path mill–kiln\n12  validator → world-store  succeeded  read world  [revision 0]\n13  planner → validator  succeeded  check path mill–kiln  [span 2.2 is within the limit]\n14  planner → world-store  state-changed  commit path  [revision 0 → 1: added mill–kiln (span 2.2)]\n15  planner → artifact-store  artifact-produced  store path  [path-1: Path mill–kiln (span 2.2), built in revision 1]\n16  planner → map  started  find route forge → dock\n17  map → world-store  succeeded  read world  [revision 1]\n18  planner → map  succeeded  find route forge → dock  [forge → mill → kiln → dock (span 6.4)]\n19  planner → artifact-store  artifact-produced  store connection-report  [connection-report-2: Connected forge → mill → kiln → dock (span 6.4) by building mill–kiln (span 2.2)]\n20  catalogue → planner  succeeded  connect forge → dock  [connection-report-2: Connected forge → mill → kiln → dock (span 6.4) by building mill–kiln (span 2.2)]"
+              }
+            ],
+            "structuredContent": {
+              "capability": "connect_places",
+              "inputJson": "{\"from\":\"forge\",\"to\":\"dock\"}",
+              "outcome": {
+                "_tag": "Succeeded",
+                "output": {
+                  "_tag": "PlacesConnected",
+                  "route": {
+                    "places": ["forge", "mill", "kiln", "dock"],
+                    "span": 6.4
+                  },
+                  "builtPaths": [
+                    {
+                      "from": "mill",
+                      "to": "kiln",
+                      "span": 2.2,
+                      "builtInRevision": 1
+                    }
+                  ],
+                  "revision": 1,
+                  "artifact": {
+                    "id": "connection-report-2",
+                    "kind": "connection-report",
+                    "revision": 1,
+                    "summary": "Connected forge → mill → kiln → dock (span 6.4) by building mill–kiln (span 2.2)"
+                  }
+                }
+              },
+              "events": [
+                {
+                  "seq": 1,
+                  "component": "catalogue",
+                  "calledBy": "adapter",
+                  "kind": "started",
+                  "operation": "resolve connect_places",
+                  "detail": ""
+                },
+                {
+                  "seq": 2,
+                  "component": "catalogue",
+                  "calledBy": "adapter",
+                  "kind": "succeeded",
+                  "operation": "resolve connect_places",
+                  "detail": "input accepted"
+                },
+                {
+                  "seq": 3,
+                  "component": "planner",
+                  "calledBy": "catalogue",
+                  "kind": "started",
+                  "operation": "connect forge → dock",
+                  "detail": ""
+                },
+                {
+                  "seq": 4,
+                  "component": "map",
+                  "calledBy": "planner",
+                  "kind": "started",
+                  "operation": "read map",
+                  "detail": ""
+                },
+                {
+                  "seq": 5,
+                  "component": "world-store",
+                  "calledBy": "map",
+                  "kind": "succeeded",
+                  "operation": "read world",
+                  "detail": "revision 0"
+                },
+                {
+                  "seq": 6,
+                  "component": "map",
+                  "calledBy": "planner",
+                  "kind": "succeeded",
+                  "operation": "read map",
+                  "detail": "5 places, 2 paths, revision 0"
+                },
+                {
+                  "seq": 7,
+                  "component": "map",
+                  "calledBy": "planner",
+                  "kind": "started",
+                  "operation": "look for route forge → dock",
+                  "detail": ""
+                },
+                {
+                  "seq": 8,
+                  "component": "world-store",
+                  "calledBy": "map",
+                  "kind": "succeeded",
+                  "operation": "read world",
+                  "detail": "revision 0"
+                },
+                {
+                  "seq": 9,
+                  "component": "map",
+                  "calledBy": "planner",
+                  "kind": "succeeded",
+                  "operation": "look for route forge → dock",
+                  "detail": "none yet"
+                },
+                {
+                  "seq": 10,
+                  "component": "planner",
+                  "calledBy": "planner",
+                  "kind": "succeeded",
+                  "operation": "plan",
+                  "detail": "shortest missing link is mill–kiln (span 2.2). The planner proposes; it does not check the limit."
+                },
+                {
+                  "seq": 11,
+                  "component": "validator",
+                  "calledBy": "planner",
+                  "kind": "started",
+                  "operation": "check path mill–kiln",
+                  "detail": ""
+                },
+                {
+                  "seq": 12,
+                  "component": "world-store",
+                  "calledBy": "validator",
+                  "kind": "succeeded",
+                  "operation": "read world",
+                  "detail": "revision 0"
+                },
+                {
+                  "seq": 13,
+                  "component": "validator",
+                  "calledBy": "planner",
+                  "kind": "succeeded",
+                  "operation": "check path mill–kiln",
+                  "detail": "span 2.2 is within the limit"
+                },
+                {
+                  "seq": 14,
+                  "component": "world-store",
+                  "calledBy": "planner",
+                  "kind": "state-changed",
+                  "operation": "commit path",
+                  "detail": "revision 0 → 1: added mill–kiln (span 2.2)"
+                },
+                {
+                  "seq": 15,
+                  "component": "artifact-store",
+                  "calledBy": "planner",
+                  "kind": "artifact-produced",
+                  "operation": "store path",
+                  "detail": "path-1: Path mill–kiln (span 2.2), built in revision 1"
+                },
+                {
+                  "seq": 16,
+                  "component": "map",
+                  "calledBy": "planner",
+                  "kind": "started",
+                  "operation": "find route forge → dock",
+                  "detail": ""
+                },
+                {
+                  "seq": 17,
+                  "component": "world-store",
+                  "calledBy": "map",
+                  "kind": "succeeded",
+                  "operation": "read world",
+                  "detail": "revision 1"
+                },
+                {
+                  "seq": 18,
+                  "component": "map",
+                  "calledBy": "planner",
+                  "kind": "succeeded",
+                  "operation": "find route forge → dock",
+                  "detail": "forge → mill → kiln → dock (span 6.4)"
+                },
+                {
+                  "seq": 19,
+                  "component": "artifact-store",
+                  "calledBy": "planner",
+                  "kind": "artifact-produced",
+                  "operation": "store connection-report",
+                  "detail": "connection-report-2: Connected forge → mill → kiln → dock (span 6.4) by building mill–kiln (span 2.2)"
+                },
+                {
+                  "seq": 20,
+                  "component": "planner",
+                  "calledBy": "catalogue",
+                  "kind": "succeeded",
+                  "operation": "connect forge → dock",
+                  "detail": "connection-report-2: Connected forge → mill → kiln → dock (span 6.4) by building mill–kiln (span 2.2)"
+                }
+              ],
+              "revisionBefore": 0,
+              "revisionAfter": 1
+            },
+            "isError": false
+          }
+        }
+      }
+    ]
+  },
+  "storm": {
+    "cli": {
+      "command": "npm run lab -- connect_places --from forge --to dock --storm --json",
+      "exitCode": 1,
+      "stdout": {
+        "capability": "connect_places",
+        "inputJson": "{\"from\":\"forge\",\"to\":\"dock\"}",
+        "outcome": {
+          "_tag": "Failed",
+          "error": "PathTooLong",
+          "message": "A path from mill to kiln would span 2.2; the limit is 2."
+        },
+        "events": [
+          {
+            "seq": 1,
+            "component": "catalogue",
+            "calledBy": "adapter",
+            "kind": "started",
+            "operation": "resolve connect_places",
+            "detail": ""
+          },
+          {
+            "seq": 2,
+            "component": "catalogue",
+            "calledBy": "adapter",
+            "kind": "succeeded",
+            "operation": "resolve connect_places",
+            "detail": "input accepted"
+          },
+          {
+            "seq": 3,
+            "component": "planner",
+            "calledBy": "catalogue",
+            "kind": "started",
+            "operation": "connect forge → dock",
+            "detail": ""
+          },
+          {
+            "seq": 4,
+            "component": "map",
+            "calledBy": "planner",
+            "kind": "started",
+            "operation": "read map",
+            "detail": ""
+          },
+          {
+            "seq": 5,
+            "component": "world-store",
+            "calledBy": "map",
+            "kind": "succeeded",
+            "operation": "read world",
+            "detail": "revision 0"
+          },
+          {
+            "seq": 6,
+            "component": "map",
+            "calledBy": "planner",
+            "kind": "succeeded",
+            "operation": "read map",
+            "detail": "5 places, 2 paths, revision 0"
+          },
+          {
+            "seq": 7,
+            "component": "map",
+            "calledBy": "planner",
+            "kind": "started",
+            "operation": "look for route forge → dock",
+            "detail": ""
+          },
+          {
+            "seq": 8,
+            "component": "world-store",
+            "calledBy": "map",
+            "kind": "succeeded",
+            "operation": "read world",
+            "detail": "revision 0"
+          },
+          {
+            "seq": 9,
+            "component": "map",
+            "calledBy": "planner",
+            "kind": "succeeded",
+            "operation": "look for route forge → dock",
+            "detail": "none yet"
+          },
+          {
+            "seq": 10,
+            "component": "planner",
+            "calledBy": "planner",
+            "kind": "succeeded",
+            "operation": "plan",
+            "detail": "shortest missing link is mill–kiln (span 2.2). The planner proposes; it does not check the limit."
+          },
+          {
+            "seq": 11,
+            "component": "validator",
+            "calledBy": "planner",
+            "kind": "started",
+            "operation": "check path mill–kiln",
+            "detail": ""
+          },
+          {
+            "seq": 12,
+            "component": "world-store",
+            "calledBy": "validator",
+            "kind": "succeeded",
+            "operation": "read world",
+            "detail": "revision 0"
+          },
+          {
+            "seq": 13,
+            "component": "validator",
+            "calledBy": "planner",
+            "kind": "failed",
+            "operation": "check path mill–kiln",
+            "detail": "A path from mill to kiln would span 2.2; the limit is 2."
+          },
+          {
+            "seq": 14,
+            "component": "planner",
+            "calledBy": "catalogue",
+            "kind": "failed",
+            "operation": "connect forge → dock",
+            "detail": "A path from mill to kiln would span 2.2; the limit is 2."
+          }
+        ],
+        "revisionBefore": 0,
+        "revisionAfter": 0
+      }
+    },
+    "mcp": [
+      {
+        "direction": "client → server",
+        "message": {
+          "method": "initialize",
+          "params": {
+            "protocolVersion": "2025-11-25",
+            "capabilities": {},
+            "clientInfo": {
+              "name": "mcp-lab-recorder",
+              "version": "0.1.0"
+            }
+          },
+          "jsonrpc": "2.0",
+          "id": 0
+        }
+      },
+      {
+        "direction": "server → client",
+        "message": {
+          "jsonrpc": "2.0",
+          "id": 0,
+          "result": {
+            "protocolVersion": "2025-11-25",
+            "capabilities": {
+              "tools": {},
+              "resources": {}
+            },
+            "serverInfo": {
+              "name": "mcp-lab-valley",
+              "version": "0.1.0"
+            }
+          }
+        }
+      },
+      {
+        "direction": "client → server",
+        "message": {
+          "method": "notifications/initialized",
+          "jsonrpc": "2.0"
+        }
+      },
+      {
+        "direction": "client → server",
+        "message": {
+          "method": "tools/list",
+          "jsonrpc": "2.0",
+          "id": 1
+        }
+      },
+      {
+        "direction": "server → client",
+        "message": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "result": {
+            "tools": [
+              {
+                "name": "read_map",
+                "title": "Map",
+                "description": "Read the map of the valley: every place, every path and the span limit.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "find_route",
+                "title": "Route finder",
+                "description": "Find the shortest route between two places along existing paths.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    },
+                    "to": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    }
+                  },
+                  "required": ["from", "to"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "build_path",
+                "title": "Path builder",
+                "description": "Build one new path between two places. Refused when the span exceeds the limit or the path exists.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    },
+                    "to": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    }
+                  },
+                  "required": ["from", "to"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "connect_places",
+                "title": "Connection workshop",
+                "description": "Connect two places by any means: inspect the map, plan the shortest missing link, validate it, build it and report.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    },
+                    "to": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    }
+                  },
+                  "required": ["from", "to"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "fetch_page",
+                "title": "Page fetcher",
+                "description": "Fetch a page of the synthetic site valley.test and return it as Markdown. Follows redirects.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "enum": [
+                        "https://valley.test/welcome",
+                        "https://valley.test/notice",
+                        "https://valley.test/ledger",
+                        "https://valley.test/loop"
+                      ]
+                    }
+                  },
+                  "required": ["url"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "remember",
+                "title": "Remember",
+                "description": "Store one observation about an entity in the knowledge graph.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "type": "string",
+                      "enum": ["Workshop A", "Workshop B"]
+                    },
+                    "observation": {
+                      "type": "string",
+                      "enum": [
+                        "belongs to Team Blue",
+                        "belongs to Team Red",
+                        "contains a renderer"
+                      ]
+                    }
+                  },
+                  "required": ["entity", "observation"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "recall",
+                "title": "Recall",
+                "description": "Return everything stored about an entity.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "type": "string",
+                      "enum": ["Workshop A", "Workshop B"]
+                    }
+                  },
+                  "required": ["entity"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "plan_steps",
+                "title": "Step planner",
+                "description": "Think step by step about a goal and return an ordered plan.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    },
+                    "to": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "archive", "kiln", "dock"]
+                    },
+                    "thoughts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": ["from", "to"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "read_file",
+                "title": "File reader",
+                "description": "Read a text file inside the allowed directories.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "enum": [
+                        "/valley/forge/orders.txt",
+                        "/valley/forge/plans/bridge.txt",
+                        "/valley/mill/ledger.txt"
+                      ]
+                    }
+                  },
+                  "required": ["path"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "take_snapshot",
+                "title": "Page snapshot",
+                "description": "Capture the accessibility snapshot of the page: every control that has a role and a name.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "click",
+                "title": "Click",
+                "description": "Click one control on the page.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "target": {
+                      "type": "string",
+                      "enum": ["gate", "lever", "valve", "bell"]
+                    }
+                  },
+                  "required": ["target"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "generate_cli",
+                "title": "CLI generator",
+                "description": "Generate a standalone CLI from the server’s current tool schema.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "call_live",
+                "title": "Live call",
+                "description": "Ship crates by listing the server’s tools first, then calling.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "call_generated",
+                "title": "Generated CLI",
+                "description": "Ship crates through the generated CLI and its embedded schema.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "go_to",
+                "title": "Go to",
+                "description": "Tell the server to move to a place. It remembers one current place.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "client": {
+                      "type": "string",
+                      "enum": ["A", "B"]
+                    },
+                    "place": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "kiln", "dock"]
+                    }
+                  },
+                  "required": ["client", "place"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "where_am_i",
+                "title": "Where am I",
+                "description": "Ask the server for its current place.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "client": {
+                      "type": "string",
+                      "enum": ["A", "B"]
+                    }
+                  },
+                  "required": ["client"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "show_map",
+                "title": "Show map",
+                "description": "Open an interactive map centred on a place. The person can move it afterwards.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "place": {
+                      "type": "string",
+                      "enum": ["forge", "mill", "kiln", "dock"]
+                    }
+                  },
+                  "required": ["place"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "get_current_view",
+                "title": "Current view",
+                "description": "Ask the open map app where it is looking right now.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "run_as_calls",
+                "title": "Three calls",
+                "description": "Write three ledger entries as three separate tool calls.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "run_as_program",
+                "title": "One program",
+                "description": "Write three ledger entries by executing one small program in a sandbox.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "ask_expert",
+                "title": "Ask",
+                "description": "Ask the expert whether the Forge and the Dock are connected.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "review_plan",
+                "title": "Review",
+                "description": "Ask the expert to review the plan \"go through the Archive\".",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "deliver_plan",
+                "title": "Deliver",
+                "description": "Have the expert produce and store a route plan from the Forge to the Dock.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "refine_plan",
+                "title": "Refine",
+                "description": "Write a draft, have it rated, and refine it until it is good enough or the limit is reached.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "crash_and_resume",
+                "title": "Crash and resume",
+                "description": "Run the same loop, crash after two drafts, and continue.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "list_inventory",
+                "title": "Inventory",
+                "description": "List the tools offered through the one entrance in front of two backends.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": true
+                }
+              },
+              {
+                "name": "call_tool",
+                "title": "Call",
+                "description": "Call one tool from the merged inventory.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["name"],
+                  "additionalProperties": false
+                },
+                "annotations": {
+                  "readOnlyHint": false
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "direction": "client → server",
+        "message": {
+          "method": "tools/call",
+          "params": {
+            "name": "connect_places",
+            "arguments": {
+              "from": "forge",
+              "to": "dock"
+            }
+          },
+          "jsonrpc": "2.0",
+          "id": 2
+        }
+      },
+      {
+        "direction": "server → client",
+        "message": {
+          "jsonrpc": "2.0",
+          "id": 2,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "FAILED PathTooLong: A path from mill to kiln would span 2.2; the limit is 2.\nrevision 0 → 0\nengine events:\n 1  adapter → catalogue  started  resolve connect_places\n 2  adapter → catalogue  succeeded  resolve connect_places  [input accepted]\n 3  catalogue → planner  started  connect forge → dock\n 4  planner → map  started  read map\n 5  map → world-store  succeeded  read world  [revision 0]\n 6  planner → map  succeeded  read map  [5 places, 2 paths, revision 0]\n 7  planner → map  started  look for route forge → dock\n 8  map → world-store  succeeded  read world  [revision 0]\n 9  planner → map  succeeded  look for route forge → dock  [none yet]\n10  planner → planner  succeeded  plan  [shortest missing link is mill–kiln (span 2.2). The planner proposes; it does not check the limit.]\n11  planner → validator  started  check path mill–kiln\n12  validator → world-store  succeeded  read world  [revision 0]\n13  planner → validator  failed  check path mill–kiln  [A path from mill to kiln would span 2.2; the limit is 2.]\n14  catalogue → planner  failed  connect forge → dock  [A path from mill to kiln would span 2.2; the limit is 2.]"
+              }
+            ],
+            "structuredContent": {
+              "capability": "connect_places",
+              "inputJson": "{\"from\":\"forge\",\"to\":\"dock\"}",
+              "outcome": {
+                "_tag": "Failed",
+                "error": "PathTooLong",
+                "message": "A path from mill to kiln would span 2.2; the limit is 2."
+              },
+              "events": [
+                {
+                  "seq": 1,
+                  "component": "catalogue",
+                  "calledBy": "adapter",
+                  "kind": "started",
+                  "operation": "resolve connect_places",
+                  "detail": ""
+                },
+                {
+                  "seq": 2,
+                  "component": "catalogue",
+                  "calledBy": "adapter",
+                  "kind": "succeeded",
+                  "operation": "resolve connect_places",
+                  "detail": "input accepted"
+                },
+                {
+                  "seq": 3,
+                  "component": "planner",
+                  "calledBy": "catalogue",
+                  "kind": "started",
+                  "operation": "connect forge → dock",
+                  "detail": ""
+                },
+                {
+                  "seq": 4,
+                  "component": "map",
+                  "calledBy": "planner",
+                  "kind": "started",
+                  "operation": "read map",
+                  "detail": ""
+                },
+                {
+                  "seq": 5,
+                  "component": "world-store",
+                  "calledBy": "map",
+                  "kind": "succeeded",
+                  "operation": "read world",
+                  "detail": "revision 0"
+                },
+                {
+                  "seq": 6,
+                  "component": "map",
+                  "calledBy": "planner",
+                  "kind": "succeeded",
+                  "operation": "read map",
+                  "detail": "5 places, 2 paths, revision 0"
+                },
+                {
+                  "seq": 7,
+                  "component": "map",
+                  "calledBy": "planner",
+                  "kind": "started",
+                  "operation": "look for route forge → dock",
+                  "detail": ""
+                },
+                {
+                  "seq": 8,
+                  "component": "world-store",
+                  "calledBy": "map",
+                  "kind": "succeeded",
+                  "operation": "read world",
+                  "detail": "revision 0"
+                },
+                {
+                  "seq": 9,
+                  "component": "map",
+                  "calledBy": "planner",
+                  "kind": "succeeded",
+                  "operation": "look for route forge → dock",
+                  "detail": "none yet"
+                },
+                {
+                  "seq": 10,
+                  "component": "planner",
+                  "calledBy": "planner",
+                  "kind": "succeeded",
+                  "operation": "plan",
+                  "detail": "shortest missing link is mill–kiln (span 2.2). The planner proposes; it does not check the limit."
+                },
+                {
+                  "seq": 11,
+                  "component": "validator",
+                  "calledBy": "planner",
+                  "kind": "started",
+                  "operation": "check path mill–kiln",
+                  "detail": ""
+                },
+                {
+                  "seq": 12,
+                  "component": "world-store",
+                  "calledBy": "validator",
+                  "kind": "succeeded",
+                  "operation": "read world",
+                  "detail": "revision 0"
+                },
+                {
+                  "seq": 13,
+                  "component": "validator",
+                  "calledBy": "planner",
+                  "kind": "failed",
+                  "operation": "check path mill–kiln",
+                  "detail": "A path from mill to kiln would span 2.2; the limit is 2."
+                },
+                {
+                  "seq": 14,
+                  "component": "planner",
+                  "calledBy": "catalogue",
+                  "kind": "failed",
+                  "operation": "connect forge → dock",
+                  "detail": "A path from mill to kiln would span 2.2; the limit is 2."
+                }
+              ],
+              "revisionBefore": 0,
+              "revisionAfter": 0
+            },
+            "isError": true
+          }
+        }
+      }
+    ]
+  }
+}
