@@ -2,7 +2,7 @@
 // the route navigation sits below the content, and on desktop the workbench
 // scrolls on its own, so without this the next page opens part-way down.
 const NAVIGATING =
-  '.nav-row, .route-step, .landing-actions button, .lib-station-head button, .story-nav button, .atlas-doors button, .brand'
+  '.nav-row, .route-step, .landing-actions button, .lib-station-head button, .story-nav button, .atlas-doors button, .brand, .crit-links .pop-btn'
 
 const SCROLLERS = '.workbench, .atlas-main, .library, .intro'
 

@@ -127,7 +127,12 @@ export const landingView = (model: Model, h: H): Html =>
                 ),
               ),
               h.div(
-                [h.Class('landing-terrain'), h.AriaHidden(true)],
+                [
+                  h.Class('landing-terrain'),
+                  h.AriaHidden(true),
+                  h.DataAttribute('perch', '3'),
+                  h.DataAttribute('perch-steps', ''),
+                ],
                 Array.map(modules, (module, index) =>
                   h.keyed('span')(
                     module.id,
@@ -138,7 +143,6 @@ export const landingView = (model: Model, h: H): Html =>
                           terrainRise[index % terrainRise.length] ?? 1,
                         ),
                       }),
-                      h.DataAttribute('perch', ''),
                     ],
                     [],
                   ),

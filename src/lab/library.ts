@@ -184,8 +184,11 @@ const ownCardView = (critter: Critter, h: H): Html =>
         [
           h.span([h.Class('lib-kind kind-weird')], ['Weird, too']),
           h.span(
-            [h.Class('lib-ev ev-research'), h.Title(critter.evidence.note)],
-            [evidenceNames.research],
+            [
+              h.Class(`lib-ev ev-${ownEvidence(critter)}`),
+              h.Title(critter.evidence.note),
+            ],
+            [evidenceNames[ownEvidence(critter)]],
           ),
         ],
       ),
@@ -208,6 +211,9 @@ const ownCardView = (critter: Critter, h: H): Html =>
       ),
     ],
   )
+
+const ownEvidence = (critter: Critter): EvidenceKind =>
+  isEvidence(critter.evidence.kind) ? critter.evidence.kind : 'author'
 
 const extraCards = (station: string, h: H): ReadonlyArray<Html> =>
   Array.map(

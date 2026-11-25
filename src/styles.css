@@ -4109,6 +4109,13 @@ button.ws-chip {
   align-items: center;
   gap: 8px;
   margin: 4px 0 0;
+  /* A stage: the empty space above the chips is where their critters stand. */
+  padding-top: 80px;
+}
+@media (max-width: 600px) {
+  .crit-neighbours {
+    padding-top: 62px;
+  }
 }
 .crit-chip {
   display: inline-flex;
@@ -4143,7 +4150,7 @@ button.ws-chip {
 }
 .terrain-block {
   height: calc(var(--rise, 1) * 14px + 4px);
-  background: var(--tint);
+  background: color-mix(in srgb, var(--hue) 34%, var(--tint));
   border-top: 4px solid var(--hue);
   image-rendering: pixelated;
 }
@@ -4235,6 +4242,10 @@ button.ws-chip {
     height: 54px;
   }
 }
+.critter-layer.probing,
+.critter-layer.probing * {
+  pointer-events: none !important;
+}
 .crit-bubble {
   position: absolute;
   left: 0;
@@ -4250,7 +4261,7 @@ button.ws-chip {
   box-shadow: 4px 4px 0 var(--ink);
   font-size: 13px;
   line-height: 1.4;
-  pointer-events: auto;
+  pointer-events: none;
 }
 .crit-bubble::after {
   content: '';
@@ -4287,6 +4298,7 @@ button.ws-chip {
 }
 .crit-pop {
   position: absolute;
+  z-index: 2;
   left: 0;
   top: 0;
   width: min(330px, calc(100vw - 24px));
