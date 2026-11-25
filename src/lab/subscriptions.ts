@@ -3,8 +3,9 @@ import { Subscription } from 'foldkit'
 
 import { ASK_EVENT } from '../adapters/in-tab-mcp.ts'
 import { slotForKey } from './belt.ts'
+import { CRITTER_STATION_EVENT } from './critters/walker.ts'
 import { Message } from './message.ts'
-import type { Model } from './model.ts'
+import { type Model, Station } from './model.ts'
 
 const isTypingTarget = (target: EventTarget | null): boolean =>
   target instanceof HTMLElement &&
@@ -23,6 +24,26 @@ export const subscriptions = Subscription.make<Model, Message>()(entry => ({
               Stream.map(() => Message.ClickedCanvasFull({ on: false })),
             )
           : Stream.empty,
+    },
+  ),
+  critterStation: entry(
+    {},
+    {
+      modelToDependencies: () => ({}),
+      dependenciesToStream: () =>
+        Stream.fromEventListener<CustomEvent<unknown>>(
+          window,
+          CRITTER_STATION_EVENT,
+        ).pipe(
+          Stream.filter(event => Schema.is(Station)(event.detail)),
+          Stream.map(event =>
+            Message.SelectedStation({
+              station: Schema.is(Station)(event.detail)
+                ? event.detail
+                : 'fetch',
+            }),
+          ),
+        ),
     },
   ),
   serverAsks: entry(

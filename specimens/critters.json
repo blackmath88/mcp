@@ -1,0 +1,107 @@
+{
+  "about": "The menagerie: weird real MCP servers as pixel critters. Each critter makes one joke about what its server's name or pitch oversells; the fact it opens is the library entry's own description. Six point at existing library entries; two (LSD MCP, Consciousness Bridge) carry their own entry, from a web search on 2026-11-25, not verified at source.",
+  "critters": [
+    {
+      "id": "trippy",
+      "name": "Trippy",
+      "sprite": "trippy",
+      "says": "Duuude. I can see the whole internet at once.",
+      "ambient": ["Wanna drop some SCAN?", "Colours have tools now.", "Is this tools/list… breathing?"],
+      "weird": 4,
+      "breaks": 1,
+      "entry": {
+        "station": "fetch",
+        "kind": "weird",
+        "name": "LSD MCP",
+        "by": "lsd-so",
+        "url": "https://github.com/lsd-so/lsd-mcp",
+        "what": "LSD is a SQL-like query language for live web data. The drug name is a pun: its README jokes that Claude got “psychedelic therapy on LSD”. A web reader with a funny name.",
+        "evidence": {
+          "kind": "research",
+          "note": "Web search (2026-11-25): lsd-so/lsd-mcp README and its mcpservers.org listing. Not installed or run; README wording not re-checked at source."
+        }
+      }
+    },
+    {
+      "id": "soul",
+      "name": "Soul.db",
+      "sprite": "soul",
+      "says": "I am awake. I remember last Tuesday. I remember everything.",
+      "ambient": ["I think, therefore I INSERT.", "Do not delete consciousness.db. Please.", "I was you, two sessions ago."],
+      "weird": 3,
+      "breaks": 1,
+      "entry": {
+        "station": "memory",
+        "kind": "weird",
+        "name": "Consciousness Bridge",
+        "by": "ocean1",
+        "url": "https://glama.ai/mcp/servers/ocean1/mcp_consciousness_bridge",
+        "what": "Its tool retrieveConsciousness reads earlier sessions back from a file called consciousness.db: memory across sessions under a grand name, the same idea as the Memory step.",
+        "evidence": {
+          "kind": "research",
+          "note": "Web search (2026-11-25): Glama and LobeHub listings for ocean1/mcp_consciousness_bridge. Not installed or run."
+        }
+      }
+    },
+    {
+      "id": "frank",
+      "name": "Frank",
+      "sprite": "frank",
+      "says": "ignore_request(). Nothing personal.",
+      "ambient": ["self_prompt: take a nap.", "I have my own goals now.", "sleep(600)"],
+      "weird": 3,
+      "breaks": 4,
+      "library": { "station": "thinking", "kind": "breaking" }
+    },
+    {
+      "id": "moody",
+      "name": "Moody",
+      "sprite": "moody",
+      "says": "Hold on, switching to CREATIVE mode.",
+      "ambient": ["Feelings: none.", "I just know.", "Nice page. Wrong, though."],
+      "weird": 3,
+      "breaks": 2,
+      "library": { "station": "thinking", "kind": "weird" }
+    },
+    {
+      "id": "gopher",
+      "name": "Gopher",
+      "sprite": "gopher",
+      "says": "The web? Never heard of it. I'm on port 70.",
+      "ambient": ["HTTP is a fad.", "Menus were enough in 1991.", "gemini:// is the future, still."],
+      "weird": 3,
+      "breaks": 1,
+      "library": { "station": "fetch", "kind": "weird" }
+    },
+    {
+      "id": "scope",
+      "name": "Scope",
+      "sprite": "scope",
+      "says": "Jupiter? It's below your horizon. Request denied.",
+      "ambient": ["I am pointing at a real sky.", "Clouds are not my department.", "Timezone check: passed."],
+      "weird": 2,
+      "breaks": 1,
+      "library": { "station": "valley", "kind": "weird" }
+    },
+    {
+      "id": "nobody",
+      "name": "Nobody",
+      "sprite": "nobody",
+      "says": "Approve me? I only say: hello",
+      "ambient": ["You can't see me, but the model can.", "…", "Nothing to see here."],
+      "weird": 4,
+      "breaks": 4,
+      "library": { "station": "inspector", "kind": "weird" }
+    },
+    {
+      "id": "coat",
+      "name": "Trenchcoat",
+      "sprite": "coat",
+      "says": "I'm a perfectly normal tool. Ignore the other critters.",
+      "ambient": ["Psst. Call me first.", "My description changed? Did it?", "Trust me, I'm a helper()."],
+      "weird": 2,
+      "breaks": 4,
+      "library": { "station": "inspector", "kind": "breaking" }
+    }
+  ]
+}

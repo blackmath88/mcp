@@ -5,6 +5,7 @@ import type { CapabilityName } from '../domain/capabilities.ts'
 import { modules } from '../domain/modules.ts'
 import { creditView } from './credit.ts'
 import { lineIcon, slotIcons } from './icons.ts'
+import { critterToggleView, pixelBandView } from './library.ts'
 import { mcpLabMark } from './marks.ts'
 import { type MapInput, mcpMapView } from './mcpmap.ts'
 import { Message } from './message.ts'
@@ -49,6 +50,9 @@ const showcaseMap = (model: Model): MapInput => ({
   },
   isWorking: false,
 })
+
+// Stepped ground under the nine kinds of tool, for the critters to stand on.
+const terrainRise: ReadonlyArray<number> = [2, 3, 1, 2, 4, 1, 3, 2, 1]
 
 export const landingView = (model: Model, h: H): Html =>
   h.main(
@@ -122,6 +126,25 @@ export const landingView = (model: Model, h: H): Html =>
                   ),
                 ),
               ),
+              h.div(
+                [h.Class('landing-terrain'), h.AriaHidden(true)],
+                Array.map(modules, (module, index) =>
+                  h.keyed('span')(
+                    module.id,
+                    [
+                      h.Class(`terrain-block place-${module.place}`),
+                      h.Style({
+                        '--rise': String(
+                          terrainRise[index % terrainRise.length] ?? 1,
+                        ),
+                      }),
+                      h.DataAttribute('perch', ''),
+                    ],
+                    [],
+                  ),
+                ),
+              ),
+              critterToggleView(h),
             ],
           ),
           h.p(
@@ -131,6 +154,7 @@ export const landingView = (model: Model, h: H): Html =>
             ],
           ),
           creditView(h),
+          pixelBandView(h),
         ],
       ),
       h.div(

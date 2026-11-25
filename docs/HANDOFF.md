@@ -1,5 +1,19 @@
 # Handoff
 
+## The menagerie: weird servers as pixel critters — 2026-11-25 (branch `lab/menagerie`, not merged)
+
+Owner: weird real MCP servers as pixel critters that walk over the lab, joke in speech bubbles and open a card with the facts; make it work on Android and iPhone; adopt it on the landing; let the card colouring add ornament to the UI without hurting clarity and without much orange (it must not read as Mistral). Concept: the "MCP Lab Menagerie" artifact; method write-up in blackmath88/buddy `studies/menagerie/`.
+
+- `specimens/critters.json`: eight critters. Six point at existing library entries (station + kind); LSD MCP (fetch) and Consciousness Bridge (memory) carry their own entry with evidence `research` (web search 2026-11-25). `library.json` is unchanged.
+- `src/lab/critters/`: `sprites.ts` (16×16 text grids, pure), `catalog.ts` (joins critters to entries; hues; pure helpers for weighted perch choice and viewport clamping), `render.ts` (canvas: sticker / duotone / plain, shading only at the exterior edge, mosaic; installs the art as CSS custom properties so Foldkit views only carry class names), `walker.ts` (a DOM island beside the app: fixed layer, perches are `[data-perch]`, `[data-magnet]` pulls three times as hard; reads perch rects every frame because the workbench and library scroll in their own panes; tap opens the card above, or wherever it fits on a phone; Escape / outside tap closes; reduced motion = still; switch remembered in localStorage).
+- A perch only counts when its top edge is on screen, uncovered, and no control (link, button, summary, input) sits where the critter would stand. The "Real servers" landing button is therefore not a perch: a critter there covered "Enter the lab".
+- The walker's variety comes from a seeded generator and the frame timestamp, because the Foldkit lint bans ambient `Math.random` / `performance.now`.
+- Station choice from a card goes back as a DOM event; `subscriptions.ts` `critterStation` turns it into `SelectedStation`.
+- Landing: a stepped terrain row under "Nine kinds of tool" (one block per slot, the slot's tint with a hue cap), the critter switch, a pixel band at the foot. Library: critter cards get the mosaic art, a sticker by the name and Weirdness / Breaks pixel meters; the two own-entry servers appear as extra cards under their station; a pixel band above the intro. Station: a "Weird neighbours" chip row under the toolbench linking to the shelf (`#out-in-the-world`).
+- Colours: hues are pale pink/blue/green/violet/cyan; the band uses sky, violet, blush, emerald. No orange-red ramp.
+- Checks: typecheck, lint, 241 tests (11 new), build. Browser (vite preview): 1280×860 landing, Fetch station, library and 375×812 landing, card, library — no console errors, `scrollWidth == innerWidth`, critters hit-testable, card inside the viewport, "Open the step" reaches the station.
+- Not done / open: real-device check on Android and iPhone (only emulated); on a phone the library is one column and every card top sits under the previous card's "Evidence" toggle, so no critter walks there (the cards still carry the art); on desktop critters standing on a shelf card can overlap the last line of the card above. **D22 (2026-11-22) removed pixel sprites because they broke the workshop canvas.** This branch keeps pixels off the canvas and leaves the line icons, but it brings pixel art back as ornament: owner to confirm.
+
 ## "What is MCP?" as a five-scene scroll story; the two marks — 2026-11-25
 
 Owner: the "What is MCP?" page needs a pedagogical journey for non-techies, "a scrolly tell that tells the story but just changes the canvas", 4–5 slides, using the technique of the bridge-work article "Maybe the agent shouldn't own the memory"; landing wording "only sees a list of tools"; the bridge·work logo in the project; an MCP Lab logo from the bridge-work design language.
