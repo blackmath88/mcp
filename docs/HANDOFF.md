@@ -32,13 +32,25 @@ deep path returns `index.html`, confirming the SPA fallback. Repository checks r
 typecheck` clean, `npm test` 228 passing in 16 files, `npm run test:infra-guard` 4 passing (the deploy gate still
 blocks), `npm run lint` with no reported findings.
 
-Limitations: the generated `workers.dev` hostname embeds the owner's account subdomain, no custom domain is attached,
-and nothing redeploys automatically — `npm run build` and `npx wrangler deploy` are manual. Pyodide is served but was
-not exercised in the browser check, so Python-backed benches are unverified on the deployed build. No learner
-evaluation was performed.
+Custom domain, same day: `wrangler.jsonc` now declares the route `mcp-lab.bridge-work.ai` as a Workers custom domain,
+and the lab is served there. Declaring a route disables the generated `workers.dev` hostname, which is the point — it
+carried the owner's account subdomain — so `mcp-lab.imbodi55.workers.dev` now returns 404 and the custom domain is the
+only address. Certificate provisioning made that deploy's trigger step take about 26 minutes; the upload itself took
+seconds. Verified afterwards: `https://mcp-lab.bridge-work.ai/` returns the landing page, its CSS, `pyodide.js` and a
+deep path all return 200, and the page renders with no console errors.
 
-Next: decide whether to attach a custom domain, whether pushes to `main` should redeploy, and whether Alchemy or
-wrangler owns the Worker long-term.
+Also verified on the deployed build, closing an earlier gap: the Python bench at step 09 ("One item, a language") ran
+real Pyodide in the tab and printed `wrote clay / wrote timber / wrote iron / all done`, so the 9.2 MB wasm is served
+correctly. Step 05 was exercised in both directions — a refused `build_path` (span 6 against a limit of 3, no state
+change, revision unchanged) and a successful one (forge–archive, span 2.8, revision 0 → 1). The route navigation is
+present at a 375px viewport, stacked below the content.
+
+Limitations: nothing redeploys automatically — `npm run build` and `npx wrangler deploy` are manual, so the live site
+is whatever was last deployed by hand. No screen-reader or newcomer evaluation was performed. The Observatory workflow
+fails on this commit, but it has failed on every push since 2026-11-24 over `.observstory/knowledge.json` statuses and
+is unrelated to deployment.
+
+Next: decide whether pushes to `main` should redeploy, and whether Alchemy or wrangler owns the Worker long-term.
 
 ## A full-window landing page before the lab — 2026-11-24
 

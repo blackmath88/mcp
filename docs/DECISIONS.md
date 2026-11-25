@@ -186,8 +186,10 @@ Status: owner direction, 2026-11-22. Implemented. The pixel sprites (from the "a
 Status: owner direction, 2026-11-25. Implemented.
 
 Serve the Vite build output (`dist/`) as Cloudflare Workers static assets, configured by `wrangler.jsonc` at the
-repository root: Worker `mcp-lab`, `not_found_handling` `single-page-application`, no `main` and no server code. Deploy
-with `npx wrangler deploy` after `npm run build`. Reason: the owner asked for a shareable URL for the workshop lab. The
+repository root: Worker `mcp-lab`, `not_found_handling` `single-page-application`, no `main` and no server code. The
+public address is `https://mcp-lab.bridge-work.ai`, attached as a Workers custom domain. Declaring that route disables
+the generated `workers.dev` hostname, which is intended: it carried the owner's account subdomain. Deploy with
+`npx wrangler deploy` after `npm run build`. Reason: the owner asked for a shareable URL for the workshop lab. The
 build is a static bundle that runs entirely in the browser, so hosting adds no server, credentials or external service
 registration.
 
