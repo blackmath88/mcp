@@ -495,7 +495,7 @@ const neighbourView = (input: MapInput, id: NeighbourId, h: H): Html => {
   )
 }
 
-const canvasView = (input: MapInput, h: H): Html =>
+export const canvasView = (input: MapInput, h: H): Html =>
   h.div(
     [h.Class('ws-scroll')],
     [

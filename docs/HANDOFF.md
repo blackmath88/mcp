@@ -1,5 +1,18 @@
 # Handoff
 
+## "What is MCP?" as a five-scene scroll story; the two marks — 2026-11-25
+
+Owner: the "What is MCP?" page needs a pedagogical journey for non-techies, "a scrolly tell that tells the story but just changes the canvas", 4–5 slides, using the technique of the bridge-work article "Maybe the agent shouldn't own the memory"; landing wording "only sees a list of tools"; the bridge·work logo in the project; an MCP Lab logo from the bridge-work design language.
+
+- `src/lab/tell.ts`: five scenes (on its own · the front desk · behind the list · a call · why look behind it), each with its own workshop canvas. The canvases are stacked and cross-fade; the text scrolls beside them. Same canvas as the benches.
+- `src/lab/tell-scroll.ts`: the article technique — a scene becomes current when its text crosses a line 45% down the visible scrolling area; sets `data-tell` on the section; numbered scene buttons scroll to a scene. Reduced motion: no fades, no smooth scroll.
+- At ≤1100 px the page itself scrolls, so `.intro` no longer is a scroll box there; otherwise the drawing had nothing to stick to.
+- The intro's old single map and three facts are folded into the story; the route list stays below it.
+- Landing headline: "The AI only sees a list of tools. Open the workshop behind it."
+- `src/lab/marks.ts`: bridge·work's Signal Mark (as on bridge-work.ai, in the credit) and the MCP Lab mark, its sibling: same grid and colours, the top-left square turned into three bars, a list. Sidebar, landing and favicon (`public/mark.svg`) use it; README shows it.
+- Checks: typecheck, lint, 230 tests (one new scene test), build. Looked at all five scenes at 1440×900 and 390×844, and both marks light and dark.
+- Not done: no newcomer has read the story yet; whether five scenes land for a non-technical reader is a claim to test.
+
 ## Public README, MIT licence, source link — 2026-11-25
 
 Owner: "update readme and make sure we have a nice repo for public"; "do we want to hint to GitHub, because it's open?"

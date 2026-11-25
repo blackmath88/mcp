@@ -751,6 +751,25 @@ describe('the story: what is MCP, then the route in order', () => {
   })
 })
 
+describe('what is MCP, told in five scenes', () => {
+  test('the front door tells the story beside one drawing per scene, then offers the route', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'intro' }),
+      expect(role('region', { name: 'What is MCP, in five scenes' })).toExist(),
+      expect(text('An AI app can only talk.')).toExist(),
+      expect(text('MCP is the front desk.')).toExist(),
+      expect(text('Behind the desk is a workshop.')).toExist(),
+      expect(text('Using a tool is a call through the desk.')).toExist(),
+      expect(text('The list does not say what is behind it.')).toExist(),
+      expect(role('button', { name: 'Scene 3: Behind the list' })).toExist(),
+      expect(
+        role('button', { name: 'Or see every tool on one map' }),
+      ).toExist(),
+    )
+  })
+})
+
 describe('the map and the new rungs', () => {
   test('a bench draws its tool list on the fixed map and the story sits above it', () => {
     scene(
@@ -935,7 +954,7 @@ describe('the landing page', () => {
       { update, view },
       given({ ...initialModel, screen: 'landing' }),
       expect(
-        text('The AI only sees a list. Open the workshop behind it.'),
+        text('The AI only sees a list of tools. Open the workshop behind it.'),
       ).toExist(),
       expect(role('navigation', { name: 'The route' })).toBeAbsent(),
       click(role('button', { name: 'Enter the lab' })),

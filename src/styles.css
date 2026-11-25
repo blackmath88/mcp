@@ -163,13 +163,9 @@ h3 {
   padding: 4px 6px;
 }
 .brandmark {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: var(--ink);
-  box-shadow:
-    inset 0 0 0 5px var(--fg),
-    inset 0 0 0 7px var(--bg);
+  width: 24px;
+  height: 24px;
+  flex: none;
 }
 .side-note {
   font-size: 12px;
@@ -2074,14 +2070,6 @@ textarea.console-text {
   line-height: 24px;
   color: var(--fg3);
 }
-.intro-facts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 10px;
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--fg3);
-}
 .intro-route-head {
   display: flex;
   flex-wrap: wrap;
@@ -2369,18 +2357,6 @@ textarea.console-text {
 }
 
 /* Front door */
-.intro-map {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.intro-map-cap {
-  margin: 0;
-  max-width: 72ch;
-  font-size: 15px;
-  line-height: 1.55;
-  color: var(--fg3);
-}
 .route-stages {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -3754,4 +3730,234 @@ button.ws-chip {
 }
 .ws-canvas {
   min-width: 600px;
+}
+
+/* WHAT IS MCP: FIVE SCENES BESIDE ONE CHANGING DRAWING
+   The text scrolls, the drawing stays. Every scene's canvas is rendered and
+   stacked; data-tell on .tell (set while scrolling) picks the one that shows. */
+.tell {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+  gap: clamp(24px, 4vw, 48px);
+  align-items: start;
+}
+.tell-prose {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+}
+.tell-visual {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tell-stage {
+  display: grid;
+}
+.tell-layer {
+  grid-area: 1 / 1;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.6s;
+}
+.tell[data-tell="1"] [data-tell-layer="1"],
+.tell[data-tell="2"] [data-tell-layer="2"],
+.tell[data-tell="3"] [data-tell-layer="3"],
+.tell[data-tell="4"] [data-tell-layer="4"],
+.tell[data-tell="5"] [data-tell-layer="5"],
+.tell:not([data-tell]) [data-tell-layer="1"] {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s;
+}
+.tell .ws-canvas {
+  min-width: 0;
+}
+.tell-caption {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg2);
+  min-height: 2.9em;
+}
+.tell-beat {
+  min-height: 72vh;
+  padding: 8px 0 40px;
+  opacity: 0.35;
+  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tell-beat:first-child {
+  min-height: 56vh;
+}
+.tell-beat[data-current],
+.tell[data-tell="1"] [data-tell-beat="1"],
+.tell[data-tell="2"] [data-tell-beat="2"],
+.tell[data-tell="3"] [data-tell-beat="3"],
+.tell[data-tell="4"] [data-tell-beat="4"],
+.tell[data-tell="5"] [data-tell-beat="5"],
+.tell:not([data-tell]) [data-tell-beat="1"] {
+  opacity: 1;
+}
+.tell-kicker {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--desk);
+  margin: 0 0 10px;
+}
+.tell-title {
+  font-size: clamp(24px, 2.6vw, 32px);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin: 0 0 14px;
+}
+.tell-body {
+  font-size: 16.5px;
+  line-height: 1.6;
+  color: var(--fg3);
+  margin: 0 0 12px;
+  max-width: 44ch;
+}
+.tell-end {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 0 24px;
+}
+.tell-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+.tell-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--bd);
+  background: var(--bg);
+  color: var(--fg2);
+  font: 500 12px/1 var(--mono);
+  cursor: pointer;
+}
+.tell-dot:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.tell-dot[aria-current='step'],
+.tell:not([data-tell]) .tell-dot:first-child {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+/* what each scene leaves out or points at */
+.tell-layer.scene-1 .ws-slot,
+.tell-layer.scene-2 .ws-slot,
+.tell-layer.scene-2 .ws-flow.out,
+.tell-layer.scene-2 .ws-flow[d^="M 300"],
+.tell-layer.scene-1 .ws-gate,
+.tell-layer.scene-2 .ws-gate {
+  visibility: hidden;
+}
+.tell-layer.scene-1 .ws-nb,
+.tell-layer.scene-2 .ws-nb:not(.place-desk) {
+  opacity: 0.3;
+}
+.tell-layer.scene-2 .ws-board rect {
+  stroke: var(--desk);
+  stroke-width: 3;
+}
+.tell-layer.scene-1 .ws-host rect {
+  stroke: var(--desk);
+  stroke-width: 3;
+}
+/* where the page itself scrolls, the intro must not be a scroll box of its
+   own, or the drawing has nothing to stick to */
+@media (max-width: 1100px) {
+  .shell-atlas .intro {
+    overflow: visible;
+  }
+}
+@media (max-width: 900px) {
+  .tell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tell-visual {
+    grid-column: 1;
+    grid-row: 1;
+    top: 0;
+    z-index: 2;
+    background: var(--bg);
+    padding: 6px 0 8px;
+  }
+  .tell-prose {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .tell-caption {
+    display: none;
+  }
+  .tell-beat,
+  .tell-beat:first-child {
+    min-height: 50vh;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tell-layer,
+  .tell-beat {
+    transition: none;
+  }
+}
+
+/* THE MARKS: bridge·work's Signal Mark and its MCP Lab sibling */
+.mark {
+  display: block;
+}
+.mk-teal {
+  fill: #1a7a6d;
+}
+.mk-purple {
+  fill: #3d1f47;
+}
+.mk-amber {
+  fill: #c48a2a;
+}
+.mk-rose {
+  fill: #d4416b;
+}
+@media (prefers-color-scheme: dark) {
+  .mk-teal {
+    fill: #23a595;
+  }
+  .mk-purple {
+    fill: #8a5ac4;
+  }
+}
+.credit .credit-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.credit-logo {
+  width: 13px;
+  height: 13px;
+  margin-left: 2px;
+}
+.landing-brand .brandmark {
+  width: 34px;
+  height: 34px;
 }

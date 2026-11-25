@@ -3,7 +3,6 @@ import { type Html, type HtmlBuilder } from 'foldkit/html'
 
 import { catalogue } from '../domain/capabilities.ts'
 import { iconView } from './icons.ts'
-import { emptyMap, mcpMapView } from './mcpmap.ts'
 import { Message } from './message.ts'
 import type { Model } from './model.ts'
 import { stationNames } from './names.ts'
@@ -14,11 +13,12 @@ import {
   stepNumber,
   stepOf,
 } from './story.ts'
+import { tellView } from './tell.ts'
 
 type H = HtmlBuilder<Message>
 
-// The front door: what MCP is, in one picture and three sentences, and the
-// route through the lab from easy to strange.
+// The front door: what MCP is, told in five scenes beside one changing
+// drawing (tell.ts), then the route through the lab from easy to strange.
 
 const stepRow = (model: Model, step: StoryStep, h: H): Html => {
   const first = catalogue.find(
@@ -88,79 +88,23 @@ export const introView = (model: Model, h: H): Html =>
           h.p(
             [h.Class('intro-lede')],
             [
-              'MCP, the Model Context Protocol, is a common way for an AI app to ask a program “what tools do you have?”, and then to use them. The AI only ever sees a list: names, inputs, descriptions. What a tool really does stays behind the list. This lab opens it up.',
+              'MCP, the Model Context Protocol, is how an AI app finds out what another program can do for it, and then asks it to do it. Five short scenes; scroll, and the drawing changes with the story.',
             ],
           ),
         ],
       ),
-      h.div(
-        [h.Class('intro-map')],
-        [
-          h.p(
-            [h.Class('intro-map-cap')],
-            [
-              h.b([], ['The first thing a server does is hand over a list. ']),
-              'The AI app asks “what tools do you have?” (tools/list) and the server answers with names, inputs and descriptions. Here every server is drawn as the same building: you and the AI app outside, MCP as the front desk where that list hangs, and behind it the server’s workshop with nine places a tool can be, from reading a record to moving something in the world. Outside its walls is everything the tools reach. Each step of the route lights up one server.',
-            ],
-          ),
-          mcpMapView(emptyMap(), h),
-        ],
-      ),
-      h.div(
-        [h.Class('intro-facts')],
-        [
-          h.p(
-            [],
-            [
-              h.b([], ['1 · ']),
-              'A server hands the AI a list of tools. That list is all the AI is told.',
-            ],
-          ),
-          h.p(
-            [],
-            [
-              h.b([], ['2 · ']),
-              'The app decides which tools the AI sees and whether to ask you first. MCP leaves that to the app.',
-            ],
-          ),
-          h.p(
-            [],
-            [
-              h.b([], ['3 · ']),
-              'Each tool works on something real that the list does not show. That is where the surprises are.',
-            ],
-          ),
-        ],
-      ),
+      tellView(model, h),
       h.div(
         [h.Class('intro-route')],
         [
           h.div(
             [h.Class('intro-route-head')],
-            [
-              h.h2([], ['The route: up the ladder, one slot at a time']),
-              h.button(
-                [
-                  h.Type('button'),
-                  h.Class('btn'),
-                  h.OnClick(Message.SelectedStation({ station: 'fetch' })),
-                ],
-                ['Start at step 01 · Fetch a page'],
-              ),
-              h.button(
-                [
-                  h.Type('button'),
-                  h.Class('btn ghost'),
-                  h.OnClick(Message.ClickedHome()),
-                ],
-                ['Or see every tool on one map'],
-              ),
-            ],
+            [h.h2([], ['The route: up the ladder, one slot at a time'])],
           ),
           h.p(
             [h.Class('tb-note')],
             [
-              'Each step is one real server: one idea, one thing to try, one thing to notice. Everything runs in this page; the data is made up, the MCP messages are real.',
+              'Each step is one server: one idea, one thing to try, one thing to notice. Everything runs in this page; the data is made up, the MCP messages are real.',
             ],
           ),
           routeView(model, h),

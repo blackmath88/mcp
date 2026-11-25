@@ -1,14 +1,16 @@
-import { Array, Option } from 'effect'
+import { Array } from 'effect'
 import { type Html, type HtmlBuilder } from 'foldkit/html'
 
-import { type CapabilityName, catalogue } from '../domain/capabilities.ts'
-import { modules, placeOf } from '../domain/modules.ts'
+import type { CapabilityName } from '../domain/capabilities.ts'
+import { modules } from '../domain/modules.ts'
 import { creditView } from './credit.ts'
 import { lineIcon, slotIcons } from './icons.ts'
+import { mcpLabMark } from './marks.ts'
 import { type MapInput, mcpMapView } from './mcpmap.ts'
 import { Message } from './message.ts'
 import type { Model } from './model.ts'
 import { route } from './story.ts'
+import { toolsOf } from './tell.ts'
 
 type H = HtmlBuilder<Message>
 
@@ -32,29 +34,7 @@ const showcase: ReadonlyArray<CapabilityName> = [
 const showcaseMap = (model: Model): MapInput => ({
   mode: 'server',
   title: 'a showcase server',
-  tools: Array.flatMap(showcase, name =>
-    Array.fromOption(
-      Option.map(
-        Option.fromNullishOr(catalogue.find(entry => entry.name === name)),
-        capability => {
-          const place = placeOf(capability.name, model.world)
-          return {
-            key: capability.name,
-            label: capability.name,
-            title: capability.title,
-            icon: Option.some(capability.name),
-            slot: place.slot,
-            reach: place.reach,
-            aria: `${capability.title}, ${capability.name}`,
-            message: Option.none(),
-            isSelected: false,
-            isCalled: false,
-            isActive: true,
-          }
-        },
-      ),
-    ),
-  ),
+  tools: toolsOf(model, showcase),
   scene: {
     names: {
       web: 'web pages',
@@ -79,11 +59,11 @@ export const landingView = (model: Model, h: H): Html =>
         [
           h.p(
             [h.Class('landing-brand')],
-            [h.span([h.Class('brandmark'), h.AriaHidden(true)], []), 'MCP Lab'],
+            [mcpLabMark(h, 'brandmark'), 'MCP Lab'],
           ),
           h.h1(
             [h.Class('landing-title')],
-            ['The AI only sees a list. Open the workshop behind it.'],
+            ['The AI only sees a list of tools. Open the workshop behind it.'],
           ),
           h.p(
             [h.Class('landing-lede')],

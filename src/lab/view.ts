@@ -23,6 +23,7 @@ import {
   componentsOf,
 } from './components.ts'
 import { creditView } from './credit.ts'
+import { mcpLabMark } from './marks.ts'
 import { flowOf } from './flow.ts'
 import {
   iconView,
@@ -328,7 +329,7 @@ const brandView = (h: H): Html =>
       h.OnClick(Message.ClickedLanding()),
     ],
     [
-      h.span([h.Class('brandmark'), h.AriaHidden(true)], []),
+      mcpLabMark(h, 'brandmark'),
       h.span([h.Class('brandname')], ['MCP Lab']),
     ],
   )

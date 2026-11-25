@@ -1,6 +1,6 @@
-# MCP Lab
+# <img src="docs/media/mark.svg" alt="" width="36" height="36" align="top"> MCP Lab
 
-**The AI only sees a list. Open the workshop behind it.**
+**The AI only sees a list of tools. Open the workshop behind it.**
 
 An interactive lab for the [Model Context Protocol](https://modelcontextprotocol.io): what an AI app is actually handed when it connects to an MCP server, and what each tool on that list really reaches. Runs entirely in your browser.
 
@@ -12,6 +12,7 @@ An interactive lab for the [Model Context Protocol](https://modelcontextprotocol
 
 When an AI app connects to an MCP server, the first thing it receives is a list: tool names, descriptions, input schemas. That list is all the model ever sees. MCP Lab draws what is behind it.
 
+- **What is MCP?, in five scenes.** For someone who has never heard of it: you scroll the story, and the drawing beside it changes with each scene — the AI app alone, the list at the front desk, the workshop behind it, one call, and why the list is not enough.
 - **The workshop.** Every server is drawn as the same building. You and the AI app stand outside; MCP is the front desk where the `tools/list` board hangs. Behind it are nine places a tool can sit — Read, Ask, Write, Compute, Sequence, Share, Invent, Delegate, Act — and outside the walls, what the tools reach: web pages, files, stored data, other programs, another model, the physical world. Rules sit in the wall openings. Where the picture simplifies, the lab says so.
 - **The route.** 16 simulated servers climbing that ladder, from fetching a page to a server that asks you a question mid-call (`elicitation/create`) to a simulated robot arm. Each step has one idea, one thing to try and one thing to notice, and lets you bend the server and watch what changes.
 - **Out in the world.** A library of 64 real MCP servers, four per step: the most used, the first, a weird one, and one that almost breaks the idea. Each card says how its evidence was obtained.

@@ -2,6 +2,7 @@ import { Runtime } from 'foldkit'
 
 import { closePopoversOnOutsideClick } from './lab/popovers.ts'
 import { scrollToTopOnNavigation } from './lab/scroll.ts'
+import { tellOnScroll } from './lab/tell-scroll.ts'
 import { Message, Model, init, subscriptions, update, view } from './main.ts'
 
 const application = Runtime.makeApplication({
@@ -20,3 +21,4 @@ Runtime.run(application)
 
 closePopoversOnOutsideClick(document)
 scrollToTopOnNavigation(document)
+tellOnScroll(document)

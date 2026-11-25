@@ -1,5 +1,6 @@
 import { type Html, type HtmlBuilder } from 'foldkit/html'
 
+import { bridgeWorkMark } from './marks.ts'
 import type { Message } from './message.ts'
 
 type H = HtmlBuilder<Message>
@@ -28,7 +29,12 @@ export const creditView = (h: H): Html =>
           h.Target('_blank'),
           h.Rel('noopener noreferrer'),
         ],
-        ['Built by ', h.b([], ['bridge·work']), ' ↗'],
+        [
+          'Built by ',
+          bridgeWorkMark(h, 'credit-logo'),
+          h.b([], ['bridge·work']),
+          ' ↗',
+        ],
       ),
       h.span([h.Class('credit-sep'), h.AriaHidden(true)], ['·']),
       external(SOURCE, 'Source on GitHub', h),
