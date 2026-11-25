@@ -1,5 +1,16 @@
 # Handoff
 
+## Observatory switched off — 2026-11-25
+
+Owner asked to stop the Observatory workflow rather than fix it. Disabled at GitHub with `gh workflow disable
+observatory.yml`; `gh workflow list --all` now reports it `disabled_manually` while `Foundation checks` stays active.
+The workflow file is untouched, so `gh workflow enable observatory.yml` reverses this.
+
+Recorded as D24. The underlying failure is unfixed: four `.observstory/knowledge.json` entries hold statuses the pinned
+producer rejects (`proposed` for `learning-design`, `basics-learning`, `basics-visual`; `draft` for `exhibit-review`).
+Consequence to know about: no new Observatory snapshot will be produced, so START-HERE step 1 falls back to direct
+repository inspection.
+
 ## bridge·work credit, legal links, self-hosted fonts, visual QA — 2026-11-25
 
 - **Credit and legal** (`src/lab/credit.ts`), following `sharing-is-caring`: "Built by bridge·work ↗" (to https://bridge-work.ai/lab/, since MCP Lab is not listed there yet), Imprint (https://bridge-work.ai/en/imprint/), and a Privacy popover with an MCP Lab note plus the link to https://bridge-work.ai/en/privacy/. Shown on the landing page and at the right of every status bar. Page tags: author and og:site_name "bridge-work", title "MCP Lab — built by bridge·work". README has the credit line and a Privacy section. Operator facts came from the owner's ChatGPT project (Achim Imboden, Einzelunternehmung, Basel).

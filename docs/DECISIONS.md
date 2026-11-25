@@ -203,6 +203,21 @@ The repository was already public, so what changes is the reachability of the ru
 source. The lab remains simulation-only in the browser: no model, no account and no live MCP traffic leaves the page.
 The preserved `lab/` prototype is not part of this deployment.
 
+## D24 — The Observatory workflow is switched off
+
+Status: owner direction, 2026-11-25. Applied.
+
+The Observatory workflow is disabled at GitHub (`disabled_manually`), so it no longer runs on push or pull request.
+Reason: it had failed on every push since 2026-11-24 and the owner chose to stop it rather than repair it. The failure
+was `knowledge invalid_status` on four `.observstory/knowledge.json` entries — `learning-design`, `basics-learning` and
+`basics-visual` carry `proposed`, and `exhibit-review` carries `draft`, none of which the pinned producer accepts for
+their kind. Nothing about the application or its deployment was involved.
+
+`.github/workflows/observatory.yml` is left in place unchanged, so this is reversible with `gh workflow enable
+observatory.yml` once the statuses are corrected. Only `Foundation checks` runs now. START-HERE still tells a reader to
+orient from the latest Observatory snapshot; until this is re-enabled there will be no newer snapshot, and its fallback
+of direct repository inspection applies.
+
 ## Still undecided
 
 Audience; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.
