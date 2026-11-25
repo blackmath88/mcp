@@ -181,9 +181,29 @@ Owner liked prototype C (a room), asked that MCP be the entrance rather than the
 
 Status: owner direction, 2026-11-22. Implemented. The pixel sprites (from the "anime colours" rounds) are removed. One line-icon family, ink on a soft tint, the tint naming the tool's place in the workshop. Black becomes the violet ink of the old pixel outline.
 
+## D23 — Public hosting on Cloudflare Workers static assets
+
+Status: owner direction, 2026-11-25. Implemented.
+
+Serve the Vite build output (`dist/`) as Cloudflare Workers static assets, configured by `wrangler.jsonc` at the
+repository root: Worker `mcp-lab`, `not_found_handling` `single-page-application`, no `main` and no server code. Deploy
+with `npx wrangler deploy` after `npm run build`. Reason: the owner asked for a shareable URL for the workshop lab. The
+build is a static bundle that runs entirely in the browser, so hosting adds no server, credentials or external service
+registration.
+
+This supersedes the "nothing is deployed" clause of D07 and closes the `deploy` item left open in the 2026-11-24
+handoff. It does not adopt the Alchemy path: `alchemy.run.ts` and the `scripts/confirm-deploy.mjs` gate are unchanged
+and still block the unrenamed `mcp-lab` stack, and `npm run infra:deploy` still needs explicit owner approval. Two
+systems must not own the same Worker; if Alchemy is adopted later, this wrangler configuration should be retired in the
+same change.
+
+The repository was already public, so what changes is the reachability of the running lab, not the audience of its
+source. The lab remains simulation-only in the browser: no model, no account and no live MCP traffic leaves the page.
+The preserved `lab/` prototype is not part of this deployment.
+
 ## Still undecided
 
-Audience; hosting; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.
+Audience; exact protocol revision; offline requirements; trace retention; workflow runtime; required extensions; implementation schedule; measured acceptance thresholds.
 
 Future changes should record date, status, rationale, evidence, and what they supersede.
 ## Preserved local implementation record — 18 November 2026
