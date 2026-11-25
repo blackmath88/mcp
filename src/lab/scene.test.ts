@@ -944,3 +944,16 @@ describe('the landing page', () => {
     )
   })
 })
+
+describe('credit and legal links', () => {
+  test('every screen carries the bridge·work credit, imprint and an honest privacy note', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, station: 'fetch' }),
+      expect(role('link', { name: 'Built by bridge·work ↗' })).toExist(),
+      expect(role('link', { name: 'Imprint' })).toExist(),
+      expect(text(/MCP Lab runs entirely in your browser/)).toExist(),
+      expect(text(/“Ask for its tools” sends a request/)).toExist(),
+    )
+  })
+})

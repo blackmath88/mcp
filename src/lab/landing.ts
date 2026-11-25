@@ -3,6 +3,7 @@ import { type Html, type HtmlBuilder } from 'foldkit/html'
 
 import { type CapabilityName, catalogue } from '../domain/capabilities.ts'
 import { modules, placeOf } from '../domain/modules.ts'
+import { creditView } from './credit.ts'
 import { lineIcon, slotIcons } from './icons.ts'
 import { type MapInput, mcpMapView } from './mcpmap.ts'
 import { Message } from './message.ts'
@@ -146,9 +147,10 @@ export const landingView = (model: Model, h: H): Html =>
           h.p(
             [h.Class('landing-foot')],
             [
-              'Made-up data, real MCP messages between a client and a server in this page. No model, no account, nothing leaves your browser.',
+              'Made-up data, real MCP messages between a client and a server in this page. No model, no account, no tracking; nothing leaves your browser unless you ask a real server for its tools.',
             ],
           ),
+          creditView(h),
         ],
       ),
       h.div(

@@ -1,5 +1,13 @@
 # Handoff
 
+## bridge·work credit, legal links, self-hosted fonts, visual QA — 2026-11-25
+
+- **Credit and legal** (`src/lab/credit.ts`), following `sharing-is-caring`: "Built by bridge·work ↗" (to https://bridge-work.ai/lab/, since MCP Lab is not listed there yet), Imprint (https://bridge-work.ai/en/imprint/), and a Privacy popover with an MCP Lab note plus the link to https://bridge-work.ai/en/privacy/. Shown on the landing page and at the right of every status bar. Page tags: author and og:site_name "bridge-work", title "MCP Lab — built by bridge·work". README has the credit line and a Privacy section. Operator facts came from the owner's ChatGPT project (Achim Imboden, Einzelunternehmung, Basel).
+- **Fonts** are self-hosted (`@fontsource/inter`, `@fontsource/jetbrains-mono`, imported in `styles.css`); the Google Fonts request is gone, so the privacy note can say no third party is contacted unless the visitor asks a server by address.
+- **Visual QA** at 1440, 1280, 900 and 390 px and in dark mode, every screen and open menus, with an automatic overlap scan (its flags on closed popovers, scrolled-away content and the full-window overlay are false alarms). Fixed: route cards on "What is MCP?" overlapped at tablet width (a 340 px minimum); the canvas was cut off beside the sidebar at tablet width; moving to another step kept the old scroll position on phones and inside the workbench (`src/lab/scroll.ts`); wall-rule labels touched neighbour names; stage headings in the old green.
+- Open: Swiss postal address, UID and phone are unknown and not shown; the Imprint link covers them. A listing at bridge-work.ai/lab/tool/mcp-lab/ and the subdomain mcp-lab.bridge-work.ai are not set up.
+- Checks: 229 tests, tooling tests, structure check, lint, typecheck, build.
+
 ## A full-window landing page before the lab — 2026-11-24
 
 Owner: "we want fullwindow landing page like an intro, then enter to the lab".

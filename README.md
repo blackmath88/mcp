@@ -1,5 +1,7 @@
 # MCP Lab
 
+Built by [bridge·work](https://bridge-work.ai/lab/). An open-source tool from the Bridge Work Lab. [Imprint](https://bridge-work.ai/en/imprint/) · [Privacy](https://bridge-work.ai/en/privacy/)
+
 An exploration lab for one question: when an AI gains access to a capability, what has it actually gained access to? See [CONCEPT.md](CONCEPT.md).
 
 ## What you will find
@@ -43,6 +45,10 @@ What is real and what is not:
 The route of twelve specimens lives in [specimens/](specimens/README.md); its claims about upstream projects are unverified research leads.
 
 Layout: `src/domain` (engine, no DOM or transport), `src/adapters` (in-process, CLI, MCP), `src/lab` (Foldkit model, update, view), `lab/concept.html` (the earlier prototype, kept as reference). `npm run infra:deploy` is gated and was not run; nothing is deployed.
+
+## Privacy
+
+MCP Lab runs entirely in the browser. What you do in the lab stays on your device and is not uploaded. There are no accounts, no analytics and no tracking, and the fonts are served with the site (no font host). One exception the visitor starts: under "Your server", "Ask for its tools" sends initialize and tools/list from the browser to the address they type. The hosting provider may process technical connection data to deliver and secure the site. Operator and full notice: [bridge-work.ai privacy](https://bridge-work.ai/en/privacy/) · [imprint](https://bridge-work.ai/en/imprint/).
 
 ## Also in this repository
 

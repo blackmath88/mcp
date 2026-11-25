@@ -1,4 +1,11 @@
 @import 'tailwindcss';
+/* Fonts are served with the site, so no request goes to a font host. */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
 
 /* One neutral family, one accent, hairlines. Three colours carry meaning:
    ink for what a person sees, amber for what a model believes or what is
@@ -3677,4 +3684,74 @@ button.ws-chip {
 }
 .landing-art .ws-canvas {
   min-width: 0;
+}
+
+/* bridge·work credit and legal links */
+.credit {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 12px;
+  color: var(--fg2);
+}
+.statusbar .credit {
+  order: 9;
+  margin-left: auto;
+  font-size: 11.5px;
+}
+.statusbar {
+  align-items: center;
+}
+.credit a,
+.credit-link {
+  color: var(--fg2);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--fg2) 35%, transparent);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.credit a:hover,
+.credit-link:hover {
+  color: var(--ink);
+}
+.credit .credit-mark {
+  color: var(--ink);
+  text-decoration: none;
+}
+.credit .credit-mark b {
+  font-weight: 650;
+}
+.credit-privacy > summary {
+  list-style: none;
+}
+.credit-privacy > summary::-webkit-details-marker {
+  display: none;
+}
+.credit-privacy .pop-panel {
+  width: min(380px, 86vw);
+}
+.statusbar .credit-privacy .pop-panel {
+  top: auto;
+  bottom: calc(100% + 8px);
+  left: auto;
+  right: 0;
+}
+
+/* QA fixes */
+.route-list {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+}
+.route-step {
+  box-sizing: border-box;
+  min-width: 0;
+}
+.route-text {
+  min-width: 0;
+}
+.route-stage-name {
+  color: color-mix(in srgb, var(--ink) 80%, var(--bg));
+}
+.ws-canvas {
+  min-width: 600px;
 }

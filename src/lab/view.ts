@@ -22,6 +22,7 @@ import {
   componentRoles,
   componentsOf,
 } from './components.ts'
+import { creditView } from './credit.ts'
 import { flowOf } from './flow.ts'
 import {
   iconView,
@@ -716,6 +717,7 @@ const statusbarView = (model: Model, h: H): Html =>
   h.footer(
     [h.Class('statusbar')],
     [
+      creditView(h),
       h.span([], ['Made-up data · real MCP client and server in this tab']),
       h.span([], ['No model · no network']),
       h.span(

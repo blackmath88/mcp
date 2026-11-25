@@ -392,7 +392,7 @@ const gatesView = (input: MapInput, h: H): ReadonlyArray<Html> =>
       ]),
       label(
         across ? gx + 36 : gx - 10,
-        across ? gy + (gy === ROOM.y ? -10 : -12) : gy - 38,
+        across ? gy + (gy === ROOM.y ? 24 : -12) : gy - 38,
         'ws-gate-label',
         text,
         h,
