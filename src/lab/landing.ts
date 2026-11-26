@@ -6,8 +6,9 @@ import { modules } from '../domain/modules.ts'
 import { creditView } from './credit.ts'
 import { lineIcon, slotIcons } from './icons.ts'
 import {
+  critterShelfView,
   critterToggleView,
-  groundView,
+  groundSceneryView,
   pixelBandView,
 } from './library.ts'
 import { mcpLabMark } from './marks.ts'
@@ -129,7 +130,8 @@ export const landingView = (model: Model, h: H): Html =>
                   ),
                 ),
               ),
-              groundView(h, 'landing'),
+              groundSceneryView(h, 'landing'),
+              critterShelfView(h),
               critterToggleView(h),
             ],
           ),

@@ -228,6 +228,20 @@ export const startMenagerie = (root: Document = document): void => {
           walker.jump?.to.element === perch.element),
     ).length >= perch.capacity
 
+  // Critters keep a body's width between them, so five on one shelf read as
+  // five. Only the one walking into its neighbour turns, or both would flip
+  // every frame and neither would get anywhere.
+  const crowdedAhead = (walker: Walker, sz: number): boolean =>
+    walkers.some(
+      other =>
+        other !== walker &&
+        other.jump === null &&
+        other.perch.element === walker.perch.element &&
+        other.button.style.visibility !== 'hidden' &&
+        Math.abs(other.offset - walker.offset) < sz * 0.8 &&
+        (other.offset - walker.offset) * walker.direction > 0,
+    )
+
   const remove = (walker: Walker) => {
     if (open === walker) closeCard()
     closeBubble(walker)
@@ -321,11 +335,19 @@ export const startMenagerie = (root: Document = document): void => {
     )
     layer.appendChild(button)
     const width = perch.element.getBoundingClientRect().width
+    const span = Math.max(0, width - size())
+    const sharing = walkers.filter(
+      other => other.perch.element === perch.element,
+    ).length
     const walker: Walker = {
       critter,
       button,
       perch,
-      offset: random() * Math.max(0, width - size()),
+      offset:
+        perch.capacity > 1
+          ? (span * Math.min(sharing, perch.capacity - 1)) /
+            (perch.capacity - 1)
+          : span * random(),
       direction: random() < 0.5 ? -1 : 1,
       speed: 0.32 + random() * 0.3,
       frame: 0,
@@ -477,7 +499,7 @@ export const startMenagerie = (root: Document = document): void => {
       12,
     )
     const above = walker.y - height - 16
-    const below = isCard && above < 8
+    const below = above < 8
     const top = below
       ? Math.max(
           8,
@@ -836,6 +858,9 @@ export const startMenagerie = (root: Document = document): void => {
             walker.direction = walker.direction === 1 ? -1 : 1
             walker.wait = 500 + random() * 1200
           }
+        } else if (crowdedAhead(walker, sz)) {
+          walker.direction = walker.direction === 1 ? -1 : 1
+          walker.wait = 240 + random() * 360
         }
         if (walker.clock > 170) {
           walker.clock = 0

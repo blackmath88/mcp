@@ -276,23 +276,46 @@ const cardView = (entry: Entry, h: H): Html => {
   )
 }
 
+const terrainBlocks = (h: H): ReadonlyArray<Html> =>
+  Array.map(modules, module =>
+    h.keyed('span')(module.id, [h.Class(`terrain-block place-${module.place}`)]),
+  )
+
+const groundClass = (where: string): string =>
+  `pixel-ground${where === '' ? '' : ` ground-${where}`}`
+
 // Ground for the critters: nine solid blocks in the slot colours with a
 // crumbling underside. Empty space above it is the stage they walk on.
 export const groundView = (h: H, where = ''): Html =>
   h.div(
     [
-      h.Class(`pixel-ground${where === '' ? '' : ` ground-${where}`}`),
+      h.Class(groundClass(where)),
       h.AriaHidden(true),
       h.DataAttribute('perch', '3'),
       h.DataAttribute('perch-steps', ''),
     ],
-    Array.map(modules, module =>
-      h.keyed('span')(
-        module.id,
-        [h.Class(`terrain-block place-${module.place}`)],
-        [],
-      ),
-    ),
+    terrainBlocks(h),
+  )
+
+// The same strip with nothing standing on it, for a page whose critters live
+// on a shelf elsewhere.
+export const groundSceneryView = (h: H, where = ''): Html =>
+  h.div([h.Class(groundClass(where)), h.AriaHidden(true)], terrainBlocks(h))
+
+// The landing's only perch. Wide enough for two columns it is a ledge in the
+// empty top-right corner, so the critters are in the first view instead of
+// under a column taller than the window; once the page is one column it drops
+// back into the flow and the scenery strip above it gives way.
+export const critterShelfView = (h: H): Html =>
+  h.div(
+    [
+      h.Class('pixel-ground critter-shelf'),
+      h.AriaHidden(true),
+      h.DataAttribute('perch', '5'),
+      h.DataAttribute('perch-steps', ''),
+      h.DataAttribute('magnet', ''),
+    ],
+    terrainBlocks(h),
   )
 
 type Tile = Readonly<{ id: string; kind: Kind; label: string; name: string }>

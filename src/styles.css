@@ -3595,6 +3595,7 @@ button.ws-chip {
     var(--bg);
 }
 .landing {
+  position: relative;
   min-height: 100dvh;
   box-sizing: border-box;
   display: grid;
@@ -4206,6 +4207,29 @@ button.ws-chip {
 .pixel-ground.ground-landing {
   margin: 92px 0 10px;
 }
+/* A ledge in the landing's empty top-right corner. The critters need a
+   critter's height of clear space above a perch, so it hangs below the top
+   padding rather than flush with it. */
+.pixel-ground.critter-shelf {
+  position: absolute;
+  top: 124px;
+  right: max(40px, env(safe-area-inset-right, 0px));
+  width: min(520px, calc(50% - 72px));
+  margin: 0;
+  z-index: 3;
+}
+/* One column leaves no top-right corner to stand in, so the shelf drops back
+   under the nine kinds of tool and stands in for the scenery strip. */
+@media (max-width: 1100px) {
+  .pixel-ground.critter-shelf {
+    position: static;
+    width: auto;
+    margin: 92px 0 10px;
+  }
+  .pixel-ground.ground-landing {
+    display: none;
+  }
+}
 @media (max-width: 600px) {
   .pixel-ground.ground-page {
     margin-top: 68px;
@@ -4497,6 +4521,12 @@ button.ws-chip {
   background: var(--bg);
   border: 2px solid var(--ink);
   border-top: 0;
+}
+.crit-bubble.below::after {
+  top: -10px;
+  bottom: auto;
+  border: 2px solid var(--ink);
+  border-bottom: 0;
 }
 .crit-bubble-name {
   font: 600 10.5px var(--mono);
