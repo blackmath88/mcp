@@ -213,6 +213,17 @@ was `knowledge invalid_status` on four `.observstory/knowledge.json` entries —
 `basics-visual` carry `proposed`, and `exhibit-review` carries `draft`, none of which the pinned producer accepts for
 their kind. Nothing about the application or its deployment was involved.
 
+## D25 — Pixel critters and mosaic ornament return beside the line icons
+
+Status: owner direction, 2026-11-26. Implemented on `lab/menagerie`.
+
+D22 stays in force for the tools: the nine slots, the workshop canvas and every control keep the line icons. On top of
+that, pixel art comes back as ornament only. Eight critters, each a weird real MCP server, walk on the page, joke in
+speech bubbles and open a card with the facts when tapped. Critter entries in the library get mosaic cards, and a flat
+mosaic ledge and a pixel band use the slot colours. Pixels never enter the workshop canvas, and the critters can be
+hidden with one switch. The palette is the lab's slot colours with no orange ramp. Reason: the owner liked the style
+and asked for it across the UI, provided it stays ornamental and keeps the UI clear.
+
 `.github/workflows/observatory.yml` is left in place unchanged, so this is reversible with `gh workflow enable
 observatory.yml` once the statuses are corrected. Only `Foundation checks` runs now. START-HERE still tells a reader to
 orient from the latest Observatory snapshot; until this is re-enabled there will be no newer snapshot, and its fallback

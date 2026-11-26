@@ -677,6 +677,8 @@ export const startMenagerie = (root: Document = document): void => {
 
   const chatter = () => {
     if (!on || document.hidden || open !== null) return
+    // One bubble on screen at a time, so neighbours never talk over each other.
+    if (walkers.some(walker => walker.bubble !== null)) return
     const free = walkers.filter(
       walker =>
         walker.state === 'walk' &&

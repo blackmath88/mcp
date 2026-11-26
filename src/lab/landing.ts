@@ -52,7 +52,6 @@ const showcaseMap = (model: Model): MapInput => ({
 })
 
 // Stepped ground under the nine kinds of tool, for the critters to stand on.
-const terrainRise: ReadonlyArray<number> = [2, 3, 1, 2, 4, 1, 3, 2, 1]
 
 export const landingView = (model: Model, h: H): Html =>
   h.main(
@@ -133,17 +132,10 @@ export const landingView = (model: Model, h: H): Html =>
                   h.DataAttribute('perch', '3'),
                   h.DataAttribute('perch-steps', ''),
                 ],
-                Array.map(modules, (module, index) =>
+                Array.map(modules, module =>
                   h.keyed('span')(
                     module.id,
-                    [
-                      h.Class(`terrain-block place-${module.place}`),
-                      h.Style({
-                        '--rise': String(
-                          terrainRise[index % terrainRise.length] ?? 1,
-                        ),
-                      }),
-                    ],
+                    [h.Class(`terrain-block place-${module.place}`)],
                     [],
                   ),
                 ),

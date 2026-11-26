@@ -4139,20 +4139,34 @@ button.ws-chip {
   color: var(--fg2);
 }
 
-/* Landing: stepped ground in the nine slots' tints, each with a hue cap */
+/* Landing: one flat ledge of mosaic tiles in the nine slots' colours */
 .landing-terrain {
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));
   align-items: end;
-  gap: 4px;
-  height: 72px;
-  margin: 70px 0 10px;
+  height: 16px;
+  margin: 96px 0 10px;
 }
 .terrain-block {
-  height: calc(var(--rise, 1) * 14px + 4px);
-  background: color-mix(in srgb, var(--hue) 34%, var(--tint));
-  border-top: 4px solid var(--hue);
-  image-rendering: pixelated;
+  --tile: color-mix(in srgb, var(--hue) 62%, var(--tint));
+  height: 16px;
+  background:
+    linear-gradient(var(--hue), var(--hue)) top / 100% 3px no-repeat,
+    conic-gradient(
+        var(--tile) 0 25%,
+        transparent 0 50%,
+        var(--tile) 0 75%,
+        transparent 0
+      )
+      0 3px / 13px 13px,
+    color-mix(in srgb, var(--hue) 30%, var(--tint));
+  opacity: 0.85;
+}
+.terrain-block:nth-child(odd) {
+  background-position:
+    top,
+    6px 3px,
+    0 0;
 }
 .critter-toggle .when-off,
 :root[data-critters='off'] .critter-toggle .when-on {
