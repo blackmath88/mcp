@@ -4139,34 +4139,36 @@ button.ws-chip {
   color: var(--fg2);
 }
 
-/* Landing: one flat ledge of mosaic tiles in the nine slots' colours */
+/* Landing: one flat ledge of solid slot colours. The solid top is the
+   ground; underneath it breaks into loose squares. No shading inside. */
 .landing-terrain {
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));
-  align-items: end;
-  height: 16px;
-  margin: 96px 0 10px;
+  align-items: start;
+  height: 24px;
+  margin: 92px 0 10px;
 }
 .terrain-block {
-  --tile: color-mix(in srgb, var(--hue) 62%, var(--tint));
-  height: 16px;
-  background:
-    linear-gradient(var(--hue), var(--hue)) top / 100% 3px no-repeat,
-    conic-gradient(
-        var(--tile) 0 25%,
-        transparent 0 50%,
-        var(--tile) 0 75%,
-        transparent 0
-      )
-      0 3px / 13px 13px,
-    color-mix(in srgb, var(--hue) 30%, var(--tint));
-  opacity: 0.85;
+  --dissolve-a: 0px;
+  --dissolve-b: 0px;
+  height: 24px;
+  background: var(--hue);
+  -webkit-mask:
+    linear-gradient(#000, #000) 0 0 / 100% 12px no-repeat,
+    repeating-linear-gradient(90deg, #000 0 12px, transparent 12px 18px)
+      var(--dissolve-a) 12px / 100% 6px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 18px, #000 18px 24px)
+      var(--dissolve-b) 18px / 100% 6px no-repeat;
+  mask:
+    linear-gradient(#000, #000) 0 0 / 100% 12px no-repeat,
+    repeating-linear-gradient(90deg, #000 0 12px, transparent 12px 18px)
+      var(--dissolve-a) 12px / 100% 6px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 18px, #000 18px 24px)
+      var(--dissolve-b) 18px / 100% 6px no-repeat;
 }
-.terrain-block:nth-child(odd) {
-  background-position:
-    top,
-    6px 3px,
-    0 0;
+.terrain-block:nth-child(even) {
+  --dissolve-a: -6px;
+  --dissolve-b: -12px;
 }
 .critter-toggle .when-off,
 :root[data-critters='off'] .critter-toggle .when-on {
@@ -4176,36 +4178,33 @@ button.ws-chip {
   display: inline;
 }
 
-/* A thin band of pixel squares in the slot colours: ornament only */
+/* A band of solid slot colours that breaks into loose squares upward:
+   ornament only, no shading inside. */
 .pixel-band {
-  height: 12px;
-  margin: 4px 0;
-  opacity: 0.5;
-  background:
-    repeating-linear-gradient(
-        90deg,
-        var(--shelf) 0 12px,
-        var(--phone-t) 12px 24px,
-        var(--desk) 24px 36px,
-        var(--shelf-t) 36px 48px,
-        var(--pri) 48px 60px,
-        var(--phone) 60px 72px,
-        var(--desk-t) 72px 84px,
-        var(--sky) 84px 96px
-      )
-      top / 100% 6px no-repeat,
-    repeating-linear-gradient(
-        90deg,
-        var(--phone-t) 0 12px,
-        var(--shelf) 12px 24px,
-        var(--prisub) 24px 36px,
-        var(--desk) 36px 48px,
-        var(--shelf-t) 48px 60px,
-        var(--pri) 60px 72px,
-        var(--phone) 72px 84px,
-        var(--desk-t) 84px 96px
-      )
-      6px bottom / 100% 6px no-repeat;
+  height: 18px;
+  margin: 8px 0 4px;
+  background: linear-gradient(
+    90deg,
+    var(--shelf) 0 14%,
+    var(--sky) 0 28%,
+    var(--phone) 0 42%,
+    var(--pri) 0 57%,
+    var(--desk) 0 71%,
+    var(--bench) 0 85%,
+    var(--shelf) 0
+  );
+  -webkit-mask:
+    repeating-linear-gradient(90deg, transparent 0 24px, #000 24px 30px) 0 0 /
+      100% 6px no-repeat,
+    repeating-linear-gradient(90deg, #000 0 12px, transparent 12px 18px) 0 6px /
+      100% 6px no-repeat,
+    linear-gradient(#000, #000) 0 12px / 100% 6px no-repeat;
+  mask:
+    repeating-linear-gradient(90deg, transparent 0 24px, #000 24px 30px) 0 0 /
+      100% 6px no-repeat,
+    repeating-linear-gradient(90deg, #000 0 12px, transparent 12px 18px) 0 6px /
+      100% 6px no-repeat,
+    linear-gradient(#000, #000) 0 12px / 100% 6px no-repeat;
 }
 
 /* The critter layer: fixed over the page, clicks pass through except on a
