@@ -5,6 +5,11 @@ import type { CapabilityName } from '../domain/capabilities.ts'
 import { modules } from '../domain/modules.ts'
 import { creditView } from './credit.ts'
 import { lineIcon, slotIcons } from './icons.ts'
+import {
+  critterToggleView,
+  groundView,
+  pixelBandView,
+} from './library.ts'
 import { mcpLabMark } from './marks.ts'
 import { type MapInput, mcpMapView } from './mcpmap.ts'
 import { Message } from './message.ts'
@@ -49,6 +54,8 @@ const showcaseMap = (model: Model): MapInput => ({
   },
   isWorking: false,
 })
+
+// Stepped ground under the nine kinds of tool, for the critters to stand on.
 
 export const landingView = (model: Model, h: H): Html =>
   h.main(
@@ -122,6 +129,8 @@ export const landingView = (model: Model, h: H): Html =>
                   ),
                 ),
               ),
+              groundView(h, 'landing'),
+              critterToggleView(h),
             ],
           ),
           h.p(
@@ -131,6 +140,7 @@ export const landingView = (model: Model, h: H): Html =>
             ],
           ),
           creditView(h),
+          pixelBandView(h),
         ],
       ),
       h.div(

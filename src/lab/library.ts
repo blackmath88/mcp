@@ -9,6 +9,13 @@ import {
   neighbourIds,
   neighbourNames,
 } from '../domain/modules.ts'
+import {
+  type Critter,
+  critterForEntry,
+  crittersForStation,
+  exampleId,
+  ownEntryCritters,
+} from './critters/catalog.ts'
 import { lineIcon, neighbourIcons, slotIcons } from './icons.ts'
 import { Message } from './message.ts'
 import type { Model, Station } from './model.ts'
@@ -113,15 +120,127 @@ const fingerprintView = (entry: Entry, h: H): Html =>
     ],
   )
 
+// THE MENAGERIE ON A CARD
+//
+// A card whose server has a critter gets its art: a pale mosaic in the
+// critter's hue with the critter drawn huge and cropped, a sticker by the
+// name, and two meters. The pixels come from CSS custom properties that the
+// walker installs; the view only names them.
+
+const pipsView = (label: string, value: number, kind: string, h: H): Html =>
+  h.div(
+    [h.Class('crit-meter')],
+    [
+      h.span([], [label]),
+      h.span(
+        [h.Class(`crit-pips pip-${kind}`), h.AriaLabel(`${value} of 4`)],
+        Array.map([0, 1, 2, 3], index =>
+          h.i([h.Class(index < value ? 'on' : '')], []),
+        ),
+      ),
+    ],
+  )
+
+const critterArtView = (critter: Critter, h: H): Html =>
+  h.div(
+    [
+      h.Class('crit-art'),
+      h.AriaHidden(true),
+      h.DataAttribute('perch', ''),
+      h.DataAttribute('magnet', ''),
+    ],
+    [
+      h.div(
+        [h.Class('crit-title')],
+        [h.b([], [critter.name]), h.span([], [`“${critter.says}”`])],
+      ),
+    ],
+  )
+
+const critterMetersView = (critter: Critter, h: H): Html =>
+  h.div(
+    [h.Class('crit-meters')],
+    [
+      pipsView('Weirdness', critter.weird, 'weird', h),
+      pipsView('Breaks the idea', critter.breaks, 'breaks', h),
+    ],
+  )
+
+export const stickerView = (critter: Critter, h: H): Html =>
+  h.span(
+    [h.Class(`crit-sticker crit-${critter.sprite}`), h.AriaHidden(true)],
+    [],
+  )
+
+// Servers that only a critter brings in (not one of the four kinds of the
+// library itself) get a card of their own under their station.
+const ownCardView = (critter: Critter, h: H): Html =>
+  h.keyed('article')(
+    `critter-${critter.id}`,
+    [
+      h.Id(exampleId(critter.station, critter.kind, critter.server)),
+      h.Class(`lib-card kind-weird has-critter crit-${critter.sprite}`),
+    ],
+    [
+      critterArtView(critter, h),
+      h.div(
+        [h.Class('lib-top')],
+        [
+          h.span([h.Class('lib-kind kind-weird')], ['Weird, too']),
+          h.span(
+            [
+              h.Class(`lib-ev ev-${ownEvidence(critter)}`),
+              h.Title(critter.evidence.note),
+            ],
+            [evidenceNames[ownEvidence(critter)]],
+          ),
+        ],
+      ),
+      h.h4(
+        [h.Class('lib-name')],
+        [
+          stickerView(critter, h),
+          h.a(
+            [h.Href(critter.url), h.Target('_blank'), h.Rel('noreferrer')],
+            [critter.server],
+          ),
+        ],
+      ),
+      h.p([h.Class('lib-by')], [critter.by]),
+      h.p([h.Class('lib-what')], [critter.what]),
+      critterMetersView(critter, h),
+      h.details(
+        [h.Class('lib-note')],
+        [h.summary([], ['Evidence']), h.p([], [critter.evidence.note])],
+      ),
+    ],
+  )
+
+const ownEvidence = (critter: Critter): EvidenceKind =>
+  isEvidence(critter.evidence.kind) ? critter.evidence.kind : 'author'
+
+const extraCards = (station: string, h: H): ReadonlyArray<Html> =>
+  Array.map(
+    ownEntryCritters.filter(critter => critter.station === station),
+    critter => ownCardView(critter, h),
+  )
+
 const cardView = (entry: Entry, h: H): Html => {
   const kind = kinds.find(value => value === entry.kind) ?? 'popular'
   const evidence = isEvidence(entry.evidence.kind)
     ? entry.evidence.kind
     : 'author'
+  const critter = critterForEntry(entry.station, entry.kind, entry.name)
   return h.keyed('article')(
     `${entry.station}-${entry.kind}-${entry.name}`,
-    [h.Class(`lib-card kind-${kind}`)],
     [
+      h.Id(exampleId(entry.station, entry.kind, entry.name)),
+      h.Class(
+        `lib-card kind-${kind}${critter === undefined ? '' : ` has-critter crit-${critter.sprite}`}`,
+      ),
+    ],
+    [
+      critter === undefined ? h.empty : critterArtView(critter, h),
       h.div(
         [h.Class('lib-top')],
         [
@@ -135,6 +254,7 @@ const cardView = (entry: Entry, h: H): Html => {
       h.h4(
         [h.Class('lib-name')],
         [
+          critter === undefined ? h.empty : stickerView(critter, h),
           entry.url === ''
             ? entry.name
             : h.a(
@@ -146,6 +266,7 @@ const cardView = (entry: Entry, h: H): Html => {
       entry.by === '' ? h.empty : h.p([h.Class('lib-by')], [entry.by]),
       h.p([h.Class('lib-what')], [entry.what]),
       h.p([h.Class('lib-why')], [entry.why]),
+      critter === undefined ? h.empty : critterMetersView(critter, h),
       fingerprintView(entry, h),
       h.details(
         [h.Class('lib-note')],
@@ -155,13 +276,157 @@ const cardView = (entry: Entry, h: H): Html => {
   )
 }
 
+// Ground for the critters: nine solid blocks in the slot colours with a
+// crumbling underside. Empty space above it is the stage they walk on.
+export const groundView = (h: H, where = ''): Html =>
+  h.div(
+    [
+      h.Class(`pixel-ground${where === '' ? '' : ` ground-${where}`}`),
+      h.AriaHidden(true),
+      h.DataAttribute('perch', '3'),
+      h.DataAttribute('perch-steps', ''),
+    ],
+    Array.map(modules, module =>
+      h.keyed('span')(
+        module.id,
+        [h.Class(`terrain-block place-${module.place}`)],
+        [],
+      ),
+    ),
+  )
+
+type Tile = Readonly<{ id: string; kind: Kind; label: string; name: string }>
+
+const tilesFor = (station: Station): ReadonlyArray<Tile> => [
+  ...Array.map(entriesFor(station), entry => {
+    const kind = kinds.find(value => value === entry.kind) ?? 'popular'
+    return {
+      id: exampleId(entry.station, entry.kind, entry.name),
+      kind,
+      label: kindNames[kind],
+      name: entry.name,
+    }
+  }),
+  ...Array.map(
+    ownEntryCritters.filter(critter => critter.station === station),
+    critter => ({
+      id: exampleId(critter.station, critter.kind, critter.server),
+      kind: 'weird' as const,
+      label: 'Weird, too',
+      name: critter.server,
+    }),
+  ),
+]
+
+// Near the top of every step: the real servers of this step as solid colour
+// tiles. Their tops are the critters' ground; a tap scrolls to the full card.
+export const examplesRowView = (station: Station, h: H): Html =>
+  Array.match(tilesFor(station), {
+    onEmpty: () => h.empty,
+    onNonEmpty: tiles =>
+      h.section(
+        [
+          h.Class('ex-row'),
+          h.DataAttribute('station', station),
+          h.AriaLabel('Out in the world, this step'),
+        ],
+        [
+          h.div(
+            [
+              h.Class('ex-tiles'),
+              h.DataAttribute('perch', '3'),
+              h.DataAttribute('perch-steps', ''),
+            ],
+            Array.map(tiles, tile =>
+              h.keyed('button')(
+                tile.id,
+                [
+                  h.Type('button'),
+                  h.Class(`ex-tile kind-${tile.kind}`),
+                  h.DataAttribute('ex-target', tile.id),
+                  h.DataAttribute('ex-kind', tile.label),
+                  h.DataAttribute('ex-name', tile.name),
+                ],
+                [
+                  h.span([h.Class('ex-kind')], [tile.label]),
+                  h.b([h.Class('ex-name')], [tile.name]),
+                ],
+              ),
+            ),
+          ),
+          h.p(
+            [h.Class('ex-caption')],
+            [
+              h.b([], ['Out in the world']),
+              ' · real servers like this step. Tap one for its card further down, or tap a critter.',
+            ],
+          ),
+        ],
+      ),
+  })
+
+// A thin row of pixel squares in the slot colours. Ornament only: it sits
+// above or below text, never behind it.
+export const pixelBandView = (h: H): Html =>
+  h.div([h.Class('pixel-band'), h.AriaHidden(true)], [])
+
+// The walker owns the critters; this switch only carries a marker it
+// listens for. Which label shows follows the root's data-critters.
+export const critterToggleView = (h: H): Html =>
+  h.button(
+    [
+      h.Type('button'),
+      h.Class('pop-btn plain critter-toggle'),
+      h.DataAttribute('critter-toggle', ''),
+    ],
+    [
+      h.span([h.Class('when-on')], ['Hide the critters']),
+      h.span([h.Class('when-off')], ['Let the critters out']),
+    ],
+  )
+
+// Under the toolbench: the weird ones of this step, one tap from the shelf.
+export const neighboursView = (station: Station, h: H): Html =>
+  Array.match(crittersForStation(station), {
+    onEmpty: () => h.empty,
+    onNonEmpty: found =>
+      h.div(
+        [h.Class('crit-neighbours'), h.AriaLabel('Weird neighbours')],
+        [
+          h.span([h.Class('eyebrow')], ['Weird neighbours']),
+          ...Array.map(found, critter =>
+            h.a(
+              [
+                h.Href('#out-in-the-world'),
+                h.Class('crit-chip'),
+                h.DataAttribute('perch', ''),
+                h.DataAttribute('magnet', ''),
+              ],
+              [
+                stickerView(critter, h),
+                h.span([], [critter.server]),
+                h.small(
+                  [],
+                  [critter.kind === 'breaking' ? 'almost breaks it' : 'weird'],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+  })
+
 // On each bench, under the workbench.
 export const shelfView = (station: Station, h: H): Html =>
   Array.match(entriesFor(station), {
     onEmpty: () => h.empty,
     onNonEmpty: found =>
       h.section(
-        [h.Class('lib-shelf'), h.AriaLabel('Out in the world')],
+        [
+          h.Class('lib-shelf'),
+          h.Id('out-in-the-world'),
+          h.AriaLabel('Out in the world'),
+        ],
         [
           h.div(
             [h.Class('lib-head')],
@@ -185,7 +450,10 @@ export const shelfView = (station: Station, h: H): Html =>
           ),
           h.div(
             [h.Class('lib-grid')],
-            Array.map(found, entry => cardView(entry, h)),
+            [
+              ...Array.map(found, entry => cardView(entry, h)),
+              ...extraCards(station, h),
+            ],
           ),
         ],
       ),
@@ -199,6 +467,7 @@ export const libraryScreenView = (model: Model, h: H): Html =>
       h.div(
         [h.Class('lib-intro')],
         [
+          pixelBandView(h),
           h.p([h.Class('kicker')], ['Out in the world']),
           h.h1([h.Class('home-title')], ['The real servers behind each step']),
           h.p(
@@ -223,6 +492,8 @@ export const libraryScreenView = (model: Model, h: H): Html =>
             ],
           ),
           h.p([h.Class('tb-note')], [library.about]),
+          critterToggleView(h),
+          groundView(h, 'page'),
         ],
       ),
       ...Array.map(route, step =>
@@ -255,7 +526,12 @@ export const libraryScreenView = (model: Model, h: H): Html =>
             h.p([h.Class('lib-idea')], [step.idea]),
             h.div(
               [h.Class('lib-grid')],
-              Array.map(entriesFor(step.station), entry => cardView(entry, h)),
+              [
+                ...Array.map(entriesFor(step.station), entry =>
+                  cardView(entry, h),
+                ),
+                ...extraCards(step.station, h),
+              ],
             ),
           ],
         ),

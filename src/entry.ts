@@ -1,5 +1,6 @@
 import { Runtime } from 'foldkit'
 
+import { startMenagerie } from './lab/critters/walker.ts'
 import { closePopoversOnOutsideClick } from './lab/popovers.ts'
 import { scrollToTopOnNavigation } from './lab/scroll.ts'
 import { tellOnScroll } from './lab/tell-scroll.ts'
@@ -22,3 +23,4 @@ Runtime.run(application)
 closePopoversOnOutsideClick(document)
 scrollToTopOnNavigation(document)
 tellOnScroll(document)
+startMenagerie(document)
