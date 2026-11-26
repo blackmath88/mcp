@@ -93,6 +93,18 @@ export const critters: ReadonlyArray<Critter> = rawCritters.flatMap(raw => {
   return critter === undefined ? [] : [critter]
 })
 
+// The DOM id of one example card, shared by the cards, the tiles at the top
+// of a step and the strip in a critter's card.
+export const exampleId = (
+  station: string,
+  kind: string,
+  name: string,
+): string =>
+  `ex-${station}-${kind}-${name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')}`
+
 // The critter standing for one library card, if any.
 export const critterForEntry = (
   station: string,

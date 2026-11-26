@@ -5,7 +5,11 @@ import type { CapabilityName } from '../domain/capabilities.ts'
 import { modules } from '../domain/modules.ts'
 import { creditView } from './credit.ts'
 import { lineIcon, slotIcons } from './icons.ts'
-import { critterToggleView, pixelBandView } from './library.ts'
+import {
+  critterToggleView,
+  groundView,
+  pixelBandView,
+} from './library.ts'
 import { mcpLabMark } from './marks.ts'
 import { type MapInput, mcpMapView } from './mcpmap.ts'
 import { Message } from './message.ts'
@@ -125,21 +129,7 @@ export const landingView = (model: Model, h: H): Html =>
                   ),
                 ),
               ),
-              h.div(
-                [
-                  h.Class('landing-terrain'),
-                  h.AriaHidden(true),
-                  h.DataAttribute('perch', '3'),
-                  h.DataAttribute('perch-steps', ''),
-                ],
-                Array.map(modules, module =>
-                  h.keyed('span')(
-                    module.id,
-                    [h.Class(`terrain-block place-${module.place}`)],
-                    [],
-                  ),
-                ),
-              ),
+              groundView(h, 'landing'),
               critterToggleView(h),
             ],
           ),

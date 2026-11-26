@@ -8,6 +8,7 @@ import {
   clampX,
   critterForEntry,
   critters,
+  exampleId,
   hues,
   pickWeighted,
   rawCritters,
@@ -112,5 +113,25 @@ describe('the shading rules', () => {
     )
     // An empty cell has no colour.
     expect(cellColour('gopher', 0, 'plain', 0, 0)).toBeUndefined()
+  })
+})
+
+describe('example ids', () => {
+  test('are unique per library card and safe as DOM ids', () => {
+    const ids = [
+      ...library.entries.map(entry =>
+        exampleId(entry.station, entry.kind, entry.name),
+      ),
+      ...critters.map(critter =>
+        exampleId(critter.station, critter.kind, critter.server),
+      ),
+    ]
+    const libraryIds = new Set(
+      library.entries.map(entry =>
+        exampleId(entry.station, entry.kind, entry.name),
+      ),
+    )
+    expect(libraryIds.size).toBe(library.entries.length)
+    ids.forEach(id => expect(id).toMatch(/^ex-[a-z0-9-]+$/))
   })
 })

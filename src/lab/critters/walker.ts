@@ -1,5 +1,11 @@
 import { stationNames } from '../names.ts'
-import { type Critter, clampX, critters, pickWeighted } from './catalog.ts'
+import {
+  type Critter,
+  clampX,
+  critters,
+  exampleId,
+  pickWeighted,
+} from './catalog.ts'
 import { drawSprite, installArt } from './render.ts'
 
 // THE WALKER
@@ -269,8 +275,15 @@ export const startMenagerie = (root: Document = document): void => {
       openPerches.some(perch => !occupied(perch, null))
     ) {
       tries++
-      const critter = critters[next % critters.length]
-      next++
+      const station =
+        root.querySelector<HTMLElement>('.ex-row')?.dataset['station'] ?? ''
+      const own = critters.find(
+        candidate =>
+          candidate.station === station &&
+          !walkers.some(walker => walker.critter.id === candidate.id),
+      )
+      const critter = own ?? critters[next % critters.length]
+      if (own === undefined) next++
       if (
         critter !== undefined &&
         !walkers.some(walker => walker.critter.id === critter.id)
@@ -536,6 +549,67 @@ export const startMenagerie = (root: Document = document): void => {
     return row
   }
 
+  // The examples of the step on screen, read from its tile row, as small
+  // colour tiles. The critter's own server, if it is one of them, says "me".
+  const examplesStrip = (critter: Critter): HTMLElement | null => {
+    const tiles = [...root.querySelectorAll<HTMLElement>('.ex-row .ex-tile')]
+    if (tiles.length === 0) return null
+    const mine = exampleId(critter.station, critter.kind, critter.server)
+    const strip = element('div', 'crit-strip')
+    strip.appendChild(element('b', '', 'Out in the world, this step'))
+    const row = element('div', 'crit-strip-row')
+    tiles.forEach(tile => {
+      const target = tile.dataset['exTarget'] ?? ''
+      const kind = [...tile.classList].find(name => name.startsWith('kind-'))
+      const mini = element(
+        'button',
+        `crit-mini ${kind ?? ''}${target === mine ? ' is-me' : ''}`,
+      )
+      mini.type = 'button'
+      mini.dataset['exTarget'] = target
+      mini.appendChild(
+        element(
+          'span',
+          '',
+          target === mine ? 'me' : (tile.dataset['exKind'] ?? ''),
+        ),
+      )
+      mini.appendChild(element('b', '', tile.dataset['exName'] ?? ''))
+      row.appendChild(mini)
+    })
+    strip.appendChild(row)
+    return strip
+  }
+
+  const mark = (critter: Critter | null) => {
+    const html = root.documentElement
+    if (critter === null) {
+      delete html.dataset['critMarks']
+      root
+        .querySelectorAll('.is-critter-own')
+        .forEach(node => node.classList.remove('is-critter-own'))
+      return
+    }
+    html.dataset['critMarks'] = 'on'
+    root
+      .getElementById(exampleId(critter.station, critter.kind, critter.server))
+      ?.classList.add('is-critter-own')
+  }
+
+  // Tiles and strip buttons scroll to their example card and flash it.
+  const showExample = (target: string) => {
+    const card_ = root.getElementById(target)
+    if (card_ === null) return
+    card_.scrollIntoView({
+      behavior: prefersStill() ? 'auto' : 'smooth',
+      block: 'center',
+    })
+    card_.classList.remove('ex-flash')
+    void card_.getBoundingClientRect()
+    card_.classList.add('ex-flash')
+    window.setTimeout(() => card_.classList.remove('ex-flash'), 1800)
+  }
+
   const card = (walker: Walker): HTMLElement => {
     const { critter } = walker
     const box = element('article', `crit-pop crit-${critter.sprite}`)
@@ -579,6 +653,8 @@ export const startMenagerie = (root: Document = document): void => {
       links.appendChild(source)
     }
     body.appendChild(links)
+    const strip = examplesStrip(critter)
+    if (strip !== null) body.appendChild(strip)
     body.appendChild(
       element(
         'p',
@@ -614,6 +690,7 @@ export const startMenagerie = (root: Document = document): void => {
     if (open === null) return
     const walker = open
     open = null
+    mark(null)
     closeBubble(walker)
     walker.state = 'walk'
     if (returnFocus && walker.button.isConnected)
@@ -627,6 +704,7 @@ export const startMenagerie = (root: Document = document): void => {
     walker.jump = null
     walker.button.style.pointerEvents = ''
     open = walker
+    mark(walker.critter)
     const box = card(walker)
     layer.appendChild(box)
     walker.bubble = box
@@ -659,6 +737,12 @@ export const startMenagerie = (root: Document = document): void => {
   })
   root.addEventListener('click', event => {
     if (!(event.target instanceof Element)) return
+    const example = event.target.closest<HTMLElement>('[data-ex-target]')
+    if (example !== null) {
+      if (example.closest('.crit-pop') !== null) closeCard(false)
+      showExample(example.dataset['exTarget'] ?? '')
+      return
+    }
     if (event.target.closest('[data-critter-toggle]') === null) return
     on = !on
     writeStored(on)

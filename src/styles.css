@@ -3295,8 +3295,62 @@ button.ws-chip {
   border-radius: 12px;
   background: var(--bg);
 }
-.lib-card.kind-breaking {
-  border-color: color-mix(in srgb, var(--amber) 45%, var(--bd));
+.lib-card {
+  position: relative;
+  scroll-margin: 90px;
+}
+/* A solid colour header in the card's kind that crumbles into squares. */
+.lib-card:not(.has-critter) {
+  padding-top: 26px;
+  overflow: hidden;
+}
+.lib-card:not(.has-critter)::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 16px;
+  background: var(--kc);
+  -webkit-mask:
+    linear-gradient(#000, #000) 0 0 / 100% 8px no-repeat,
+    repeating-linear-gradient(90deg, #000 0 8px, transparent 8px 12px) 0 8px /
+      100% 4px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 12px, #000 12px 16px) 0
+      12px / 100% 4px no-repeat;
+  mask:
+    linear-gradient(#000, #000) 0 0 / 100% 8px no-repeat,
+    repeating-linear-gradient(90deg, #000 0 8px, transparent 8px 12px) 0 8px /
+      100% 4px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 12px, #000 12px 16px) 0
+      12px / 100% 4px no-repeat;
+}
+/* While a critter's card is open, this step's examples are framed in their
+   colour; the critter's own server gets a thicker frame. */
+:root[data-crit-marks] .lib-shelf .lib-card {
+  outline: 2px solid var(--kc, var(--phone));
+  outline-offset: 2px;
+}
+:root[data-crit-marks] .ex-tile {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--kc);
+}
+.lib-card.is-critter-own {
+  outline: 4px solid var(--kc, var(--phone));
+  outline-offset: 3px;
+}
+.lib-card.ex-flash {
+  animation: ex-flash 1.6s steps(4) 1;
+}
+@keyframes ex-flash {
+  0%,
+  50% {
+    outline: 4px solid var(--kc, var(--phone));
+    outline-offset: 4px;
+  }
+  25%,
+  75%,
+  100% {
+    outline: 4px solid transparent;
+    outline-offset: 4px;
+  }
 }
 .lib-top {
   display: flex;
@@ -3311,21 +3365,21 @@ button.ws-chip {
   font-weight: 600;
   letter-spacing: 0.02em;
 }
-.lib-kind.kind-popular {
-  background: var(--shelf-t);
-  color: var(--shelf);
+.kind-popular {
+  --kc: var(--shelf);
 }
-.lib-kind.kind-first {
-  background: var(--phone-t);
-  color: var(--phone);
+.kind-first {
+  --kc: var(--pri);
 }
-.lib-kind.kind-weird {
-  background: var(--desk-t);
-  color: var(--desk);
+.kind-weird {
+  --kc: var(--phone);
 }
-.lib-kind.kind-breaking {
-  background: var(--dock-t);
-  color: var(--dock);
+.kind-breaking {
+  --kc: var(--desk);
+}
+.lib-kind {
+  background: color-mix(in srgb, var(--kc, var(--fg2)) 16%, transparent);
+  color: var(--kc, var(--fg2));
 }
 .lib-ev {
   font-size: 10.5px;
@@ -4139,14 +4193,171 @@ button.ws-chip {
   color: var(--fg2);
 }
 
-/* Landing: one flat ledge of solid slot colours. The solid top is the
-   ground; underneath it breaks into loose squares. No shading inside. */
-.landing-terrain {
+/* Ground for the critters: one flat ledge of solid slot colours. The solid
+   top is the ground; underneath it breaks into loose squares. The margin
+   above is their stage. No shading inside. */
+.pixel-ground {
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));
   align-items: start;
   height: 24px;
+  margin: 84px 0 14px;
+}
+.pixel-ground.ground-landing {
   margin: 92px 0 10px;
+}
+@media (max-width: 600px) {
+  .pixel-ground.ground-page {
+    margin-top: 68px;
+  }
+}
+
+/* Out in the world, at the top of a step: solid colour tiles whose tops are
+   the critters' ground. */
+.ex-row {
+  margin: 88px 0 18px;
+}
+.ex-tiles {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 0;
+}
+.ex-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  min-height: 74px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 0;
+  background: var(--kc);
+  color: var(--bg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.ex-tile::after {
+  content: '';
+  position: absolute;
+  inset: 100% 0 auto;
+  height: 12px;
+  background: var(--kc);
+  -webkit-mask:
+    repeating-linear-gradient(90deg, #000 0 12px, transparent 12px 18px) 0 0 /
+      100% 6px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 18px, #000 18px 24px) 0 6px /
+      100% 6px no-repeat;
+  mask:
+    repeating-linear-gradient(90deg, #000 0 12px, transparent 12px 18px) 0 0 /
+      100% 6px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 18px, #000 18px 24px) 0 6px /
+      100% 6px no-repeat;
+}
+.ex-tile:nth-child(even)::after {
+  -webkit-mask-position:
+    -6px 0,
+    -12px 6px;
+  mask-position:
+    -6px 0,
+    -12px 6px;
+}
+.ex-tile:hover,
+.ex-tile:focus-visible {
+  filter: brightness(1.08);
+  outline: none;
+  box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--bg) 40%, transparent);
+}
+.ex-kind {
+  font: 600 10.5px/1 var(--mono, monospace);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.ex-name {
+  font-size: 14px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.ex-caption {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--fg2);
+}
+.ex-caption b {
+  color: var(--ink);
+}
+@media (max-width: 600px) {
+  .ex-row {
+    margin-top: 66px;
+  }
+  .ex-tiles {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ex-tile {
+    min-height: 62px;
+  }
+}
+
+/* Inside a critter's card: the same tiles, small. */
+.crit-strip {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+.crit-strip > b {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg2);
+}
+.crit-strip-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+.crit-mini {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 0;
+  background: var(--kc, var(--phone));
+  color: var(--bg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.crit-mini span {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.crit-mini b {
+  font-size: 12px;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.crit-mini.is-me {
+  box-shadow: inset 0 0 0 3px var(--ink);
+}
+.crit-mini.is-me span {
+  opacity: 1;
 }
 .terrain-block {
   --dissolve-a: 0px;

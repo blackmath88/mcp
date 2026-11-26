@@ -3,6 +3,7 @@ import { type Html, type HtmlBuilder } from 'foldkit/html'
 
 import { catalogue } from '../domain/capabilities.ts'
 import { iconView } from './icons.ts'
+import { groundView } from './library.ts'
 import { Message } from './message.ts'
 import type { Model } from './model.ts'
 import { stationNames } from './names.ts'
@@ -91,6 +92,7 @@ export const introView = (model: Model, h: H): Html =>
               'MCP, the Model Context Protocol, is how an AI app finds out what another program can do for it, and then asks it to do it. Five short scenes; scroll, and the drawing changes with the story.',
             ],
           ),
+          groundView(h, 'page'),
         ],
       ),
       tellView(model, h),

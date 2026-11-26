@@ -13,6 +13,7 @@ import {
   type Critter,
   critterForEntry,
   crittersForStation,
+  exampleId,
   ownEntryCritters,
 } from './critters/catalog.ts'
 import { lineIcon, neighbourIcons, slotIcons } from './icons.ts'
@@ -176,7 +177,10 @@ export const stickerView = (critter: Critter, h: H): Html =>
 const ownCardView = (critter: Critter, h: H): Html =>
   h.keyed('article')(
     `critter-${critter.id}`,
-    [h.Class(`lib-card kind-weird has-critter crit-${critter.sprite}`)],
+    [
+      h.Id(exampleId(critter.station, critter.kind, critter.server)),
+      h.Class(`lib-card kind-weird has-critter crit-${critter.sprite}`),
+    ],
     [
       critterArtView(critter, h),
       h.div(
@@ -230,6 +234,7 @@ const cardView = (entry: Entry, h: H): Html => {
   return h.keyed('article')(
     `${entry.station}-${entry.kind}-${entry.name}`,
     [
+      h.Id(exampleId(entry.station, entry.kind, entry.name)),
       h.Class(
         `lib-card kind-${kind}${critter === undefined ? '' : ` has-critter crit-${critter.sprite}`}`,
       ),
@@ -270,6 +275,95 @@ const cardView = (entry: Entry, h: H): Html => {
     ],
   )
 }
+
+// Ground for the critters: nine solid blocks in the slot colours with a
+// crumbling underside. Empty space above it is the stage they walk on.
+export const groundView = (h: H, where = ''): Html =>
+  h.div(
+    [
+      h.Class(`pixel-ground${where === '' ? '' : ` ground-${where}`}`),
+      h.AriaHidden(true),
+      h.DataAttribute('perch', '3'),
+      h.DataAttribute('perch-steps', ''),
+    ],
+    Array.map(modules, module =>
+      h.keyed('span')(
+        module.id,
+        [h.Class(`terrain-block place-${module.place}`)],
+        [],
+      ),
+    ),
+  )
+
+type Tile = Readonly<{ id: string; kind: Kind; label: string; name: string }>
+
+const tilesFor = (station: Station): ReadonlyArray<Tile> => [
+  ...Array.map(entriesFor(station), entry => {
+    const kind = kinds.find(value => value === entry.kind) ?? 'popular'
+    return {
+      id: exampleId(entry.station, entry.kind, entry.name),
+      kind,
+      label: kindNames[kind],
+      name: entry.name,
+    }
+  }),
+  ...Array.map(
+    ownEntryCritters.filter(critter => critter.station === station),
+    critter => ({
+      id: exampleId(critter.station, critter.kind, critter.server),
+      kind: 'weird' as const,
+      label: 'Weird, too',
+      name: critter.server,
+    }),
+  ),
+]
+
+// Near the top of every step: the real servers of this step as solid colour
+// tiles. Their tops are the critters' ground; a tap scrolls to the full card.
+export const examplesRowView = (station: Station, h: H): Html =>
+  Array.match(tilesFor(station), {
+    onEmpty: () => h.empty,
+    onNonEmpty: tiles =>
+      h.section(
+        [
+          h.Class('ex-row'),
+          h.DataAttribute('station', station),
+          h.AriaLabel('Out in the world, this step'),
+        ],
+        [
+          h.div(
+            [
+              h.Class('ex-tiles'),
+              h.DataAttribute('perch', '3'),
+              h.DataAttribute('perch-steps', ''),
+            ],
+            Array.map(tiles, tile =>
+              h.keyed('button')(
+                tile.id,
+                [
+                  h.Type('button'),
+                  h.Class(`ex-tile kind-${tile.kind}`),
+                  h.DataAttribute('ex-target', tile.id),
+                  h.DataAttribute('ex-kind', tile.label),
+                  h.DataAttribute('ex-name', tile.name),
+                ],
+                [
+                  h.span([h.Class('ex-kind')], [tile.label]),
+                  h.b([h.Class('ex-name')], [tile.name]),
+                ],
+              ),
+            ),
+          ),
+          h.p(
+            [h.Class('ex-caption')],
+            [
+              h.b([], ['Out in the world']),
+              ' · real servers like this step. Tap one for its card further down, or tap a critter.',
+            ],
+          ),
+        ],
+      ),
+  })
 
 // A thin row of pixel squares in the slot colours. Ornament only: it sits
 // above or below text, never behind it.
@@ -399,6 +493,7 @@ export const libraryScreenView = (model: Model, h: H): Html =>
           ),
           h.p([h.Class('tb-note')], [library.about]),
           critterToggleView(h),
+          groundView(h, 'page'),
         ],
       ),
       ...Array.map(route, step =>

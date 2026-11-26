@@ -22,6 +22,7 @@ import { allMap, foreignMap, mcpMapView } from './mcpmap.ts'
 import { Message } from './message.ts'
 import type { Model, Station } from './model.ts'
 import { serverNames, stationNames } from './names.ts'
+import { groundView } from './library.ts'
 
 type H = HtmlBuilder<Message>
 
@@ -843,6 +844,7 @@ export const atlasScreenView = (model: Model, h: H): Html =>
                 [h.Class('home-title')],
                 ['What can a connection hand you?'],
               ),
+              groundView(h, 'page'),
             ],
           ),
           h.div(

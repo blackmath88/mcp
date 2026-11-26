@@ -35,7 +35,12 @@ import {
 import { introView, storyCardView } from './intro.ts'
 import { landingView } from './landing.ts'
 import { lensTabView } from './lens-view.ts'
-import { libraryScreenView, neighboursView, shelfView } from './library.ts'
+import {
+  examplesRowView,
+  libraryScreenView,
+  neighboursView,
+  shelfView,
+} from './library.ts'
 import { Message } from './message.ts'
 import {
   type BackstageTab,
@@ -906,6 +911,7 @@ const workbenchView = (model: Model, h: H): Html =>
         onSome: specimen =>
           specimenView(specimen, stationTitle(model.station), h),
       }),
+      examplesRowView(model.station, h),
       toolbenchView(
         model,
         {
