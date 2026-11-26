@@ -874,3 +874,10 @@ Implemented a substantive presentation redesign: charcoal IDE chrome and light c
 Screenshot review caught excessive stage height, small actor labels, inherited white-on-light active wire labels and a narrow mobile question chip. Corrected those before final handoff. Desktop now shows both data panels with the diagram at 1440×900 and 1024×900; mobile provides scrollable central content with retained shell controls. No claim that the user has accepted the new design.
 
 Executed: syntax check, all 12 module tests, 10 targeted redesign browser checks, 45 existing interaction regressions across three viewports, 11 keyboard checks. All passed. Keyboard harness now manually selects the final event before checking Previous, reflecting the newly automatic explanation start. Targeted screenshots/results/script and prior CSS/app snapshot are in `.lab/redesign-qa/`; interaction rerun results in `.lab/curriculum-qa/`. Final CSS adjustment to data/permission views followed by targeted browser rerun. No publication beyond the authorised existing private Tailscale static preview; no credentials or live services. Changes remain local/uncommitted. Next: user reviews the new composition and runs the opening task at `http://100.97.81.120:8788/lab/#notes/try`.
+## 2026-11-26 — Pi MCP consumer observation
+
+- Learned: Pi 1.6.1 has native MCP; private Project Knowledge discovery/retrieval succeeded while a separate sciCORE profile had no MCP servers.
+- Changed: added a bounded observation note covering provider/tool separation, denied restricted retrieval and credential boundaries.
+- Evidence: live stdio `tools/list`, permitted `weavr` brief from `linuc`, and denied restricted `weavr2` brief; no sciCORE inference occurred.
+- Practice source: live private Development Practice was not resolved in this task; project-local baseline and security-boundary rules were applied.
+- Next: retain an actual tool-call receipt when the synthetic sciCORE credential/fixture acceptance is authorised.
