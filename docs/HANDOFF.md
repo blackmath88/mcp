@@ -1,6 +1,6 @@
 # Handoff
 
-## The menagerie: weird servers as pixel critters — 2026-11-25 (branch `lab/menagerie`, not merged)
+## The menagerie: weird servers as pixel critters — 2026-11-25 (branch `lab/menagerie`, merged to main via PR #3 on 2026-11-26)
 
 Owner: weird real MCP servers as pixel critters that walk over the lab, joke in speech bubbles and open a card with the facts; make it work on Android and iPhone; adopt it on the landing; let the card colouring add ornament to the UI without hurting clarity and without much orange (it must not read as Mistral). Concept: the "MCP Lab Menagerie" artifact; method write-up in blackmath88/buddy `studies/menagerie/`.
 
