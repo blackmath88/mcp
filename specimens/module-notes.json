@@ -1,5 +1,5 @@
 {
-  "about": "What a particular real server does at one slot of the workshop, and what makes it worth stopping at. Each slot carries a headline, drawn on the canvas beside its module, and the full note, which the full-window view shows. Only the servers a critter stands for have notes here; every other card falls back to its own what/why text. Each note names the source it was read from and the date. Nothing here was installed or run, and gaps are written down rather than filled in.",
+  "about": "What a particular real server does at one slot of the workshop, and what makes it worth stopping at. Each slot carries a headline, drawn on the canvas beside its module. A headline wraps to two lines past about 31 characters in a left-hand bubble and about 23 in a narrower right-hand one (write, ask, invent, delegate, act); two lines is fine, an awkward break is not. It carries and the full note, which the full-window view shows. Only the servers a critter stands for have notes here; every other card falls back to its own what/why text. Each note names the source it was read from and the date. Nothing here was installed or run, and gaps are written down rather than filled in.",
   "notes": [
     {
       "station": "thinking",
@@ -318,7 +318,7 @@
       "name": "PAL MCP (formerly Zen MCP)",
       "slots": {
         "delegate": {
-          "headline": "clink: a CLI inside your CLI",
+          "headline": "A CLI inside your CLI",
           "note": "The clink tool launches isolated instances of other coding CLIs from inside the one you are already in — Claude Code spawning Codex, Codex spawning Gemini — and each subagent returns only its final result, so the caller’s context stays clean. consensus fans one question out to several models with stance steering."
         }
       },
@@ -428,7 +428,7 @@
           "note": "Point it at a server and it lists tools, resources and prompts, builds an argument form from each tool’s schema, and records the JSON-RPC traffic with an edit-and-replay action. Its own README is blunt about the cost: the API token is not access control, and anyone who can load the page can act as you."
         },
         "compute": {
-          "headline": "Lints the schema, scores the run",
+          "headline": "Lints schemas, scores runs",
           "note": "Its command-line mode turns it into a scriptable client: a strict listing reports tool-schema portability problems and exits non-zero if any is an error, and a load mode calls one tool repeatedly and fails against error-rate and latency thresholds. The lint is narrow on purpose — it flags constructs real clients refuse rather than validating the schema language."
         }
       },
