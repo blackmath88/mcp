@@ -12,6 +12,7 @@ import type { ModuleId } from '../domain/modules.ts'
 // invents a claim about somebody else's server.
 
 export type ModuleNote = Readonly<{
+  headline: string
   note: string
   evidenceKind: string
   evidenceNote: string
@@ -21,7 +22,7 @@ type RawNote = Readonly<{
   station: string
   kind: string
   name: string
-  slots: Readonly<Record<string, string>>
+  slots: Readonly<Record<string, Readonly<{ headline: string; note: string }>>>
   evidence: Readonly<{ kind: string; note: string }>
 }>
 
@@ -37,11 +38,12 @@ export const noteFor = (
     entry =>
       entry.station === station && entry.kind === kind && entry.name === name,
   )
-  const text = found?.slots[slot]
-  return found === undefined || text === undefined
+  const slotNote = found?.slots[slot]
+  return found === undefined || slotNote === undefined
     ? Option.none()
     : Option.some({
-        note: text,
+        headline: slotNote.headline,
+        note: slotNote.note,
         evidenceKind: found.evidence.kind,
         evidenceNote: found.evidence.note,
       })

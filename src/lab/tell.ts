@@ -45,6 +45,7 @@ export const toolsOf = (
             isSelected: false,
             isCalled: active.includes(name),
             isActive: active.length === 0 || active.includes(name),
+            note: Option.none(),
           }
         },
       ),

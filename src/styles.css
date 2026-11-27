@@ -3556,6 +3556,35 @@ button.ws-chip {
   }
 }
 
+/* A bubble in the drawing, tied to its module by a dotted leader. The
+   leader must not read as a call: the flow lines are solid and carry
+   meaning, this one is grey, dotted and has no head. */
+.ws-lead {
+  fill: none;
+  stroke: var(--fg3);
+  stroke-width: 1.4;
+  stroke-dasharray: 3 4;
+  opacity: 0.75;
+}
+.ws-bubble-box {
+  fill: var(--bg);
+  stroke: var(--bd);
+  stroke-width: 1.2;
+}
+.ws-bubble-head {
+  fill: var(--ink);
+  font-size: 18px;
+  font-weight: 650;
+}
+.ws-bubble-body {
+  fill: var(--fg2);
+  font-size: 13px;
+}
+.ws-bubble-src {
+  fill: var(--fg3);
+  font-size: 11px;
+}
+
 /* A note pinned to the slot it is about. .ws-stage only exists when a note
    is open, so every other canvas keeps the DOM it had; it carries the
    600px floor that .ws-canvas normally holds, and the canvas fills it. */

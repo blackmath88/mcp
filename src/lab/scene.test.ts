@@ -962,6 +962,19 @@ describe('out in the world', () => {
     )
   })
 
+  test('a researched slot gets a headline bubble, full text in the full window', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'library' }),
+      click(role('button', { name: /^LSD MCP, Weird/ })),
+      expect(text('The web, served as table rows')).toExist(),
+      expect(text(/reusing a saved query is ACCORDING TO/)).not.toExist(),
+      click(role('button', { name: 'Show the map in the full window' })),
+      expect(text('The web, served as table rows')).toExist(),
+      expect(text(/reusing a saved query is ACCORDING TO/)).toExist(),
+    )
+  })
+
   test('a slot with no researched note falls back to the card, and says so', () => {
     scene(
       { update, view },

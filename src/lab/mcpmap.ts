@@ -24,6 +24,7 @@ import {
   slotIcons,
 } from './icons.ts'
 import { Message } from './message.ts'
+import { noteFor } from './module-notes.ts'
 import { type Model, RunState } from './model.ts'
 import { serverNames } from './names.ts'
 import { type Scene, allScene, darkScene, sceneOf } from './scenes.ts'
@@ -38,6 +39,12 @@ type H = HtmlBuilder<Message>
 // A call is drawn as desk → slot → neighbour. Amber marks a rule in a wall
 // opening, or something that goes back out to you through the desk.
 
+export type MapNote = Readonly<{
+  headline: string
+  body: string
+  source: string
+}>
+
 export type MapTool = Readonly<{
   key: string
   label: string
@@ -50,6 +57,7 @@ export type MapTool = Readonly<{
   isSelected: boolean
   isCalled: boolean
   isActive: boolean
+  note: Option.Option<MapNote>
 }>
 
 export type MapInput = Readonly<{
@@ -490,6 +498,152 @@ const slotView = (input: MapInput, id: ModuleId, h: H): Html => {
       )
 }
 
+// BUBBLES
+//
+// A note for one slot, drawn in the canvas so it scales with everything
+// else — which is why the full-window view can show the whole note while
+// the embedded canvas shows only the headline. Anchors are hand-placed in
+// the bands the drawing leaves free: the top outside the room, the bottom
+// either side of the world, and the two flanks. Bottom anchors grow
+// upwards so an opened note cannot run off the canvas. At most three are
+// ever drawn at once, because no card in the library declares more than
+// three slots.
+
+const PAD = 12
+
+type Anchor = Readonly<{ x: number; y: number; w: number; grow: 'down' | 'up' }>
+
+// The room owns x 380-980, so a bubble only ever sits in the gutters either
+// side of it: never over the building, never over the room's own name. The
+// left gutter is wide, the right one is 260 units, hence the two widths.
+// Four berths for at most three bubbles; slots that share a berth never
+// appear together on one card, which is checked against all eight annotated
+// servers.
+const LEFT_TOP = { x: 10, y: 10, w: 320, grow: 'down' } as const
+const LEFT_FOOT = { x: 10, y: 790, w: 320, grow: 'up' } as const
+const RIGHT_TOP = { x: 985, y: 10, w: 245, grow: 'down' } as const
+const RIGHT_FOOT = { x: 985, y: 790, w: 245, grow: 'up' } as const
+
+const bubbleAt: Record<ModuleId, Anchor> = {
+  read: LEFT_TOP,
+  write: RIGHT_TOP,
+  ask: RIGHT_TOP,
+  share: LEFT_FOOT,
+  compute: LEFT_FOOT,
+  sequence: LEFT_FOOT,
+  invent: RIGHT_FOOT,
+  delegate: RIGHT_FOOT,
+  act: RIGHT_FOOT,
+}
+
+const firstSentence = (value: string): string => {
+  const stop = value.indexOf('. ')
+  return stop === -1 ? value : value.slice(0, stop + 1)
+}
+
+const wrapText = (value: string, max: number): ReadonlyArray<string> => {
+  const empty: ReadonlyArray<string> = []
+  return Array.reduce(value.split(' '), empty, (lines, word) => {
+    const last = lines[lines.length - 1]
+    return last === undefined || `${last} ${word}`.length > max
+      ? [...lines, word]
+      : [...lines.slice(0, -1), `${last} ${word}`]
+  })
+}
+
+// The leader meets the bubble at its nearest point, never crossing it.
+const nearestOn = (
+  box: Readonly<{ x: number; y: number; w: number; h: number }>,
+  [px, py]: readonly [number, number],
+): readonly [number, number] => [
+  Math.max(box.x, Math.min(px, box.x + box.w)),
+  Math.max(box.y, Math.min(py, box.y + box.h)),
+]
+
+const bubbleView = (
+  slot: ModuleId,
+  note: MapNote,
+  isFull: boolean,
+  h: H,
+): Html => {
+  const anchor = bubbleAt[slot]
+  const inner = anchor.w - PAD * 2
+  const head = wrapText(note.headline, Math.floor(inner / 9.4))
+  const body = isFull ? wrapText(note.body, Math.floor(inner / 6.6)) : []
+  const source = isFull ? wrapText(note.source, Math.floor(inner / 5.6)) : []
+  const height =
+    PAD * 2 +
+    head.length * 20 +
+    (body.length === 0 ? 0 : 8 + body.length * 17) +
+    (source.length === 0 ? 0 : 8 + source.length * 14)
+  const top = anchor.grow === 'down' ? anchor.y : anchor.y - height
+  const box = { x: anchor.x, y: top, w: anchor.w, h: height }
+  const [lx, ly] = nearestOn(box, slotAt[slot])
+  const [sx, sy] = slotAt[slot]
+  const headY = top + PAD + 15
+  const bodyY = headY + (head.length - 1) * 20 + 25
+  const sourceY = bodyY + (body.length === 0 ? 0 : (body.length - 1) * 17 + 22)
+  return h.keyed('g')(
+    `bubble-${slot}`,
+    [h.Class('ws-bubble'), h.Role('note'), h.AriaLabel(`${note.headline}. ${isFull ? note.body : ''}`)],
+    [
+      h.path([h.Class('ws-lead'), h.D(`M ${sx} ${sy} L ${lx} ${ly}`)]),
+      h.rect([
+        h.Class('ws-bubble-box'),
+        h.X(String(box.x)),
+        h.Y(String(box.y)),
+        h.Width(String(box.w)),
+        h.Height(String(box.h)),
+        h.Rx('12'),
+      ]),
+      ...Array.map(head, (line, index) =>
+        h.keyed('text')(
+          `h${index}`,
+          [
+            h.Class('ws-bubble-head'),
+            h.X(String(box.x + PAD)),
+            h.Y(String(headY + index * 20)),
+          ],
+          [line],
+        ),
+      ),
+      ...Array.map(body, (line, index) =>
+        h.keyed('text')(
+          `b${index}`,
+          [
+            h.Class('ws-bubble-body'),
+            h.X(String(box.x + PAD)),
+            h.Y(String(bodyY + index * 17)),
+          ],
+          [line],
+        ),
+      ),
+      ...Array.map(source, (line, index) =>
+        h.keyed('text')(
+          `s${index}`,
+          [
+            h.Class('ws-bubble-src'),
+            h.X(String(box.x + PAD)),
+            h.Y(String(sourceY + index * 14)),
+          ],
+          [line],
+        ),
+      ),
+    ],
+  )
+}
+
+const bubblesView = (
+  input: MapInput,
+  isFull: boolean,
+  h: H,
+): ReadonlyArray<Html> =>
+  Array.flatMap(input.tools, tool =>
+    Array.fromOption(
+      Option.map(tool.note, note => bubbleView(tool.slot, note, isFull, h)),
+    ),
+  )
+
 const neighbourView = (input: MapInput, id: NeighbourId, h: H): Html => {
   const reaching = input.tools.filter(tool => tool.reach.includes(id))
   const isLit = reaching.length > 0
@@ -547,27 +701,23 @@ export const canvasView = (
   input: MapInput,
   h: H,
   note: CanvasNote | undefined = undefined,
-): Html =>
-  h.div(
-    [h.Class('ws-scroll')],
-    [
-      canvasBody(input, h, note),
-    ],
-  )
+  isFull = false,
+): Html => h.div([h.Class('ws-scroll')], [canvasBody(input, note, isFull, h)])
 
 const canvasBody = (
   input: MapInput,
-  h: H,
   note: CanvasNote | undefined,
+  isFull: boolean,
+  h: H,
 ): Html =>
   note === undefined
-    ? canvasSvg(input, h)
+    ? canvasSvg(input, isFull, h)
     : h.div(
         [h.Class('ws-stage')],
-        [canvasSvg(input, h), noteCardView(note.slot, note.body, h)],
+        [canvasSvg(input, isFull, h), noteCardView(note.slot, note.body, h)],
       )
 
-const canvasSvg = (input: MapInput, h: H): Html =>
+const canvasSvg = (input: MapInput, isFull: boolean, h: H): Html =>
       h.svg(
         [
           h.Class(`ws-canvas mode-${input.mode}`),
@@ -619,6 +769,7 @@ const canvasSvg = (input: MapInput, h: H): Html =>
           ...gatesView(input, h),
           ...Array.map(modules, module => slotView(input, module.id, h)),
           ...Array.map(neighbourIds, id => neighbourView(input, id, h)),
+          ...bubblesView(input, isFull, h),
         ],
       )
 
@@ -714,8 +865,11 @@ export const mcpMapView = (
         [isFull ? 'Close · Esc' : 'Full window'],
       ),
       isFull && aside !== undefined
-        ? h.div([h.Class('ws-full-body')], [canvasView(input, h, note), aside])
-        : canvasView(input, h, note),
+        ? h.div(
+            [h.Class('ws-full-body')],
+            [canvasView(input, h, note, isFull), aside],
+          )
+        : canvasView(input, h, note, isFull),
       h.div(
         [h.Class('ws-under')],
         [
@@ -830,6 +984,7 @@ export const serverMap = (model: Model): MapInput => {
         isSelected: Option.contains(model.maybeSelected, capability.name),
         isCalled: called.includes(capability.name),
         isActive: Option.contains(active, capability.name),
+        note: Option.none(),
       }
     }),
     scene: sceneOf(model.station, model.world),
@@ -859,6 +1014,7 @@ export const allMap = (model: Model): MapInput => {
         isSelected: Option.contains(model.maybeSelected, capability.name),
         isCalled: called.includes(capability.name),
         isActive: false,
+        note: Option.none(),
       }
     }),
     scene: allScene,
@@ -884,6 +1040,7 @@ export const foreignMap = (tools: ReadonlyArray<ForeignTool>): MapInput => ({
       isSelected: false,
       isCalled: false,
       isActive: false,
+      note: Option.none(),
     }
   }),
   scene: darkScene,
@@ -905,6 +1062,8 @@ export const foreignMap = (tools: ReadonlyArray<ForeignTool>): MapInput => ({
 // window the name is the only text that differs.
 
 export type MapEntry = Readonly<{
+  station: string
+  kind: string
   name: string
   subtitle: string
   slots: ReadonlyArray<string>
@@ -947,6 +1106,16 @@ export const entryMap = (
       isSelected: Option.contains(openModule, slot),
       isCalled: false,
       isActive: false,
+      note: Option.map(
+        noteFor(entry.station, entry.kind, entry.name, slot),
+        found => ({
+          headline: found.headline,
+          body: found.note,
+          // Just where it came from. The caveats stay in the panel under
+          // the drawing, where there is room to read them.
+          source: firstSentence(found.evidenceNote),
+        }),
+      ),
     })),
     scene: {
       names: {},

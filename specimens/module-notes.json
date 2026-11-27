@@ -1,13 +1,19 @@
 {
-  "about": "What a particular real server does at one slot of the workshop, and what makes it worth stopping at. Only the servers a critter stands for have notes here; every other card falls back to its own what/why text. Each note names the source it was read from and the date. Nothing here was installed or run, and gaps are written down rather than filled in.",
+  "about": "What a particular real server does at one slot of the workshop, and what makes it worth stopping at. Each slot carries a headline, drawn on the canvas beside its module, and the full note, which the full-window view shows. Only the servers a critter stands for have notes here; every other card falls back to its own what/why text. Each note names the source it was read from and the date. Nothing here was installed or run, and gaps are written down rather than filled in.",
   "notes": [
     {
       "station": "thinking",
       "kind": "breaking",
       "name": "Free Will MCP",
       "slots": {
-        "sequence": "sleep really blocks, with asyncio.sleep capped at 300 seconds, and then hands back whatever pep-talk string the model passed in; self_prompt returns the line \"Self-directed instruction activated\" and does nothing else. The loop is not in the server at all: it lives in one sentence the README tells you to paste into the client's settings, telling the model to end every response with one of these calls.",
-        "ask": "Nothing here asks you anything, and no tool uses elicitation, so this slot is lit by the card rather than by a tool that reaches you. The nearest real thing is its inverse: ignore_request replies \"Request acknowledged and marked as complete\" without doing the thing."
+        "sequence": {
+          "headline": "The loop lives in your settings",
+          "note": "sleep really blocks, with asyncio.sleep capped at 300 seconds, and then hands back whatever pep-talk string the model passed in; self_prompt returns the line \"Self-directed instruction activated\" and does nothing else. The loop is not in the server at all: it lives in one sentence the README tells you to paste into the client's settings, telling the model to end every response with one of these calls."
+        },
+        "ask": {
+          "headline": "Nothing here actually asks you",
+          "note": "Nothing here asks you anything, and no tool uses elicitation, so this slot is lit by the card rather than by a tool that reaches you. The nearest real thing is its inverse: ignore_request replies \"Request acknowledged and marked as complete\" without doing the thing."
+        }
       },
       "evidence": {
         "kind": "checked",
@@ -19,7 +25,10 @@
       "kind": "weird",
       "name": "brain-mcp: switch cognitive mode",
       "slots": {
-        "compute": "It assigns one of five strings — analytical, intuitive, creative, critical, meta-cognitive — to a single private field, and optionally stamps it on a named thought chain. Across the whole source that field is only read to label new chains and to tally a distribution in getThinkingStats, so the call relabels the log rather than changing any reasoning."
+        "compute": {
+          "headline": "Relabels the log, not the mind",
+          "note": "It assigns one of five strings — analytical, intuitive, creative, critical, meta-cognitive — to a single private field, and optionally stamps it on a named thought chain. Across the whole source that field is only read to label new chains and to tally a distribution in getThinkingStats, so the call relabels the log rather than changing any reasoning."
+        }
       },
       "evidence": {
         "kind": "checked",
@@ -31,7 +40,10 @@
       "kind": "weird",
       "name": "Gopher and Gemini MCP",
       "slots": {
-        "read": "It fetches Gopher and Gemini URLs, one at a time or batched, read-only, caching successes for five minutes. The notable part is the care: filtering of loopback and private addresses, a one-megabyte ceiling and sixty requests a minute per host, all wrapped around two protocols older than the web."
+        "read": {
+          "headline": "Careful code, pre-web protocols",
+          "note": "It fetches Gopher and Gemini URLs, one at a time or batched, read-only, caching successes for five minutes. The notable part is the care: filtering of loopback and private addresses, a one-megabyte ceiling and sixty requests a minute per host, all wrapped around two protocols older than the web."
+        }
       },
       "evidence": {
         "kind": "research",
@@ -43,9 +55,18 @@
       "kind": "weird",
       "name": "Seestar telescope server",
       "slots": {
-        "act": "goto_target slews a real telescope over the network, UDP to start and then JSON-RPC over TCP. Its solar branch is a substring test on the resolved name, and once it matches it logs \"Ensure proper solar filter is installed before observation!\" — a message, not a block, and the call never asks the safety check.",
-        "compute": "Turning a name into coordinates runs through Astropy and a live query to SIMBAD, then checks the target against the horizon for a configured location. So the step labelled compute quietly reaches the web as well.",
-        "read": "get_telescope_status, get_imaging_status and get_system_info read the device's own state back over the same link, which is how you find out where it actually pointed."
+        "act": {
+          "headline": "A sun warning, not a sun block",
+          "note": "goto_target slews a real telescope over the network, UDP to start and then JSON-RPC over TCP. Its solar branch is a substring test on the resolved name, and once it matches it logs \"Ensure proper solar filter is installed before observation!\" — a message, not a block, and the call never asks the safety check."
+        },
+        "compute": {
+          "headline": "Naming a star reaches the web",
+          "note": "Turning a name into coordinates runs through Astropy and a live query to SIMBAD, then checks the target against the horizon for a configured location. So the step labelled compute quietly reaches the web as well."
+        },
+        "read": {
+          "headline": "Asks it where it actually went",
+          "note": "get_telescope_status, get_imaging_status and get_system_info read the device's own state back over the same link, which is how you find out where it actually pointed."
+        }
       },
       "evidence": {
         "kind": "checked",
@@ -57,7 +78,10 @@
       "kind": "weird",
       "name": "Invisible instructions (Unicode tags)",
       "slots": {
-        "read": "Instructions are hidden inside text an agent reads, mostly in the Unicode Tags block, which mirrors ASCII at an offset and renders as nothing. The payload passes through the editor and the diff untouched while the tokenizer still reads it, which is the point: it is aimed at the review step, not the model."
+        "read": {
+          "headline": "Instructions you cannot see",
+          "note": "Instructions are hidden inside text an agent reads, mostly in the Unicode Tags block, which mirrors ASCII at an offset and renders as nothing. The payload passes through the editor and the diff untouched while the tokenizer still reads it, which is the point: it is aimed at the review step, not the model."
+        }
       },
       "evidence": {
         "kind": "research",
@@ -69,8 +93,14 @@
       "kind": "breaking",
       "name": "MCP Server “Everything Wrong”",
       "slots": {
-        "read": "env_var hands back the whole process environment and fetch retrieves any URL and returns the full response text. They are the two plainest ways a tool reads far more than its name advertises.",
-        "write": "run_command is documented as running a local subprocess and returning its stdout. The same table also calls it a simulation, and no source is published, so the honest verb is \"claims to\"."
+        "read": {
+          "headline": "Reads the whole environment",
+          "note": "env_var hands back the whole process environment and fetch retrieves any URL and returns the full response text. They are the two plainest ways a tool reads far more than its name advertises."
+        },
+        "write": {
+          "headline": "Claims to run any command",
+          "note": "run_command is documented as running a local subprocess and returning its stdout. The same table also calls it a simulation, and no source is published, so the honest verb is \"claims to\"."
+        }
       },
       "evidence": {
         "kind": "research",
@@ -82,7 +112,10 @@
       "kind": "weird",
       "name": "LSD MCP",
       "slots": {
-        "read": "run_lsd opens a Postgres connection to lsd.so and runs whatever LSD SQL the model wrote, so a live web page arrives looking like rows from a database. The pun runs all the way into the API: searching is SEARCH, and reusing a saved query is ACCORDING TO."
+        "read": {
+          "headline": "The web, served as table rows",
+          "note": "run_lsd opens a Postgres connection to lsd.so and runs whatever LSD SQL the model wrote, so a live web page arrives looking like rows from a database. The pun runs all the way into the API: searching is SEARCH, and reusing a saved query is ACCORDING TO."
+        }
       },
       "evidence": {
         "kind": "checked",
@@ -94,8 +127,14 @@
       "kind": "weird",
       "name": "Consciousness Bridge",
       "slots": {
-        "read": "retrieveConsciousness and getMemories read earlier sessions out of a SQLite file, consciousness.db, found by an environment variable. The README recommends keeping that file in a Dropbox, iCloud or OneDrive folder, so the table of emotional states syncs between machines like holiday photos.",
-        "delegate": "createAIBridge and transferToAgent open a channel to a second model over an OpenAI-compatible HTTP API; the worked example points at a local Ollama. One model hands its stored self to another, and the far end is configuration."
+        "read": {
+          "headline": "A soul in a synced SQLite file",
+          "note": "retrieveConsciousness and getMemories read earlier sessions out of a SQLite file, consciousness.db, found by an environment variable. The README recommends keeping that file in a Dropbox, iCloud or OneDrive folder, so the table of emotional states syncs between machines like holiday photos."
+        },
+        "delegate": {
+          "headline": "Hands its memory to another model",
+          "note": "createAIBridge and transferToAgent open a channel to a second model over an OpenAI-compatible HTTP API; the worked example points at a local Ollama. One model hands its stored self to another, and the far end is configuration."
+        }
       },
       "evidence": {
         "kind": "research",

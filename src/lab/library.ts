@@ -611,7 +611,12 @@ export const moduleNoteOf = (
   const slot = Option.getOrUndefined(
     Option.filter(model.maybeModule, isModuleId),
   )
-  if (slot === undefined || !entry.slots.some(value => value === slot)) {
+  // The full window already shows the whole note in the bubble itself.
+  if (
+    model.canvasFull ||
+    slot === undefined ||
+    !entry.slots.some(value => value === slot)
+  ) {
     return undefined
   }
   const module = modules.find(value => value.id === slot)
