@@ -779,7 +779,7 @@ describe('the map and the new rungs', () => {
       expect(text('What the Crane server hands the AI')).toExist(),
       expect(text('crane at the dock (simulated)')).toExist(),
       expect(text('nothing checks')).toExist(),
-      expect(text('Where the picture simplifies')).toExist(),
+      expect(text(/Where the picture simplifies/)).toExist(),
       expect(text('Nothing physical moves. The crane is simulated.')).toExist(),
       expect(role('button', { name: /^Move the crate, move_crate/ })).toExist(),
       expect(role('button', { name: /^Act: move_crate/ })).toExist(),

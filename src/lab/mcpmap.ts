@@ -625,10 +625,13 @@ const notesView = (input: MapInput, h: H): Html =>
   Array.match(input.scene.notes, {
     onEmpty: () => h.empty,
     onNonEmpty: notes =>
-      h.div(
+      h.details(
         [h.Class('ws-notes')],
         [
-          h.span([h.Class('ws-notes-head')], ['Where the picture simplifies']),
+          h.summary(
+            [h.Class('ws-notes-head')],
+            [`Where the picture simplifies · ${notes.length}`],
+          ),
           h.ul(
             [],
             Array.map(notes, (note, index) =>

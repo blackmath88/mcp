@@ -2695,6 +2695,24 @@ button.ws-chip {
   color: var(--amber);
   font-size: 12px;
 }
+/* The caveats are a disclosure: present and one click away, not a block of
+   amber shouting over every drawing. */
+.ws-notes > summary.ws-notes-head {
+  cursor: pointer;
+  list-style: none;
+}
+.ws-notes > summary.ws-notes-head::-webkit-details-marker {
+  display: none;
+}
+.ws-notes > summary.ws-notes-head::before {
+  content: '\203a';
+  display: inline-block;
+  width: 10px;
+  font-weight: 700;
+}
+.ws-notes[open] > summary.ws-notes-head::before {
+  transform: rotate(90deg);
+}
 .ws-notes ul {
   margin: 4px 0 0;
   padding-left: 18px;
