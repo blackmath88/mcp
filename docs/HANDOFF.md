@@ -14,7 +14,8 @@ Owner, after using the first version: "i found the function. its good! but i fee
 - **A pre-existing bug this surfaced:** the bench along the room's bottom wall spans x 710–950 and the room name starts at 396, and the furniture was painted *after* the name, so any name past ~35 characters was overdrawn. Visible on EscapeRoute in the owner's screenshot. Paint order swapped.
 - Checks: typecheck, lint, 249 tests (9 new), build. Browser at 1680x1000, 1340x900 and 375x812: rail right of the drawing and stacked, pick and clear, keyboard Enter on a slot, note open and close, the fallback note, no console errors and no page-level sideways scroll at any width.
 - `deploy/cloudflare-lab` deleted (was `e770ef4`, local-only, never pushed). It predated `main`'s own `wrangler.jsonc` and `main` had already decided the opposite in D23: serve `dist/`, not `lab/`. Its only unique file supported the abandoned approach.
-- Not done: nothing redeployed since version `551666b2`, so the live site is behind this branch. The 12 same-station identical shapes are still identical; the kind caption tells them apart, the drawing does not.
+- **Deployed on owner's instruction.** `npm run build && npx wrangler deploy` as `imbodi55@gmail.com` from `fce7554`; version `4ce11f28-5fb1-46ba-8ab7-726c7b8bd204`, 4 of 92 assets changed, live on `mcp-lab.bridge-work.ai`. Verified against the live host at 1680x1000: five cards in the step's rail, LSD MCP drawing in the bench canvas, the Read note open with its source line, the caveats collapsed, no old shelf. Production still carries `fdc9763`, the critter-shelf commit open as blackmath88/mcp#4, because this branch is stacked on it.
+- Not done: The 12 same-station identical shapes are still identical; the kind caption tells them apart, the drawing does not.
 
 ## The library's real servers drawn in the workshop canvas — 2026-11-27 (branch `lab/entry-canvas`)
 
