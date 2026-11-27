@@ -986,9 +986,12 @@ describe('out in the world', () => {
     scene(
       { update, view },
       given({ ...initialModel, screen: 'library' }),
-      click(role('button', { name: /^Firecrawl MCP, Most used/ })),
+      // Not every server is researched; this one is not, and the card must
+      // say that rather than implying its own text is slot-specific.
+      click(role('button', { name: /^Fetch \(reference server\), First/ })),
       click(role('button', { name: /^Read: named on the card/ })),
       expect(text('From this server’s card. No note yet for this slot.')).toExist(),
+      expect(text('A page, flattened to Markdown')).not.toExist(),
     )
   })
 

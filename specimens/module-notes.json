@@ -140,6 +140,302 @@
         "kind": "research",
         "note": "README read 2026-11-27 at ocean1/mcp_consciousness_bridge; the tool list comes from a Glama listing, which is secondary. No source files were read, so what retrieveConsciousness returns and what transferToAgent sends are unknown. Across 397 lines of README there is no security warning; the only items marked critical are about making two path settings match."
       }
+    },
+    {
+      "station": "fetch",
+      "kind": "popular",
+      "name": "Firecrawl MCP",
+      "slots": {
+        "read": {
+          "headline": "A page, flattened to Markdown",
+          "note": "firecrawl_scrape takes one URL and hands back the page as clean Markdown. The README’s own advice for that format is to \"extract the requested fields yourself\": you get prose, not fields."
+        },
+        "sequence": {
+          "headline": "A job ID, then you keep asking",
+          "note": "The two long jobs wait differently. firecrawl_crawl polls inside the call and returns the finished result, while firecrawl_agent returns a job ID and leaves the model to poll firecrawl_agent_status every 10–30 seconds — on that path the waiting loop belongs to the model."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: firecrawl/firecrawl-mcp-server raw README. The README runs to about 86k characters and was grepped rather than read line by line; its stated tool count is its own claim."
+      }
+    },
+    {
+      "station": "filesystem",
+      "kind": "popular",
+      "name": "Desktop Commander",
+      "slots": {
+        "read": {
+          "headline": "Files, PDFs and URLs, paginated",
+          "note": "read_file reads local files, URLs, Excel workbooks and PDFs, paginated by line or page with a default limit of 1000 lines. One tool, four different kinds of elsewhere."
+        },
+        "write": {
+          "headline": "Fifty lines per write, by default",
+          "note": "write_file is capped at 50 lines a call by default, so a long file means repeated appends. edit_block does search and replace with a fuzzy fallback that reports the closest match and a similarity percentage when the exact string is missing."
+        },
+        "invent": {
+          "headline": "Code it runs but never saves",
+          "note": "The README claims it can execute Python, Node.js and R in memory without saving files, which makes the model’s improvised script the tool. No tool in its own table implements that by name — the only generic path is start_process with interact_with_process."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: wonderwhy-er/DesktopCommanderMCP raw README. The in-memory execution claim is documented but names no tool, so it is unverified. The README also still uses older tool names in places that contradict its own table, and states that claude_tool_call.log records every call’s arguments locally, unredacted."
+      }
+    },
+    {
+      "station": "ask",
+      "kind": "popular",
+      "name": "None established yet",
+      "slots": {
+        "ask": {
+          "headline": "The server’s turn to ask you",
+          "note": "The spec defines elicitation/create, a request the server sends back mid-task, in form mode — a flat schema of strings, numbers, booleans and enums, no nesting — or url mode, where the answer never passes through the client. It is answered with exactly one of accept, decline or cancel, and form mode must not be used for passwords, keys, tokens or payment details, which is why url mode exists."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Specification read 2026-11-27: modelcontextprotocol.io elicitation, revision 2025-11-25. This is the spec, not a server. Nobody surveyed implementations, so \"none established yet\" stays the lab’s claim rather than a verified fact, and url mode is marked new and may still change."
+      }
+    },
+    {
+      "station": "memory",
+      "kind": "popular",
+      "name": "Basic Memory",
+      "slots": {
+        "read": {
+          "headline": "Follows the links you wrote",
+          "note": "Reading splits in two: bm_search, bm_list and bm_find go through a local SQLite index with hybrid text and vector ranking, while bm_context is the knowledge-graph tool. The graph it follows is made of the wiki-links you happened to type in your own notes."
+        },
+        "write": {
+          "headline": "Notes in Markdown, on your disk",
+          "note": "bm_write and bm_edit create and update plain Markdown files with YAML frontmatter, categorised observations and wiki-link relations, by default under ~/basic-memory. You and the model edit the same files, and the files are the source of truth."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: basicmachines-co/basic-memory raw README. What bm_context does with relations is not documented per tool, so no claim is made that it walks links. The older names write_note, read_note, search_notes and build_context appear nowhere in the current README."
+      }
+    },
+    {
+      "station": "valley",
+      "kind": "popular",
+      "name": "Mapbox MCP server",
+      "slots": {
+        "read": {
+          "headline": "Places, named and drawn",
+          "note": "search_and_geocode_tool and category_search_tool reach Mapbox’s Search Box APIs, and reverse_geocode_tool turns coordinates back into an address. static_map_image_tool returns the map itself as a base64 image, straight into the conversation."
+        },
+        "compute": {
+          "headline": "Turf.js offline, Mapbox online",
+          "note": "This slot is two things wearing one label. isochrone_tool and directions_tool forward to Mapbox behind an access token, while distance_tool, union_tool, intersect_tool and difference_tool run Turf.js offline with no API call — so you can subtract one isochrone from another without touching the network, but you cannot get the isochrone that way."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: mapbox/mcp-server raw README. The Matrix tool has a heading but no identifier anywhere in the README, so it is left unnamed here; per-tool limits for Matrix and isochrone contours are not stated."
+      }
+    },
+    {
+      "station": "thinking",
+      "kind": "popular",
+      "name": "Sequential Thinking (reference server)",
+      "slots": {
+        "sequence": {
+          "headline": "A notebook, not a thinker",
+          "note": "One tool, sequentialthinking, takes a thought and its numbering and returns the same numbers back with a count. In lib.ts it prints the thought to stderr, pushes it onto a list and echoes the length; its one substantive act is raising the total when the thought number overshoots it, so the server keeps the minutes and quietly lets the estimate slip."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: modelcontextprotocol/servers raw README and src/sequentialthinking/lib.ts. Two details not shown above: history is capped at 1000 thoughts and the oldest is dropped, and over Streamable HTTP that history belongs to the server process and is shared by every client it serves."
+      }
+    },
+    {
+      "station": "iteration",
+      "kind": "popular",
+      "name": "Task Master",
+      "slots": {
+        "sequence": {
+          "headline": "A PRD, cut into numbered work",
+          "note": "parse_prd reads a requirements document and turns it into tasks, which analyze_project_complexity and expand_task then break down further. It calls an LLM of its own to do it, with its own provider key and three model roles, so the breakdown is a second model’s opinion arriving inside the first model’s tool call."
+        },
+        "write": {
+          "headline": "A JSON file and a text sidecar",
+          "note": "set_task_status, update_subtask, add_subtask and generate mutate a store under .taskmaster/ — in the project’s own copy, tasks.json beside per-task text files. The README documents none of that layout."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: eyaltoledano/claude-task-master raw README, plus the repository’s own committed .taskmaster/ listing. The storage path and format are nowhere in the README, so the layout is what the project commits for itself, not a documented contract. Dependency handling is only linked out to hosted docs, which were not read."
+      }
+    },
+    {
+      "station": "apps",
+      "kind": "popular",
+      "name": "Figma MCP server",
+      "slots": {
+        "read": {
+          "headline": "Design, read as code and XML",
+          "note": "get_design_context returns a layer or selection as code, React with Tailwind by default, and get_metadata gives a lightweight XML outline of ids, names, types and sizes. The desktop server can use whatever you have selected; the remote one needs a link."
+        },
+        "write": {
+          "headline": "Runs a plugin in your file",
+          "note": "use_figma writes by running code in the linked file through the Figma Plugin API, building frames, components and variables out of your existing libraries rather than look-alike shapes. It is beta, needs edit access and a paid plan, and the docs recommend testing on a duplicate and keeping a backup."
+        },
+        "share": {
+          "headline": "Into drafts, or your clipboard",
+          "note": "generate_figma_design captures a live rendered UI from a browser and lands the layers in a new drafts file, an existing file you can edit, or your clipboard. The result is a Figma file rather than text in the chat, though those layers are flat and not linked to components."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: developers.figma.com figma-mcp-server pages for code-to-canvas, write-to-canvas and tools-and-prompts. The docs list roughly 50 tools without saying per tool whether a selection or a link is needed; get_code appears nowhere in the current docs; parameters for generate_figma_design are undocumented and the stated plan tiers differ between pages."
+      }
+    },
+    {
+      "station": "code-mode",
+      "kind": "popular",
+      "name": "Cloudflare Code Mode",
+      "slots": {
+        "invent": {
+          "headline": "Codes the call, not the tool",
+          "note": "The server exposes only search() and execute(), each taking a string of JavaScript, so the model writes the call it needs against a pre-resolved OpenAPI spec that never enters the model context. Cloudflare puts that at roughly 1,000 tokens of tool definitions against 1.17 million for an equivalent server over the same endpoints."
+        },
+        "write": {
+          "headline": "A write the post never shows",
+          "note": "execute() runs in a V8 isolate with no file system, no environment variables and outbound fetches off by default, holding a client scoped by a token you narrow at connect time. The worked example looks up PATCH and POST endpoints but every call it actually runs is a GET, so the write path is documented rather than demonstrated."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: blog.cloudflare.com/code-mode-mcp, quoted strings grep-confirmed against the raw page. No mutating call is shown executing, and nothing is said about what guards a bad execute() beyond the token scope. An earlier post describing a typed SDK was not read."
+      }
+    },
+    {
+      "station": "delegation",
+      "kind": "popular",
+      "name": "PAL MCP (formerly Zen MCP)",
+      "slots": {
+        "delegate": {
+          "headline": "clink: a CLI inside your CLI",
+          "note": "The clink tool launches isolated instances of other coding CLIs from inside the one you are already in — Claude Code spawning Codex, Codex spawning Gemini — and each subagent returns only its final result, so the caller’s context stays clean. consensus fans one question out to several models with stance steering."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: BeehiveInnovations pal-mcp-server raw README; the old zen-mcp-server path redirects to it, so the rename is a rename and not a fork. How \"auto\" mode picks a model is not in the README, and nothing read verifies that a delegated call reaches the named model or what it costs."
+      }
+    },
+    {
+      "station": "arm",
+      "kind": "popular",
+      "name": "Home Assistant MCP Server",
+      "slots": {
+        "act": {
+          "headline": "Only the lights you exposed",
+          "note": "The device control tool set reaches only the entities you expose to voice assistants, the same list Assist uses, so the blast radius is set in Home Assistant’s own interface rather than by the agent. A read-only option removes calling actions and reloading config entries altogether."
+        },
+        "read": {
+          "headline": "The admin set sees everything",
+          "note": "Beside device control sits an admin-only tool set that reads entities, logs, history and integrations and, in the page’s own words, accesses everything — it is not bound by the exposure list. Device control also publishes a plain-text snapshot resource of the exposed entities."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: home-assistant.io integrations/mcp_server. The page does not enumerate the tools in either set, so none are named here. Auth is OAuth with PKCE; whether admin-set actions are logged or confirmable is not stated."
+      }
+    },
+    {
+      "station": "perception",
+      "kind": "popular",
+      "name": "Playwright MCP",
+      "slots": {
+        "read": {
+          "headline": "The page as a labelled tree",
+          "note": "browser_snapshot returns Playwright’s accessibility tree rather than pixels, each element carrying a short ref. The model reads the tree, picks a ref and passes it as the target of the next call, which the README contrasts with the ambiguity of working from screenshots."
+        },
+        "write": {
+          "headline": "Not a security boundary",
+          "note": "The same refs drive clicking, typing and form filling, and login state persists in a profile directory by default, so the agent acts as an already signed-in user. browser_evaluate runs page JavaScript, one tool is documented as RCE-equivalent, and the README states flatly that Playwright MCP is not a security boundary."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: microsoft/playwright-mcp raw README, quotes grep-confirmed. The --allowed-origins flag is disclaimed in the same way: it does not serve as a security boundary and does not affect redirects. No source measures the token cost of a snapshot against a screenshot."
+      }
+    },
+    {
+      "station": "cli",
+      "kind": "popular",
+      "name": "Playwright: CLI and MCP side by side",
+      "slots": {
+        "read": {
+          "headline": "Who pays to see the page",
+          "note": "One five-row table is the whole comparison: over MCP the token cost is higher, because tool schemas and snapshots sit in the context; over the CLI it is lower, because the agent gets terse shell output and loads skills on demand. Same browser engine either way."
+        },
+        "write": {
+          "headline": "Typed calls, or a shell command",
+          "note": "Over MCP the model calls tools with structured parameters and the browser is headed by default, so you can watch; over the CLI the agent runs shell commands and the browser is headless. The page claims no capability difference at all, only fit."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: microsoft/playwright.dev mcp/introduction.mdx, read in full. The contrast is genuinely thin — five rows, and the higher and lower token costs are unquantified. The CLI’s skills are documented on another page that was not read."
+      }
+    },
+    {
+      "station": "local-remote",
+      "kind": "popular",
+      "name": "mcp-remote",
+      "slots": {
+        "delegate": {
+          "headline": "Holds the OAuth the client lacks",
+          "note": "It runs as a local server, connects onward to a remote one and performs the OAuth flow the client cannot, standing up a loopback callback and caching credentials under ~/.mcp-auth. Because everything passes through it, its --ignore-tool flag filters tools out of list responses and blocks calls to them, so the tool list can differ between server and client."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: punkpeye/mcp-remote raw README; the older geelen path redirects here, so this is a transfer of the original rather than a fork. Nothing read describes payload logging or modification beyond a debug log, and the README’s claim that most clients are stdio-only cites a 2025 spec and may be out of date."
+      }
+    },
+    {
+      "station": "network",
+      "kind": "popular",
+      "name": "Docker MCP Gateway",
+      "slots": {
+        "delegate": {
+          "headline": "One container per server",
+          "note": "Clients point at one gateway, which starts each catalogue server in its own container with no-new-privileges and CPU and memory limits, withholding the host environment by default. Signature verification is on by default but only for Docker Hub’s own namespace, and network egress is not globally denied unless you ask for it."
+        },
+        "read": {
+          "headline": "Reads your calls for secrets",
+          "note": "Secret scanning is on by default and inspects tool-call arguments and text responses before and after execution, so the gateway reads every payload passing through it. Its own security document puts prompt injection and tool-description poisoning explicitly out of scope."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: docker/mcp-gateway raw README and docs/security.md, quotes grep-confirmed at named lines. The docs refer to configured interceptors as trusted inputs without defining them, so none are described here. Tool-name collisions across aggregated servers and the container lifecycle are absent from the docs read."
+      }
+    },
+    {
+      "station": "inspector",
+      "kind": "popular",
+      "name": "MCP Inspector",
+      "slots": {
+        "read": {
+          "headline": "The wire, and a replay button",
+          "note": "Point it at a server and it lists tools, resources and prompts, builds an argument form from each tool’s schema, and records the JSON-RPC traffic with an edit-and-replay action. Its own README is blunt about the cost: the API token is not access control, and anyone who can load the page can act as you."
+        },
+        "compute": {
+          "headline": "Lints the schema, scores the run",
+          "note": "Its command-line mode turns it into a scriptable client: a strict listing reports tool-schema portability problems and exits non-zero if any is an error, and a load mode calls one tool repeatedly and fails against error-rate and latency thresholds. The lint is narrow on purpose — it flags constructs real clients refuse rather than validating the schema language."
+        }
+      },
+      "evidence": {
+        "kind": "checked",
+        "note": "Source read 2026-11-27: modelcontextprotocol/inspector raw READMEs for the project, the CLI and the web client; the CLI README is 114 KB and every quote was re-confirmed by grep over the whole file. No separate proxy component appears in the current layout, so the exhibit should not call it one. The portability lint cites a census of public servers that was not read."
+      }
     }
   ]
 }
