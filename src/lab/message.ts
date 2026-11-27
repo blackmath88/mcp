@@ -45,6 +45,7 @@ export const Message = defineMessageUnion({
   ClickedReinstallPackage: {},
   ClickedChapter: { chapter: Chapter },
   SelectedCapability: { name: CapabilityName },
+  SelectedExample: { id: Schema.String },
   SelectedFrom: { value: Schema.String },
   SelectedTo: { value: Schema.String },
   SelectedWeather: { weather: Weather },

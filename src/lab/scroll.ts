@@ -22,3 +22,29 @@ export const scrollToTopOnNavigation = (root: Document): void => {
     })
   })
 }
+
+// NOTE: Picking a server in the library draws it in the canvas above the
+// rail. Above this width the canvas is sticky beside the rail and already on
+// screen; below it the two stack and the canvas can be far above the card
+// that was tapped, so bring it back. Keep this in step with the .lib-stage
+// breakpoint in styles.css.
+const STACKED = '(max-width: 1300px)'
+
+export const scrollToCanvasOnPick = (root: Document): void => {
+  root.addEventListener('click', event => {
+    if (
+      !(event.target instanceof Element) ||
+      event.target.closest('.lib-mini:not(.flat)') === null ||
+      !window.matchMedia(STACKED).matches
+    ) {
+      return
+    }
+    const canvas = root.querySelector('.lib-canvas-col')
+    if (canvas === null) {
+      return
+    }
+    requestAnimationFrame(() => {
+      canvas.scrollIntoView({ block: 'start' })
+    })
+  })
+}

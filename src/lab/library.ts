@@ -1,12 +1,11 @@
-import { Array } from 'effect'
+import { Array, Option } from 'effect'
 import { type Html, type HtmlBuilder } from 'foldkit/html'
 
 import library from '../../specimens/library.json'
 import {
-  type ModuleId,
-  type NeighbourId,
+  isModuleId,
+  isNeighbourId,
   modules,
-  neighbourIds,
   neighbourNames,
 } from '../domain/modules.ts'
 import {
@@ -17,6 +16,7 @@ import {
   ownEntryCritters,
 } from './critters/catalog.ts'
 import { lineIcon, neighbourIcons, slotIcons } from './icons.ts'
+import { emptyMap, entryMap, mcpMapView } from './mcpmap.ts'
 import { Message } from './message.ts'
 import type { Model, Station } from './model.ts'
 import { stationNames } from './names.ts'
@@ -72,20 +72,14 @@ export const entriesFor = (station: Station): ReadonlyArray<Entry> =>
     entries.filter(entry => entry.station === station && entry.kind === kind),
   )
 
-const isSlot = (value: string): value is ModuleId =>
-  modules.some(module => module.id === value)
-
-const isNeighbour = (value: string): value is NeighbourId =>
-  neighbourIds.some(id => id === value)
-
 // A small fingerprint of what the README describes: the nine slots, lit
 // where it has tools, and what those tools reach.
 const fingerprintView = (entry: Entry, h: H): Html =>
-  h.div(
+  h.span(
     [
       h.Class('lib-print'),
       h.AriaLabel(
-        `Described as: ${entry.slots.join(', ')}${entry.reaches.length > 0 ? `; reaches ${entry.reaches.map(id => (isNeighbour(id) ? neighbourNames[id] : id)).join(', ')}` : ''}`,
+        `Described as: ${entry.slots.join(', ')}${entry.reaches.length > 0 ? `; reaches ${entry.reaches.map(id => (isNeighbourId(id) ? neighbourNames[id] : id)).join(', ')}` : ''}`,
       ),
     ],
     [
@@ -94,13 +88,13 @@ const fingerprintView = (entry: Entry, h: H): Html =>
         Array.map(modules, module =>
           lineIcon(
             slotIcons[module.id],
-            `ic lib-ic place-${module.place} ${entry.slots.some(slot => isSlot(slot) && slot === module.id) ? 'on' : 'off'}`,
+            `ic lib-ic place-${module.place} ${entry.slots.some(slot => isModuleId(slot) && slot === module.id) ? 'on' : 'off'}`,
             h,
           ),
         ),
       ),
       Array.match(
-        entry.reaches.filter(id => isNeighbour(id)),
+        entry.reaches.filter(id => isNeighbourId(id)),
         {
           onEmpty: () => h.empty,
           onNonEmpty: reaches =>
@@ -109,7 +103,7 @@ const fingerprintView = (entry: Entry, h: H): Html =>
               [
                 h.span([h.Class('lib-arrow')], ['→']),
                 ...Array.map(reaches, id =>
-                  isNeighbour(id)
+                  isNeighbourId(id)
                     ? lineIcon(neighbourIcons[id], 'ic lib-ic nb', h)
                     : h.empty,
                 ),
@@ -278,7 +272,9 @@ const cardView = (entry: Entry, h: H): Html => {
 
 const terrainBlocks = (h: H): ReadonlyArray<Html> =>
   Array.map(modules, module =>
-    h.keyed('span')(module.id, [h.Class(`terrain-block place-${module.place}`)]),
+    h.keyed('span')(module.id, [
+      h.Class(`terrain-block place-${module.place}`),
+    ]),
   )
 
 const groundClass = (where: string): string =>
@@ -482,7 +478,230 @@ export const shelfView = (station: Station, h: H): Html =>
       ),
   })
 
-// The library as its own page: the route again, told through real servers.
+// THE LIBRARY AS ITS OWN PAGE
+//
+// The route again, told through real servers: a rail of mini cards beside
+// the same workshop canvas the lab draws everywhere else. Picking a card
+// draws that server — its slots lit, the rest ghosted — so a server that
+// does one thing is read by what it does not do, and two servers can be
+// compared by changing the selection.
+
+const entryId = (entry: Entry): string =>
+  exampleId(entry.station, entry.kind, entry.name)
+
+const kindOf = (entry: Entry): Kind =>
+  kinds.find(value => value === entry.kind) ?? 'popular'
+
+const shapeWords = (entry: Entry): string =>
+  `${entry.slots.join(', ')}${
+    entry.reaches.length > 0
+      ? `; reaches ${entry.reaches
+          .map(id => (isNeighbourId(id) ? neighbourNames[id] : id))
+          .join(', ')}`
+      : ''
+  }`
+
+const stationLabel = (station: string): string => {
+  const step = route.find(entry => entry.station === station)
+  return step === undefined ? station : stationNames[step.station]
+}
+
+const pickedEntry = (model: Model): Option.Option<Entry> =>
+  Option.flatMap(model.maybeExample, id =>
+    Option.fromNullishOr(entries.find(entry => entryId(entry) === id)),
+  )
+
+// A card shrunk to what the canvas cannot say: which of the four kinds it
+// is, who made it, and the fingerprint. The prose moves to the panel under
+// the drawing, so only the selected server carries its full text.
+const miniCardView = (entry: Entry, isPicked: boolean, h: H): Html => {
+  const kind = kindOf(entry)
+  const critter = critterForEntry(entry.station, entry.kind, entry.name)
+  return h.keyed('button')(
+    entryId(entry),
+    [
+      h.Type('button'),
+      h.Id(entryId(entry)),
+      h.Class(
+        `lib-mini kind-${kind}${isPicked ? ' picked' : ''}${
+          critter === undefined ? '' : ` crit-${critter.sprite}`
+        }`,
+      ),
+      h.AriaPressed(isPicked ? 'true' : 'false'),
+      h.AriaLabel(
+        `${entry.name}, ${kindNames[kind]}. Described as: ${shapeWords(entry)}. Draw it in the workshop.`,
+      ),
+      h.OnClick(Message.SelectedExample({ id: entryId(entry) })),
+    ],
+    [
+      h.span([h.Class(`lib-kind kind-${kind}`)], [kindNames[kind]]),
+      h.b(
+        [h.Class('lib-mini-name')],
+        [critter === undefined ? h.empty : stickerView(critter, h), entry.name],
+      ),
+      entry.by === '' ? h.empty : h.span([h.Class('lib-by')], [entry.by]),
+      fingerprintView(entry, h),
+    ],
+  )
+}
+
+// A server only a critter brings in has no slots or neighbours on its card,
+// so there is nothing to draw: it sits in the rail unselectable and says so.
+const flatMiniView = (critter: Critter, h: H): Html =>
+  h.keyed('div')(
+    `critter-${critter.id}`,
+    [h.Class(`lib-mini flat kind-weird crit-${critter.sprite}`)],
+    [
+      h.span([h.Class('lib-kind kind-weird')], ['Weird, too']),
+      h.b(
+        [h.Class('lib-mini-name')],
+        [stickerView(critter, h), critter.server],
+      ),
+      h.span([h.Class('lib-by')], [critter.by]),
+      h.span([h.Class('lib-mini-none')], ['Its card names no slots to draw.']),
+    ],
+  )
+
+const detailView = (entry: Entry, h: H): Html => {
+  const kind = kindOf(entry)
+  const evidence = isEvidence(entry.evidence.kind)
+    ? entry.evidence.kind
+    : 'author'
+  const critter = critterForEntry(entry.station, entry.kind, entry.name)
+  return h.div(
+    [
+      h.Class(
+        `lib-detail kind-${kind}${critter === undefined ? '' : ` crit-${critter.sprite}`}`,
+      ),
+    ],
+    [
+      h.div(
+        [h.Class('lib-top')],
+        [
+          h.span([h.Class(`lib-kind kind-${kind}`)], [kindNames[kind]]),
+          h.span([h.Class('tb-note')], [stationLabel(entry.station)]),
+          h.span(
+            [h.Class(`lib-ev ev-${evidence}`), h.Title(entry.evidence.note)],
+            [evidenceNames[evidence]],
+          ),
+        ],
+      ),
+      h.h3(
+        [h.Class('lib-name')],
+        [
+          critter === undefined ? h.empty : stickerView(critter, h),
+          entry.url === ''
+            ? entry.name
+            : h.a(
+                [h.Href(entry.url), h.Target('_blank'), h.Rel('noreferrer')],
+                [entry.name],
+              ),
+        ],
+      ),
+      entry.by === '' ? h.empty : h.p([h.Class('lib-by')], [entry.by]),
+      h.p([h.Class('lib-what')], [entry.what]),
+      h.p([h.Class('lib-why')], [entry.why]),
+      critter === undefined ? h.empty : critterArtView(critter, h),
+      critter === undefined ? h.empty : critterMetersView(critter, h),
+      h.details(
+        [h.Class('lib-note')],
+        [h.summary([], ['Evidence']), h.p([], [entry.evidence.note])],
+      ),
+    ],
+  )
+}
+
+const emptyDetailView = (h: H): Html =>
+  h.div(
+    [h.Class('lib-detail empty')],
+    [
+      h.p(
+        [h.Class('lib-what')],
+        [
+          'Pick a server to draw it. Every one is drawn as the same building, with only the slots its own card names lit — so what the card does not name is part of the picture.',
+        ],
+      ),
+    ],
+  )
+
+const stageCanvasView = (model: Model, h: H): Html => {
+  const picked = pickedEntry(model)
+  return h.div(
+    [h.Class('lib-canvas-col')],
+    [
+      h.p(
+        [h.Class('lib-said'), h.AriaLive('polite')],
+        [
+          Option.match(picked, {
+            onNone: () => 'No server picked yet.',
+            onSome: entry =>
+              `Drawing ${entry.name}: described as ${shapeWords(entry)}.`,
+          }),
+        ],
+      ),
+      Option.match(picked, {
+        onNone: () => mcpMapView(emptyMap(), h, model.canvasFull),
+        onSome: entry => mcpMapView(entryMap(entry), h, model.canvasFull),
+      }),
+      Option.match(picked, {
+        onNone: () => emptyDetailView(h),
+        onSome: entry => detailView(entry, h),
+      }),
+    ],
+  )
+}
+
+const railStationView = (
+  model: Model,
+  step: (typeof route)[number],
+  h: H,
+): Html =>
+  h.keyed('section')(
+    step.station,
+    [h.Class('lib-station')],
+    [
+      h.div(
+        [h.Class('lib-station-head')],
+        [
+          h.span([h.Class('nav-n')], [stepNumber(step.station)]),
+          h.h2([], [stationNames[step.station]]),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('pop-btn plain'),
+              h.AriaLabel(`Open step ${stepNumber(step.station)}`),
+              h.OnClick(Message.SelectedStation({ station: step.station })),
+            ],
+            [
+              model.station === step.station && model.screen === 'bench'
+                ? 'Back to this step'
+                : 'Open this step',
+            ],
+          ),
+        ],
+      ),
+      h.p([h.Class('lib-idea')], [step.idea]),
+      h.div(
+        [h.Class('lib-minis')],
+        [
+          ...Array.map(entriesFor(step.station), entry =>
+            miniCardView(
+              entry,
+              Option.contains(model.maybeExample, entryId(entry)),
+              h,
+            ),
+          ),
+          ...Array.map(
+            ownEntryCritters.filter(
+              critter => critter.station === step.station,
+            ),
+            critter => flatMiniView(critter, h),
+          ),
+        ],
+      ),
+    ],
+  )
+
 export const libraryScreenView = (model: Model, h: H): Html =>
   h.main(
     [h.Class('library'), h.AriaLabel('Out in the world')],
@@ -496,7 +715,7 @@ export const libraryScreenView = (model: Model, h: H): Html =>
           h.p(
             [h.Class('intro-lede')],
             [
-              'The route again, told through servers people actually use. For every step: the one most people meet, the one it started with, a weird one, and one that stretches the idea until it almost breaks.',
+              'The route again, told through servers people actually use. For every step: the one most people meet, the one it started with, a weird one, and one that stretches the idea until it almost breaks. Pick any of them and it is drawn as the same workshop, so you can read them against each other.',
             ],
           ),
           h.div(
@@ -519,45 +738,15 @@ export const libraryScreenView = (model: Model, h: H): Html =>
           groundView(h, 'page'),
         ],
       ),
-      ...Array.map(route, step =>
-        h.keyed('section')(
-          step.station,
-          [h.Class('lib-station')],
-          [
-            h.div(
-              [h.Class('lib-station-head')],
-              [
-                h.span([h.Class('nav-n')], [stepNumber(step.station)]),
-                h.h2([], [stationNames[step.station]]),
-                h.button(
-                  [
-                    h.Type('button'),
-                    h.Class('pop-btn plain'),
-                    h.AriaLabel(`Open step ${stepNumber(step.station)}`),
-                    h.OnClick(
-                      Message.SelectedStation({ station: step.station }),
-                    ),
-                  ],
-                  [
-                    model.station === step.station && model.screen === 'bench'
-                      ? 'Back to this step'
-                      : 'Open this step',
-                  ],
-                ),
-              ],
-            ),
-            h.p([h.Class('lib-idea')], [step.idea]),
-            h.div(
-              [h.Class('lib-grid')],
-              [
-                ...Array.map(entriesFor(step.station), entry =>
-                  cardView(entry, h),
-                ),
-                ...extraCards(step.station, h),
-              ],
-            ),
-          ],
-        ),
+      h.div(
+        [h.Class('lib-stage')],
+        [
+          stageCanvasView(model, h),
+          h.section(
+            [h.Class('lib-rail'), h.AriaLabel('The servers, step by step')],
+            Array.map(route, step => railStationView(model, step, h)),
+          ),
+        ],
       ),
     ],
   )

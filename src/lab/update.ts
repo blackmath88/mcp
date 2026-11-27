@@ -260,6 +260,7 @@ export const initialModel: Model = {
   serverStarts: 1,
   world: worldFor('calm'),
   maybeSelected: Option.none(),
+  maybeExample: Option.none(),
   from: 'forge',
   to: 'dock',
   run: RunState.Idle(),
@@ -793,6 +794,10 @@ export const update = (current: Model, message: Message): UpdateReturn => {
     ClickedChapter: ({ chapter }) => openChapter(model, chapter),
 
     SelectedCapability: ({ name }) => ({ model: select(model, name) }),
+
+    SelectedExample: ({ id }) => ({
+      model: modifyFields(model, { maybeExample: () => Option.some(id) }),
+    }),
 
     SelectedFrom: ({ value }) => ({
       model: withPlace(model, value, place =>

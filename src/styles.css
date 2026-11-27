@@ -3314,14 +3314,14 @@ button.ws-chip {
     linear-gradient(#000, #000) 0 0 / 100% 8px no-repeat,
     repeating-linear-gradient(90deg, #000 0 8px, transparent 8px 12px) 0 8px /
       100% 4px no-repeat,
-    repeating-linear-gradient(90deg, transparent 0 12px, #000 12px 16px) 0
-      12px / 100% 4px no-repeat;
+    repeating-linear-gradient(90deg, transparent 0 12px, #000 12px 16px) 0 12px
+      / 100% 4px no-repeat;
   mask:
     linear-gradient(#000, #000) 0 0 / 100% 8px no-repeat,
     repeating-linear-gradient(90deg, #000 0 8px, transparent 8px 12px) 0 8px /
       100% 4px no-repeat,
-    repeating-linear-gradient(90deg, transparent 0 12px, #000 12px 16px) 0
-      12px / 100% 4px no-repeat;
+    repeating-linear-gradient(90deg, transparent 0 12px, #000 12px 16px) 0 12px
+      / 100% 4px no-repeat;
 }
 /* While a critter's card is open, this step's examples are framed in their
    colour; the critter's own server gets a thicker frame. */
@@ -3330,13 +3330,17 @@ button.ws-chip {
   outline-offset: 2px;
 }
 :root[data-crit-marks] .ex-tile {
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--kc);
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 4px var(--kc);
 }
-.lib-card.is-critter-own {
+.lib-card.is-critter-own,
+.lib-mini.is-critter-own {
   outline: 4px solid var(--kc, var(--phone));
   outline-offset: 3px;
 }
-.lib-card.ex-flash {
+.lib-card.ex-flash,
+.lib-mini.ex-flash {
   animation: ex-flash 1.6s steps(4) 1;
 }
 @keyframes ex-flash {
@@ -3490,6 +3494,158 @@ button.ws-chip {
 @media (max-width: 600px) {
   .lib-grid,
   .lib-shelf .lib-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* The library's stage: the workshop canvas beside a rail of mini cards.
+   The two columns hold only while the canvas column still clears the 600 px
+   min-width of .ws-canvas, which with the 236 px sidebar and the 380 px rail
+   wants about 1284 px, so they give way at 1300. Above that the canvas
+   sticks inside .library's own scroll box while the rail scrolls past it;
+   below, the canvas sits above the rail and scrollToCanvasOnPick brings it
+   back on a tap. */
+.lib-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  align-items: start;
+  gap: 20px;
+}
+.lib-canvas-col {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  max-height: calc(100dvh - 130px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.lib-said {
+  margin: 0;
+  font-size: 12px;
+  color: var(--fg3);
+}
+.lib-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+.lib-rail .lib-station {
+  padding-top: 14px;
+}
+.lib-rail .lib-station-head h2 {
+  font-size: 16px;
+}
+.lib-minis {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.lib-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  background: var(--bg);
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  scroll-margin: 90px;
+  cursor: pointer;
+}
+.lib-mini.flat {
+  cursor: default;
+  opacity: 0.72;
+}
+.lib-mini:not(.flat):hover {
+  border-color: color-mix(in srgb, var(--pri) 55%, var(--bd));
+}
+.lib-mini.picked {
+  border-color: var(--pri);
+  box-shadow: 0 0 0 2px var(--prisub);
+}
+.lib-mini-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.lib-mini .lib-by {
+  margin: 0;
+  font-size: 11px;
+  color: var(--fg3);
+}
+.lib-mini-none {
+  font-size: 11px;
+  color: var(--fg3);
+}
+.lib-mini .lib-print {
+  margin-top: 2px;
+  padding-top: 2px;
+}
+.lib-mini .lib-kind {
+  align-self: start;
+}
+/* position: sticky always makes a stacking context, which traps the full
+   map's z-index inside this column and lets .critter-layer (z-index 60 on
+   the body) paint over it. While the map fills the window the column has
+   nothing to stick to, so it steps out of the way. */
+.lib-canvas-col:has(.mcpmap.full) {
+  position: static;
+  max-height: none;
+  overflow: visible;
+}
+
+/* Entry mode hides the chips row, leaving .ws-under's space-between with one
+   child, which puts the right-aligned "How to read the map" panel off the
+   left edge of the window. */
+.mcpmap.mode-entry .ws-under {
+  justify-content: flex-end;
+}
+.lib-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  background: var(--bg);
+}
+.lib-detail.empty .lib-what {
+  color: var(--fg3);
+}
+.lib-detail .lib-name {
+  font-size: 16px;
+}
+.lib-detail .crit-art {
+  margin: 6px -14px 0;
+  border-top: 1px solid var(--bd);
+}
+@media (max-width: 1300px) {
+  .lib-stage {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .lib-canvas-col {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+  .lib-minis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .lib-minis {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -3826,12 +3982,12 @@ button.ws-chip {
     opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
     visibility 0s linear 0.6s;
 }
-.tell[data-tell="1"] [data-tell-layer="1"],
-.tell[data-tell="2"] [data-tell-layer="2"],
-.tell[data-tell="3"] [data-tell-layer="3"],
-.tell[data-tell="4"] [data-tell-layer="4"],
-.tell[data-tell="5"] [data-tell-layer="5"],
-.tell:not([data-tell]) [data-tell-layer="1"] {
+.tell[data-tell='1'] [data-tell-layer='1'],
+.tell[data-tell='2'] [data-tell-layer='2'],
+.tell[data-tell='3'] [data-tell-layer='3'],
+.tell[data-tell='4'] [data-tell-layer='4'],
+.tell[data-tell='5'] [data-tell-layer='5'],
+.tell:not([data-tell]) [data-tell-layer='1'] {
   opacity: 1;
   visibility: visible;
   transition:
@@ -3857,12 +4013,12 @@ button.ws-chip {
   min-height: 56vh;
 }
 .tell-beat[data-current],
-.tell[data-tell="1"] [data-tell-beat="1"],
-.tell[data-tell="2"] [data-tell-beat="2"],
-.tell[data-tell="3"] [data-tell-beat="3"],
-.tell[data-tell="4"] [data-tell-beat="4"],
-.tell[data-tell="5"] [data-tell-beat="5"],
-.tell:not([data-tell]) [data-tell-beat="1"] {
+.tell[data-tell='1'] [data-tell-beat='1'],
+.tell[data-tell='2'] [data-tell-beat='2'],
+.tell[data-tell='3'] [data-tell-beat='3'],
+.tell[data-tell='4'] [data-tell-beat='4'],
+.tell[data-tell='5'] [data-tell-beat='5'],
+.tell:not([data-tell]) [data-tell-beat='1'] {
   opacity: 1;
 }
 .tell-kicker {
@@ -3923,7 +4079,7 @@ button.ws-chip {
 .tell-layer.scene-1 .ws-slot,
 .tell-layer.scene-2 .ws-slot,
 .tell-layer.scene-2 .ws-flow.out,
-.tell-layer.scene-2 .ws-flow[d^="M 300"],
+.tell-layer.scene-2 .ws-flow[d^='M 300'],
 .tell-layer.scene-1 .ws-gate,
 .tell-layer.scene-2 .ws-gate {
   visibility: hidden;
@@ -4548,7 +4704,11 @@ button.ws-chip {
 .crit-ghost {
   margin-left: 4px;
   color: transparent;
-  background: repeating-linear-gradient(90deg, var(--rosesub) 0 6px, transparent 6px 8px);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--rosesub) 0 6px,
+    transparent 6px 8px
+  );
 }
 .crit-pop {
   position: absolute;

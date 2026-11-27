@@ -7,6 +7,9 @@ import {
   type ModuleId,
   type NeighbourId,
   guessModule,
+  isModuleId,
+  isNeighbourId,
+  moduleWord,
   modules,
   neighbourIds,
   neighbourNames,
@@ -50,7 +53,7 @@ export type MapTool = Readonly<{
 }>
 
 export type MapInput = Readonly<{
-  mode: 'server' | 'all' | 'foreign' | 'empty'
+  mode: 'server' | 'all' | 'foreign' | 'empty' | 'entry'
   title: string
   tools: ReadonlyArray<MapTool>
   scene: Scene
@@ -230,7 +233,10 @@ const boardView = (
 }
 
 const deskView = (input: MapInput, h: H): ReadonlyArray<Html> => {
-  const names = Array.map(input.tools, tool => tool.label)
+  const names =
+    input.mode === 'entry'
+      ? ['(no list read)']
+      : Array.map(input.tools, tool => tool.label)
   return [
     h.rect([
       h.Class('ws-lobby'),
@@ -421,7 +427,7 @@ const slotView = (input: MapInput, id: ModuleId, h: H): Html => {
     ]),
     iconAt(slotIcons[id], x, y - 7, 1.25, 'ws-ico', h),
     label(x, y + half - 9, 'ws-name', module?.word ?? id, h),
-    isLit
+    isLit && input.mode !== 'entry'
       ? h.g(
           [],
           [
@@ -443,7 +449,15 @@ const slotView = (input: MapInput, id: ModuleId, h: H): Html => {
       : h.empty,
   ]
   const className = `ws-slot place-${placeOfSlot(id)} ${isLit ? 'lit' : 'ghost'} ${isActive ? 'active' : ''} ${isActive && input.isWorking ? 'working' : ''} ${isSelected ? 'picked' : ''}`
-  const name = `${module?.word ?? id}: ${isLit ? inside.map(tool => tool.label).join(', ') : 'not on this server'}`
+  const name = `${module?.word ?? id}: ${
+    input.mode === 'entry'
+      ? isLit
+        ? 'named on the card'
+        : 'not named on the card'
+      : isLit
+        ? Array.dedupe(Array.map(inside, tool => tool.label)).join(', ')
+        : 'not on this server'
+  }`
   return target === undefined
     ? h.keyed('g')(id, [h.Class(className), h.AriaLabel(name)], body)
     : h.keyed('g')(
@@ -484,7 +498,15 @@ const neighbourView = (input: MapInput, id: NeighbourId, h: H): Html => {
         `ws-nb place-${neighbourPlace[id]} ${isLit ? 'lit' : ''} ${isHot ? 'hot' : ''}`,
       ),
       h.AriaLabel(
-        `${name}: ${isLit ? `reached by ${reaching.map(tool => tool.label).join(', ')}` : 'not reached'}`,
+        `${name}: ${
+          input.mode === 'entry'
+            ? isLit
+              ? 'named on the card'
+              : 'not named on the card'
+            : isLit
+              ? `reached by ${Array.dedupe(Array.map(reaching, tool => tool.label)).join(', ')}`
+              : 'not reached'
+        }`,
       ),
     ],
     [
@@ -648,7 +670,7 @@ export const mcpMapView = (
       h.div(
         [h.Class('ws-under')],
         [
-          chipsView(input, h),
+          input.mode === 'entry' ? h.empty : chipsView(input, h),
           h.details(
             [h.Class('pop right')],
             [
@@ -661,9 +683,20 @@ export const mcpMapView = (
                     [
                       h.span(
                         [h.Class('ws-key lit')],
-                        ['offered by this server'],
+                        [
+                          input.mode === 'entry'
+                            ? 'named on the card'
+                            : 'offered by this server',
+                        ],
                       ),
-                      h.span([h.Class('ws-key ghost')], ['not offered']),
+                      h.span(
+                        [h.Class('ws-key ghost')],
+                        [
+                          input.mode === 'entry'
+                            ? 'not named on the card'
+                            : 'not offered',
+                        ],
+                      ),
                       h.span(
                         [h.Class('ws-key flow')],
                         ['a call: desk → slot → what it reaches'],
@@ -689,7 +722,9 @@ export const mcpMapView = (
                         ? 'Slots guessed from the pasted list.'
                         : input.mode === 'empty'
                           ? 'No server yet.'
-                          : 'Slots and neighbours placed by the lab from its own source. The protocol itself has no such groups.',
+                          : input.mode === 'entry'
+                            ? 'Slots and neighbours as the card describes them. The lab never connected to this server.'
+                            : 'Slots and neighbours placed by the lab from its own source. The protocol itself has no such groups.',
                     ],
                   ),
                 ],
@@ -801,3 +836,62 @@ export const foreignMap = (tools: ReadonlyArray<ForeignTool>): MapInput => ({
   scene: darkScene,
   isWorking: false,
 })
+
+// A REAL SERVER FROM THE LIBRARY
+//
+// The same building as everywhere else, with only the slots the card claims
+// lit. Nothing here was run: the shape comes from what the server's own page
+// says it offers, so the neighbours keep their plain names and no rule is
+// drawn in a wall. A card names its slots and its neighbours as two flat
+// lists and never says which tool reaches what, so every lit slot is drawn
+// reaching everything the card names, and a note says so.
+
+export type MapEntry = Readonly<{
+  name: string
+  slots: ReadonlyArray<string>
+  reaches: ReadonlyArray<string>
+}>
+
+const entryNotes = (
+  slots: ReadonlyArray<ModuleId>,
+  reaches: ReadonlyArray<NeighbourId>,
+): ReadonlyArray<string> => [
+  'Drawn from what the card says the server offers. The lab never connected to it, so nothing here was observed.',
+  ...(Array.isReadonlyArrayEmpty(reaches)
+    ? ['The card names nothing outside the walls, so no line leaves the room.']
+    : slots.length > 1
+      ? [
+          'The card does not say which tool reaches what, so every lit slot is drawn reaching everything it names.',
+        ]
+      : []),
+]
+
+export const entryMap = (entry: MapEntry): MapInput => {
+  const slots = Array.dedupe(entry.slots.filter(isModuleId))
+  const reaches = Array.dedupe(entry.reaches.filter(isNeighbourId))
+  return {
+    mode: 'entry',
+    title: entry.name,
+    tools: Array.map(slots, slot => ({
+      key: `${entry.name}-${slot}`,
+      label: entry.name,
+      title: entry.name,
+      icon: Option.none(),
+      slot,
+      reach: reaches,
+      aria: `${entry.name}, described as ${moduleWord(slot)}`,
+      message: Option.none(),
+      isSelected: false,
+      isCalled: false,
+      isActive: false,
+    })),
+    scene: {
+      names: {},
+      gates: {},
+      desk: [],
+      building: 'room',
+      notes: entryNotes(slots, reaches),
+    },
+    isWorking: false,
+  }
+}

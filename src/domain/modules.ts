@@ -201,6 +201,15 @@ export const neighbourIds: ReadonlyArray<NeighbourId> = [
   'world',
 ]
 
+// A card in the library names its slots and neighbours as plain strings,
+// because it was written by hand. These say whether a string is one of ours.
+
+export const isModuleId = (value: string): value is ModuleId =>
+  modules.some(module => module.id === value)
+
+export const isNeighbourId = (value: string): value is NeighbourId =>
+  neighbourIds.some(id => id === value)
+
 // For a server the lab did not write, the slot is a guess from the listing.
 // What it reaches is unknown. Whether a tool asks you cannot be guessed at
 // all: elicitation is decided during the call, not declared on a tool.

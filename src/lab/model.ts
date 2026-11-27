@@ -105,6 +105,7 @@ export const Model = Schema.Struct({
   serverStarts: Schema.Number,
   world: World,
   maybeSelected: Schema.Option(CapabilityName),
+  maybeExample: Schema.Option(Schema.String),
   from: PlaceId,
   to: PlaceId,
   run: RunState,

@@ -889,6 +889,35 @@ describe('out in the world', () => {
       expect(text('crane at the dock (simulated)')).toExist(),
     )
   })
+
+  test('picking a real server draws it in the workshop canvas', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'library' }),
+      expect(text('No server picked yet.')).toExist(),
+      click(role('button', { name: /^Firecrawl MCP, Most used/ })),
+      expect(
+        text(
+          'Drawing Firecrawl MCP: described as read, sequence; reaches web pages, another program.',
+        ),
+      ).toExist(),
+      expect(role('group', { name: 'The workshop of Firecrawl MCP' })).toExist(),
+      expect(
+        text(
+          'Drawn from what the card says the server offers. The lab never connected to it, so nothing here was observed.',
+        ),
+      ).toExist(),
+    )
+  })
+
+  test('a server whose card names no slots cannot be picked', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'library' }),
+      expect(text('LSD MCP')).toExist(),
+      expect(text('Its card names no slots to draw.')).toExist(),
+    )
+  })
 })
 
 describe('the canvas by keyboard', () => {
