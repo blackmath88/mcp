@@ -895,10 +895,17 @@ describe('out in the world', () => {
       { update, view },
       given({ ...initialModel, station: 'fetch', screen: 'bench' }),
       expect(role('group', { name: 'The workshop of the Fetch server' })).toExist(),
+      expect(text('What the Fetch server hands the AI')).toExist(),
       click(role('button', { name: /^Firecrawl MCP, Most used/ })),
       expect(role('group', { name: 'The workshop of Firecrawl MCP' })).toExist(),
+      // The heading belongs to the drawing, and nothing was asked of a
+      // real server, so it must not still claim a tools/list answer.
+      expect(text('What Firecrawl MCP says it does')).toExist(),
+      expect(text('What the Fetch server hands the AI')).not.toExist(),
+      expect(text(/its tools\/list answer, drawn as a workshop/)).not.toExist(),
       click(role('button', { name: 'Back to this step’s server' })),
       expect(role('group', { name: 'The workshop of the Fetch server' })).toExist(),
+      expect(text('What the Fetch server hands the AI')).toExist(),
     )
   })
 

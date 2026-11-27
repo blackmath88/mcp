@@ -154,6 +154,10 @@ const hostView = (model: Model, h: H): Html => {
 
 const mapRowView = (model: Model, story: Html, h: H): Html => {
   const belt = beltOf(model)
+  // The heading belongs to whatever the canvas is drawing. With an example
+  // picked that is somebody else's server, read off its own page, and no
+  // tools/list answer was ever asked for.
+  const picked = pickedEntryHere(model)
   return h.div(
     [h.Class('tb-maprow')],
     [
@@ -163,13 +167,21 @@ const mapRowView = (model: Model, story: Html, h: H): Html => {
         [
           stepLabel(
             '1',
-            `What the ${serverNames[model.station]} hands the AI`,
-            belt.source === 'server'
-              ? 'its tools/list answer, drawn as a workshop · click a slot or a tool to look behind it'
-              : 'the lab’s catalogue, drawn as a workshop · click a slot or a tool to look behind it',
+            Option.match(picked, {
+              onNone: () => `What the ${serverNames[model.station]} hands the AI`,
+              onSome: entry => `What ${entry.name} says it does`,
+            }),
+            Option.match(picked, {
+              onNone: () =>
+                belt.source === 'server'
+                  ? 'its tools/list answer, drawn as a workshop · click a slot or a tool to look behind it'
+                  : 'the lab’s catalogue, drawn as a workshop · click a slot or a tool to look behind it',
+              onSome: () =>
+                'as its own page describes it, drawn as the same workshop · click a lit slot for what it does there',
+            }),
             h,
           ),
-          Option.match(pickedEntryHere(model), {
+          Option.match(picked, {
             onNone: () =>
               mcpMapView(
                 serverMap(model),
@@ -186,7 +198,7 @@ const mapRowView = (model: Model, story: Html, h: H): Html => {
                 moduleNoteOf(model, entry, h),
               ),
           }),
-          Option.match(pickedEntryHere(model), {
+          Option.match(picked, {
             onNone: () => h.empty,
             onSome: entry => exampleDetailView(entry, h),
           }),
