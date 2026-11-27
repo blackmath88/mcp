@@ -23,7 +23,7 @@ import {
   entryMap,
   mcpMapView,
 } from './mcpmap.ts'
-import { noteFor } from './module-notes.ts'
+import { noteCount, noteFor } from './module-notes.ts'
 import { Message } from './message.ts'
 import type { Model, Station } from './model.ts'
 import { stationNames } from './names.ts'
@@ -412,6 +412,7 @@ export const pickedEntry = (model: Model): Option.Option<Entry> =>
 export const miniCardView = (entry: Entry, isPicked: boolean, h: H): Html => {
   const kind = kindOf(entry)
   const critter = critterForEntry(entry.station, entry.kind, entry.name)
+  const notes = noteCount(entry.station, entry.kind, entry.name)
   return h.keyed('button')(
     entryId(entry),
     [
@@ -424,7 +425,7 @@ export const miniCardView = (entry: Entry, isPicked: boolean, h: H): Html => {
       ),
       h.AriaPressed(isPicked ? 'true' : 'false'),
       h.AriaLabel(
-        `${entry.name}, ${kindNames[kind]}. Described as: ${shapeWords(entry)}. Draw it in the workshop.`,
+        `${entry.name}, ${kindNames[kind]}. Described as: ${shapeWords(entry)}. Draw it in the workshop${notes === 0 ? '' : `, with ${notes} note${notes === 1 ? '' : 's'} on its modules`}.`,
       ),
       h.OnClick(Message.SelectedExample({ id: entryId(entry) })),
     ],
@@ -436,6 +437,12 @@ export const miniCardView = (entry: Entry, isPicked: boolean, h: H): Html => {
       ),
       entry.by === '' ? h.empty : h.span([h.Class('lib-by')], [entry.by]),
       fingerprintView(entry, h),
+      notes === 0
+        ? h.empty
+        : h.span(
+            [h.Class('lib-mini-notes')],
+            [`${notes} note${notes === 1 ? '' : 's'} on the drawing`],
+          ),
     ],
   )
 }

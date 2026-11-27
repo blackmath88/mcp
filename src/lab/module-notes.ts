@@ -28,6 +28,20 @@ type RawNote = Readonly<{
 
 const raw: ReadonlyArray<RawNote> = data.notes
 
+// How many of a server's slots carry a note, so a card can say whether
+// picking it will annotate the drawing or only redraw it.
+export const noteCount = (
+  station: string,
+  kind: string,
+  name: string,
+): number => {
+  const found = raw.find(
+    entry =>
+      entry.station === station && entry.kind === kind && entry.name === name,
+  )
+  return found === undefined ? 0 : Object.keys(found.slots).length
+}
+
 export const noteFor = (
   station: string,
   kind: string,
