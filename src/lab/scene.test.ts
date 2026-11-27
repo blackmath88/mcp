@@ -890,6 +890,32 @@ describe('out in the world', () => {
     )
   })
 
+  test("a step's own bench redraws its canvas for a picked real server", () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, station: 'fetch', screen: 'bench' }),
+      expect(role('group', { name: 'The workshop of the Fetch server' })).toExist(),
+      click(role('button', { name: /^Firecrawl MCP, Most used/ })),
+      expect(role('group', { name: 'The workshop of Firecrawl MCP' })).toExist(),
+      click(role('button', { name: 'Back to this step’s server' })),
+      expect(role('group', { name: 'The workshop of the Fetch server' })).toExist(),
+    )
+  })
+
+  test('a pick does not follow you to another step', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, station: 'fetch', screen: 'bench' }),
+      click(role('button', { name: /^Firecrawl MCP, Most used/ })),
+      expect(role('group', { name: 'The workshop of Firecrawl MCP' })).toExist(),
+      click(role('button', { name: /^Next: / })),
+      Command.resolve(EnterDomain, Message.FailedEnterDomain()),
+      expect(
+        role('group', { name: 'The workshop of Firecrawl MCP' }),
+      ).not.toExist(),
+    )
+  })
+
   test('picking a real server draws it in the workshop canvas', () => {
     scene(
       { update, view },

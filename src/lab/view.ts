@@ -39,7 +39,6 @@ import {
   examplesRowView,
   libraryScreenView,
   neighboursView,
-  shelfView,
 } from './library.ts'
 import { Message } from './message.ts'
 import {
@@ -935,7 +934,6 @@ const workbenchView = (model: Model, h: H): Html =>
         h,
       ),
       neighboursView(model.station, h),
-      shelfView(model.station, h),
     ],
   )
 

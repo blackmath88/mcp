@@ -16,6 +16,12 @@ import { approvalRules, claimsReadOnly } from './approval.ts'
 import { evidenceView } from './atlas.ts'
 import { beltOf, calledToolOf, findCapability } from './belt.ts'
 import { iconView } from './icons.ts'
+import {
+  exampleDetailView,
+  exampleMapOf,
+  exampleRailView,
+  pickedEntryHere,
+} from './library.ts'
 import { mcpMapView, serverMap } from './mcpmap.ts'
 import { Message } from './message.ts'
 import { type Model, RunState } from './model.ts'
@@ -162,14 +168,24 @@ const mapRowView = (model: Model, story: Html, h: H): Html => {
               : 'the lab’s catalogue, drawn as a workshop · click a slot or a tool to look behind it',
             h,
           ),
-          mcpMapView(
-            serverMap(model),
-            h,
-            model.canvasFull,
-            h.div([h.Class('ws-full-aside')], [drawerView(model, h)]),
-          ),
+          Option.match(pickedEntryHere(model), {
+            onNone: () =>
+              mcpMapView(
+                serverMap(model),
+                h,
+                model.canvasFull,
+                h.div([h.Class('ws-full-aside')], [drawerView(model, h)]),
+              ),
+            onSome: entry =>
+              mcpMapView(exampleMapOf(entry), h, model.canvasFull),
+          }),
+          Option.match(pickedEntryHere(model), {
+            onNone: () => h.empty,
+            onSome: entry => exampleDetailView(entry, h),
+          }),
         ],
       ),
+      exampleRailView(model, h),
     ],
   )
 }

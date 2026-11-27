@@ -620,6 +620,7 @@ export const update = (current: Model, message: Message): UpdateReturn => {
         watching: () => false,
         screen: () => 'bench',
         maybeSelected: () => defaultCapability(station),
+        maybeExample: () => Option.none(),
         savedRuns: saved => [
           ...Array.filter(saved, entry => entry.station !== model.station),
           {
@@ -797,6 +798,10 @@ export const update = (current: Model, message: Message): UpdateReturn => {
 
     SelectedExample: ({ id }) => ({
       model: modifyFields(model, { maybeExample: () => Option.some(id) }),
+    }),
+
+    ClearedExample: () => ({
+      model: modifyFields(model, { maybeExample: () => Option.none() }),
     }),
 
     SelectedFrom: ({ value }) => ({

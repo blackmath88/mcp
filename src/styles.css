@@ -2356,6 +2356,46 @@ textarea.console-text {
   min-width: 0;
 }
 
+/* This step's real servers, beside the drawing they redraw. The bench only
+   gets about (viewport - 536px) of width, because the sidebar takes 236 and
+   the inspector 300, and .ws-canvas will not go under 600. So the rail sits
+   to the right of the drawing only from 1500px up; below that the row stays
+   a column and the rail follows the drawing. */
+.tb-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  align-content: start;
+}
+.tb-rail .tb-note {
+  margin: 0 0 2px;
+}
+.tb-rail-back {
+  align-self: start;
+  margin-top: 2px;
+}
+@media (min-width: 1500px) {
+  .tb-maprow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    align-items: start;
+  }
+  .tb-maprow > .story-card {
+    grid-column: 1 / -1;
+  }
+  .tb-maprow > .tb-mapcol {
+    grid-column: 1;
+  }
+  .tb-maprow > .tb-rail {
+    grid-column: 2;
+    position: sticky;
+    top: 0;
+    max-height: calc(100dvh - 160px);
+    overflow-y: auto;
+  }
+}
+
 /* Front door */
 .route-stages {
   display: grid;

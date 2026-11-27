@@ -16,7 +16,7 @@ import {
   ownEntryCritters,
 } from './critters/catalog.ts'
 import { lineIcon, neighbourIcons, slotIcons } from './icons.ts'
-import { emptyMap, entryMap, mcpMapView } from './mcpmap.ts'
+import { type MapInput, emptyMap, entryMap, mcpMapView } from './mcpmap.ts'
 import { Message } from './message.ts'
 import type { Model, Station } from './model.ts'
 import { stationNames } from './names.ts'
@@ -165,110 +165,6 @@ export const stickerView = (critter: Critter, h: H): Html =>
     [h.Class(`crit-sticker crit-${critter.sprite}`), h.AriaHidden(true)],
     [],
   )
-
-// Servers that only a critter brings in (not one of the four kinds of the
-// library itself) get a card of their own under their station.
-const ownCardView = (critter: Critter, h: H): Html =>
-  h.keyed('article')(
-    `critter-${critter.id}`,
-    [
-      h.Id(exampleId(critter.station, critter.kind, critter.server)),
-      h.Class(`lib-card kind-weird has-critter crit-${critter.sprite}`),
-    ],
-    [
-      critterArtView(critter, h),
-      h.div(
-        [h.Class('lib-top')],
-        [
-          h.span([h.Class('lib-kind kind-weird')], ['Weird, too']),
-          h.span(
-            [
-              h.Class(`lib-ev ev-${ownEvidence(critter)}`),
-              h.Title(critter.evidence.note),
-            ],
-            [evidenceNames[ownEvidence(critter)]],
-          ),
-        ],
-      ),
-      h.h4(
-        [h.Class('lib-name')],
-        [
-          stickerView(critter, h),
-          h.a(
-            [h.Href(critter.url), h.Target('_blank'), h.Rel('noreferrer')],
-            [critter.server],
-          ),
-        ],
-      ),
-      h.p([h.Class('lib-by')], [critter.by]),
-      h.p([h.Class('lib-what')], [critter.what]),
-      critterMetersView(critter, h),
-      h.details(
-        [h.Class('lib-note')],
-        [h.summary([], ['Evidence']), h.p([], [critter.evidence.note])],
-      ),
-    ],
-  )
-
-const ownEvidence = (critter: Critter): EvidenceKind =>
-  isEvidence(critter.evidence.kind) ? critter.evidence.kind : 'author'
-
-const extraCards = (station: string, h: H): ReadonlyArray<Html> =>
-  Array.map(
-    ownEntryCritters.filter(critter => critter.station === station),
-    critter => ownCardView(critter, h),
-  )
-
-const cardView = (entry: Entry, h: H): Html => {
-  const kind = kinds.find(value => value === entry.kind) ?? 'popular'
-  const evidence = isEvidence(entry.evidence.kind)
-    ? entry.evidence.kind
-    : 'author'
-  const critter = critterForEntry(entry.station, entry.kind, entry.name)
-  return h.keyed('article')(
-    `${entry.station}-${entry.kind}-${entry.name}`,
-    [
-      h.Id(exampleId(entry.station, entry.kind, entry.name)),
-      h.Class(
-        `lib-card kind-${kind}${critter === undefined ? '' : ` has-critter crit-${critter.sprite}`}`,
-      ),
-    ],
-    [
-      critter === undefined ? h.empty : critterArtView(critter, h),
-      h.div(
-        [h.Class('lib-top')],
-        [
-          h.span([h.Class(`lib-kind kind-${kind}`)], [kindNames[kind]]),
-          h.span(
-            [h.Class(`lib-ev ev-${evidence}`), h.Title(entry.evidence.note)],
-            [evidenceNames[evidence]],
-          ),
-        ],
-      ),
-      h.h4(
-        [h.Class('lib-name')],
-        [
-          critter === undefined ? h.empty : stickerView(critter, h),
-          entry.url === ''
-            ? entry.name
-            : h.a(
-                [h.Href(entry.url), h.Target('_blank'), h.Rel('noreferrer')],
-                [entry.name],
-              ),
-        ],
-      ),
-      entry.by === '' ? h.empty : h.p([h.Class('lib-by')], [entry.by]),
-      h.p([h.Class('lib-what')], [entry.what]),
-      h.p([h.Class('lib-why')], [entry.why]),
-      critter === undefined ? h.empty : critterMetersView(critter, h),
-      fingerprintView(entry, h),
-      h.details(
-        [h.Class('lib-note')],
-        [h.summary([], ['Evidence']), h.p([], [entry.evidence.note])],
-      ),
-    ],
-  )
-}
 
 const terrainBlocks = (h: H): ReadonlyArray<Html> =>
   Array.map(modules, module =>
@@ -435,49 +331,6 @@ export const neighboursView = (station: Station, h: H): Html =>
       ),
   })
 
-// On each bench, under the workbench.
-export const shelfView = (station: Station, h: H): Html =>
-  Array.match(entriesFor(station), {
-    onEmpty: () => h.empty,
-    onNonEmpty: found =>
-      h.section(
-        [
-          h.Class('lib-shelf'),
-          h.Id('out-in-the-world'),
-          h.AriaLabel('Out in the world'),
-        ],
-        [
-          h.div(
-            [h.Class('lib-head')],
-            [
-              h.h3([], ['Out in the world']),
-              h.p(
-                [h.Class('tb-note')],
-                [
-                  'Real servers like this one: the most used, the first, a weird one, and one that almost breaks the idea. The lab did not install or run them; each card says what its evidence is.',
-                ],
-              ),
-              h.button(
-                [
-                  h.Type('button'),
-                  h.Class('pop-btn plain'),
-                  h.OnClick(Message.ClickedLibrary()),
-                ],
-                ['The whole library'],
-              ),
-            ],
-          ),
-          h.div(
-            [h.Class('lib-grid')],
-            [
-              ...Array.map(found, entry => cardView(entry, h)),
-              ...extraCards(station, h),
-            ],
-          ),
-        ],
-      ),
-  })
-
 // THE LIBRARY AS ITS OWN PAGE
 //
 // The route again, told through real servers: a rail of mini cards beside
@@ -486,7 +339,7 @@ export const shelfView = (station: Station, h: H): Html =>
 // does one thing is read by what it does not do, and two servers can be
 // compared by changing the selection.
 
-const entryId = (entry: Entry): string =>
+export const entryId = (entry: Entry): string =>
   exampleId(entry.station, entry.kind, entry.name)
 
 // What the building is called under the name. The kind is the only thing
@@ -498,7 +351,7 @@ const kindCaptions: Record<Kind, string> = {
   breaking: 'almost breaks it',
 }
 
-const kindOf = (entry: Entry): Kind =>
+export const kindOf = (entry: Entry): Kind =>
   kinds.find(value => value === entry.kind) ?? 'popular'
 
 const shapeWords = (entry: Entry): string =>
@@ -515,7 +368,7 @@ const stationLabel = (station: string): string => {
   return step === undefined ? station : stationNames[step.station]
 }
 
-const pickedEntry = (model: Model): Option.Option<Entry> =>
+export const pickedEntry = (model: Model): Option.Option<Entry> =>
   Option.flatMap(model.maybeExample, id =>
     Option.fromNullishOr(entries.find(entry => entryId(entry) === id)),
   )
@@ -523,7 +376,7 @@ const pickedEntry = (model: Model): Option.Option<Entry> =>
 // A card shrunk to what the canvas cannot say: which of the four kinds it
 // is, who made it, and the fingerprint. The prose moves to the panel under
 // the drawing, so only the selected server carries its full text.
-const miniCardView = (entry: Entry, isPicked: boolean, h: H): Html => {
+export const miniCardView = (entry: Entry, isPicked: boolean, h: H): Html => {
   const kind = kindOf(entry)
   const critter = critterForEntry(entry.station, entry.kind, entry.name)
   return h.keyed('button')(
@@ -556,7 +409,7 @@ const miniCardView = (entry: Entry, isPicked: boolean, h: H): Html => {
 
 // A server only a critter brings in has no slots or neighbours on its card,
 // so there is nothing to draw: it sits in the rail unselectable and says so.
-const flatMiniView = (critter: Critter, h: H): Html =>
+export const flatMiniView = (critter: Critter, h: H): Html =>
   h.keyed('div')(
     `critter-${critter.id}`,
     [h.Class(`lib-mini flat kind-weird crit-${critter.sprite}`)],
@@ -571,7 +424,7 @@ const flatMiniView = (critter: Critter, h: H): Html =>
     ],
   )
 
-const detailView = (entry: Entry, h: H): Html => {
+export const exampleDetailView = (entry: Entry, h: H): Html => {
   const kind = kindOf(entry)
   const evidence = isEvidence(entry.evidence.kind)
     ? entry.evidence.kind
@@ -650,16 +503,11 @@ const stageCanvasView = (model: Model, h: H): Html => {
       ),
       Option.match(picked, {
         onNone: () => mcpMapView(emptyMap(), h, model.canvasFull),
-        onSome: entry =>
-          mcpMapView(
-            entryMap({ ...entry, subtitle: kindCaptions[kindOf(entry)] }),
-            h,
-            model.canvasFull,
-          ),
+        onSome: entry => mcpMapView(exampleMapOf(entry), h, model.canvasFull),
       }),
       Option.match(picked, {
         onNone: () => emptyDetailView(h),
-        onSome: entry => detailView(entry, h),
+        onSome: entry => exampleDetailView(entry, h),
       }),
     ],
   )
@@ -715,6 +563,59 @@ const railStationView = (
       ),
     ],
   )
+
+// The bench shows the step's own server until an example of THAT step is
+// picked, so a selection made on the library page does not follow you onto
+// an unrelated bench.
+export const pickedEntryHere = (model: Model): Option.Option<Entry> =>
+  Option.filter(pickedEntry(model), entry => entry.station === model.station)
+
+export const exampleMapOf = (entry: Entry): MapInput =>
+  entryMap({ ...entry, subtitle: kindCaptions[kindOf(entry)] })
+
+// This step's real servers, as a rail beside the drawing.
+export const exampleRailView = (model: Model, h: H): Html =>
+  Array.match(entriesFor(model.station), {
+    onEmpty: () => h.empty,
+    onNonEmpty: found =>
+      h.div(
+        [h.Class('tb-rail'), h.AriaLabel('Real servers like this step')],
+        [
+          h.span([h.Class('eyebrow')], ['Out in the world']),
+          h.p(
+            [h.Class('tb-note')],
+            [
+              'Real servers like this step. Pick one and the drawing becomes that server, as its own page describes it.',
+            ],
+          ),
+          ...Array.map(found, entry =>
+            miniCardView(
+              entry,
+              Option.contains(model.maybeExample, entryId(entry)),
+              h,
+            ),
+          ),
+          ...Array.map(
+            ownEntryCritters.filter(
+              critter => critter.station === model.station,
+            ),
+            critter => flatMiniView(critter, h),
+          ),
+          Option.match(pickedEntryHere(model), {
+            onNone: () => h.empty,
+            onSome: () =>
+              h.button(
+                [
+                  h.Type('button'),
+                  h.Class('pop-btn plain tb-rail-back'),
+                  h.OnClick(Message.ClearedExample()),
+                ],
+                ['Back to this step’s server'],
+              ),
+          }),
+        ],
+      ),
+  })
 
 export const libraryScreenView = (model: Model, h: H): Html =>
   h.main(
