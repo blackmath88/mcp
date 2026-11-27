@@ -898,7 +898,7 @@ describe('out in the world', () => {
       click(role('button', { name: /^Firecrawl MCP, Most used/ })),
       expect(
         text(
-          'Drawing Firecrawl MCP: described as read, sequence; reaches web pages, another program.',
+          'Drawing Firecrawl MCP, the most used: described as read, sequence; reaches web pages, another program.',
         ),
       ).toExist(),
       expect(role('group', { name: 'The workshop of Firecrawl MCP' })).toExist(),
@@ -907,6 +907,19 @@ describe('out in the world', () => {
           'Drawn from what the card says the server offers. The lab never connected to it, so nothing here was observed.',
         ),
       ).toExist(),
+    )
+  })
+
+  test('entries sharing a station and a shape keep different captions', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'library' }),
+      click(role('button', { name: /^Playwright MCP, Most used/ })),
+      expect(role('group', { name: 'The workshop of Playwright MCP' })).toExist(),
+      expect(text(/Drawing Playwright MCP, the most used/)).toExist(),
+      click(role('button', { name: /^WebMCP, Almost breaks it/ })),
+      expect(role('group', { name: 'The workshop of WebMCP' })).toExist(),
+      expect(text(/Drawing WebMCP, almost breaks it/)).toExist(),
     )
   })
 

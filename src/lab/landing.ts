@@ -40,6 +40,7 @@ const showcase: ReadonlyArray<CapabilityName> = [
 const showcaseMap = (model: Model): MapInput => ({
   mode: 'server',
   title: 'a showcase server',
+  subtitle: 'its workshop',
   tools: toolsOf(model, showcase),
   scene: {
     names: {

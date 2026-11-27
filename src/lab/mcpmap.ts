@@ -55,6 +55,7 @@ export type MapTool = Readonly<{
 export type MapInput = Readonly<{
   mode: 'server' | 'all' | 'foreign' | 'empty' | 'entry'
   title: string
+  subtitle: string
   tools: ReadonlyArray<MapTool>
   scene: Scene
   isWorking: boolean
@@ -314,7 +315,7 @@ const roomView = (input: MapInput, h: H): ReadonlyArray<Html> => {
       'ws-zone',
       input.scene.building === 'mall'
         ? 'Several servers behind one desk'
-        : `${input.title} · its workshop`,
+        : `${input.title} · ${input.subtitle}`,
       h,
       'start',
     ),
@@ -751,6 +752,7 @@ const activeName = (model: Model): Option.Option<string> =>
 export const emptyMap = (): MapInput => ({
   mode: 'empty',
   title: 'a server',
+  subtitle: 'its workshop',
   tools: [],
   scene: { names: {}, gates: {}, desk: [], building: 'room', notes: [] },
   isWorking: false,
@@ -763,6 +765,7 @@ export const serverMap = (model: Model): MapInput => {
   return {
     mode: 'server',
     title: `the ${serverNames[model.station]}`,
+  subtitle: 'its workshop',
     tools: Array.map(belt.tools, capability => {
       const place = placeOf(capability.name, model.world)
       return {
@@ -791,6 +794,7 @@ export const allMap = (model: Model): MapInput => {
   return {
     mode: 'all',
     title: 'every server',
+  subtitle: 'its workshop',
     tools: Array.map(catalogue, capability => {
       const place = placeOf(capability.name, model.world)
       return {
@@ -817,6 +821,7 @@ export const allMap = (model: Model): MapInput => {
 export const foreignMap = (tools: ReadonlyArray<ForeignTool>): MapInput => ({
   mode: 'foreign',
   title: 'your server',
+  subtitle: 'its workshop',
   tools: Array.map(tools, tool => {
     const guess = guessModule(tool)
     return {
@@ -845,9 +850,15 @@ export const foreignMap = (tools: ReadonlyArray<ForeignTool>): MapInput => ({
 // drawn in a wall. A card names its slots and its neighbours as two flat
 // lists and never says which tool reaches what, so every lit slot is drawn
 // reaching everything the card names, and a note says so.
+//
+// The building is captioned with the entry's kind rather than "its
+// workshop": 12 groups of entries share a station and a shape, so without it
+// four perception servers in a row draw the same picture, and in the full
+// window the name is the only text that differs.
 
 export type MapEntry = Readonly<{
   name: string
+  subtitle: string
   slots: ReadonlyArray<string>
   reaches: ReadonlyArray<string>
 }>
@@ -872,6 +883,7 @@ export const entryMap = (entry: MapEntry): MapInput => {
   return {
     mode: 'entry',
     title: entry.name,
+    subtitle: entry.subtitle,
     tools: Array.map(slots, slot => ({
       key: `${entry.name}-${slot}`,
       label: entry.name,

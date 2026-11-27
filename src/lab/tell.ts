@@ -88,6 +88,7 @@ const beats: ReadonlyArray<Beat> = [
     map: () => ({
       mode: 'empty',
       title: 'a program',
+      subtitle: 'its workshop',
       tools: [],
       scene: scene({ building: 'dark' }),
       isWorking: false,
@@ -104,6 +105,7 @@ const beats: ReadonlyArray<Beat> = [
     map: model => ({
       mode: 'server',
       title: 'a program',
+      subtitle: 'its workshop',
       tools: toolsOf(model, storyServer),
       scene: scene({ building: 'dark' }),
       isWorking: false,
@@ -121,6 +123,7 @@ const beats: ReadonlyArray<Beat> = [
     map: model => ({
       mode: 'server',
       title: 'a program',
+      subtitle: 'its workshop',
       tools: toolsOf(model, storyServer),
       scene: scene({
         names: { web: 'web pages', store: 'saved notes', world: 'the world' },
@@ -140,6 +143,7 @@ const beats: ReadonlyArray<Beat> = [
     map: model => ({
       mode: 'server',
       title: 'a program',
+      subtitle: 'its workshop',
       tools: toolsOf(model, storyServer, ['fetch_page']),
       scene: scene({
         names: { web: 'web pages', store: 'saved notes', world: 'the world' },
@@ -158,6 +162,7 @@ const beats: ReadonlyArray<Beat> = [
     map: model => ({
       mode: 'server',
       title: 'a program',
+      subtitle: 'its workshop',
       tools: toolsOf(model, storyServer, ['move_crate', 'reserve_cart']),
       scene: scene({
         names: { web: 'web pages', store: 'saved notes', world: 'the world' },

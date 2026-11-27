@@ -489,6 +489,15 @@ export const shelfView = (station: Station, h: H): Html =>
 const entryId = (entry: Entry): string =>
   exampleId(entry.station, entry.kind, entry.name)
 
+// What the building is called under the name. The kind is the only thing
+// that separates entries sharing a station and a shape.
+const kindCaptions: Record<Kind, string> = {
+  popular: 'the most used',
+  first: 'the first',
+  weird: 'a weird one',
+  breaking: 'almost breaks it',
+}
+
 const kindOf = (entry: Entry): Kind =>
   kinds.find(value => value === entry.kind) ?? 'popular'
 
@@ -635,13 +644,18 @@ const stageCanvasView = (model: Model, h: H): Html => {
           Option.match(picked, {
             onNone: () => 'No server picked yet.',
             onSome: entry =>
-              `Drawing ${entry.name}: described as ${shapeWords(entry)}.`,
+              `Drawing ${entry.name}, ${kindCaptions[kindOf(entry)]}: described as ${shapeWords(entry)}.`,
           }),
         ],
       ),
       Option.match(picked, {
         onNone: () => mcpMapView(emptyMap(), h, model.canvasFull),
-        onSome: entry => mcpMapView(entryMap(entry), h, model.canvasFull),
+        onSome: entry =>
+          mcpMapView(
+            entryMap({ ...entry, subtitle: kindCaptions[kindOf(entry)] }),
+            h,
+            model.canvasFull,
+          ),
       }),
       Option.match(picked, {
         onNone: () => emptyDetailView(h),
