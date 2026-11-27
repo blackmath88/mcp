@@ -1,5 +1,19 @@
 # Handoff
 
+## Notes on the first card you click — 2026-11-27 (branch `main`)
+
+Owner: "i still dont feel we see anything on the canvas". They were right, and it was a coverage hole, not a bug.
+
+- **What was wrong.** Notes existed for 8 of 66 examples, and all 8 were *weird* ones, because they were the servers a critter stands for. Measured by kind: Most used 16/0 annotated, First 16/0, Weird 18/6, Almost breaks it 16/2. So on every step the two cards anyone clicks first drew no bubble at all, which reads as broken rather than as sparse. The owner had chosen the limited-coverage option earlier; the failure was mine for not predicting how it would land.
+- **Fixed by coverage.** All 16 "Most used" are now annotated: 24 servers, 43 slots, and all 16 of 16 steps annotate on the first card reached. Overall 24 of 66.
+- Researched by two subagents in parallel, eight each, from primary sources — raw READMEs and source files, not listing pages. Three of their own first-pass findings were wrong and were corrected before landing: Mapbox's compute slot is half offline Turf.js (`distance_tool`, `union_tool`, `intersect_tool`, `difference_tool` need no API call), Basic Memory's tools are `bm_*` and not `write_note`/`read_note`, and Figma's `get_code` is gone from the current docs. Gaps are recorded in each evidence note rather than filled: Home Assistant does not enumerate its tool names, Code Mode's write path is documented but only GETs are demonstrated, Task Master's storage layout comes from the repo rather than its docs, and nobody surveyed elicitation implementations so "none established yet" stays the lab's claim.
+- **A stopgap that stayed.** A card now says "n notes on the drawing" when it has them, in ink and in its `aria-label`, so the difference between an annotated and an unannotated server is never a guess. Verified that markers and rendered bubbles agree on all five cards of step 01.
+- **Placement re-proved at the new scale.** The script checks every annotated server in both collapsed and expanded states for berth clashes, bubble overlap, room collision and running off the canvas: 24 servers, 43 slots, 0 problems, tallest bubble 360 units. Re-run it whenever a note is added — three slots share each berth, and the proof is what keeps that safe.
+- **A measurement trap worth knowing.** Browser checks that click a card and read the DOM 700 ms later race the render and report 0 bubbles for servers that in fact have them. A 2.2 s wait is reliable here. An earlier pass of this work reported a false regression for exactly that reason.
+- Checks: typecheck, lint, 250 tests, build. The fallback test was repointed from Firecrawl, which now has notes, to Fetch (reference server), which does not, and asserts both the "No note yet for this slot" line and the absence of Firecrawl's headline.
+- Not done: 42 of 66 examples still have no slot notes — every "First", every "Almost breaks it", and the unannotated "Weird" ones. They show the card's own text on a slot and say so.
+- Not deployed. Live is still `55087ed2` from `e95dcba`.
+
 ## The heading over the drawing, and the deploy — 2026-11-27 (branch `lab/entry-canvas`)
 
 Found while verifying the bench rail from the session that built it, and fixed there on the owner's go-ahead.
