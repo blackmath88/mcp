@@ -48,3 +48,25 @@ export const scrollToCanvasOnPick = (root: Document): void => {
     })
   })
 }
+
+// NOTE: A slot's note is pinned to the slot, inside the canvas, and the
+// canvas is wider than a phone. Without this the note opens off to the
+// right of what you can see. Two frames: the first is before Foldkit has
+// rendered the card.
+export const scrollToNoteOnOpen = (root: Document): void => {
+  root.addEventListener('click', event => {
+    if (
+      !(event.target instanceof Element) ||
+      event.target.closest('.ws-slot') === null
+    ) {
+      return
+    }
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        root
+          .querySelector('.ws-note-card')
+          ?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+      })
+    })
+  })
+}

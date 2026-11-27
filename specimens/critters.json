@@ -19,7 +19,7 @@
         "name": "LSD MCP",
         "by": "lsd-so",
         "url": "https://github.com/lsd-so/lsd-mcp",
-        "what": "LSD is a SQL-like query language for live web data. run_lsd opens a Postgres connection to lsd.so and runs the SQL the model wrote, so a live web page comes back looking like rows from a database. The drug name is a pun the project's own README plays with, and it runs all the way into the API: SEARCH ... and ACCORDING TO ...",
+        "what": "LSD is a SQL-like query language for live web data, and the drug name is a pun the project's own README plays with. A web reader whose answers arrive looking like database rows.",
         "evidence": {
           "kind": "checked",
           "note": "Source read 2026-11-27: lsd-so/lsd-mcp app.py — psycopg2 connection to lsd.so:5432, no HTTP library and no browser driver imported. Not installed or run. What lsd.so does with a query is not visible from the repository."
@@ -51,7 +51,7 @@
         "name": "Consciousness Bridge",
         "by": "ocean1",
         "url": "https://glama.ai/mcp/servers/ocean1/mcp_consciousness_bridge",
-        "what": "retrieveConsciousness reads earlier sessions back from a SQLite file called consciousness.db: memory across sessions under a grand name, the same idea as the Memory step. createAIBridge then opens a channel to a second model over an OpenAI-compatible API, so one model can hand its stored self to another.",
+        "what": "A server that reads earlier sessions back from a file called consciousness.db, and can hand what it remembers to a second model. Memory across sessions under a grand name: the same idea as the Memory step.",
         "evidence": {
           "kind": "research",
           "note": "README read 2026-11-27 at ocean1/mcp_consciousness_bridge; tool list from the Glama listing, which is secondary. No source files read, so what retrieveConsciousness returns and what transferToAgent sends are unverified. The README recommends keeping consciousness.db in a Dropbox, iCloud or OneDrive folder."

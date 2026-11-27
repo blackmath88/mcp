@@ -3556,6 +3556,66 @@ button.ws-chip {
   }
 }
 
+/* A note pinned to the slot it is about. .ws-stage only exists when a note
+   is open, so every other canvas keeps the DOM it had; it carries the
+   600px floor that .ws-canvas normally holds, and the canvas fills it. */
+.ws-stage {
+  position: relative;
+  min-width: 600px;
+}
+.ws-stage > .ws-canvas {
+  min-width: 0;
+}
+.ws-note-card {
+  position: absolute;
+  z-index: 3;
+  width: min(300px, 48%);
+  transform: translate(-50%, 10px);
+}
+.ws-note-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 9px 11px;
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  background: var(--bg);
+  box-shadow: var(--lift);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--fg2);
+}
+.ws-note-body p {
+  margin: 0;
+}
+.ws-note-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+}
+.ws-note-top b {
+  flex: 1 1 auto;
+  font-size: 12.5px;
+}
+.ws-note-close {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg3);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+.ws-note-src {
+  font-size: 11px;
+  color: var(--fg3);
+}
+
 /* The library's stage: the workshop canvas beside a rail of mini cards.
    The two columns hold only while the canvas column still clears the 600 px
    min-width of .ws-canvas, which with the 236 px sidebar and the 380 px rail

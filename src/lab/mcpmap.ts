@@ -467,7 +467,13 @@ const slotView = (input: MapInput, id: ModuleId, h: H): Html => {
           h.Class(className),
           h.Role('button'),
           h.Tabindex(0),
-          h.AriaLabel(`${name}. Select to look behind it.`),
+          h.AriaLabel(
+            `${name}. ${
+              input.mode === 'entry'
+                ? 'Select for what this server does here.'
+                : 'Select to look behind it.'
+            }`,
+          ),
           ...Option.match(target.message, {
             onNone: () => [],
             onSome: message => [
@@ -518,10 +524,50 @@ const neighbourView = (input: MapInput, id: NeighbourId, h: H): Html => {
   )
 }
 
-export const canvasView = (input: MapInput, h: H): Html =>
+// A note card pinned to the slot it is about. Percentages of the viewBox,
+// so it tracks the drawing at any width; the stage wrapper exists only when
+// there is a card, so every other canvas keeps the DOM it had.
+const noteCardView = (slot: ModuleId, body: Html, h: H): Html => {
+  const [x, y] = slotAt[slot]
+  return h.div(
+    [
+      h.Class('ws-note-card'),
+      h.Style({
+        left: `${(x / VIEW.w) * 100}%`,
+        top: `${((y + SLOT / 2) / VIEW.h) * 100}%`,
+      }),
+    ],
+    [body],
+  )
+}
+
+export type CanvasNote = Readonly<{ slot: ModuleId; body: Html }>
+
+export const canvasView = (
+  input: MapInput,
+  h: H,
+  note: CanvasNote | undefined = undefined,
+): Html =>
   h.div(
     [h.Class('ws-scroll')],
     [
+      canvasBody(input, h, note),
+    ],
+  )
+
+const canvasBody = (
+  input: MapInput,
+  h: H,
+  note: CanvasNote | undefined,
+): Html =>
+  note === undefined
+    ? canvasSvg(input, h)
+    : h.div(
+        [h.Class('ws-stage')],
+        [canvasSvg(input, h), noteCardView(note.slot, note.body, h)],
+      )
+
+const canvasSvg = (input: MapInput, h: H): Html =>
       h.svg(
         [
           h.Class(`ws-canvas mode-${input.mode}`),
@@ -574,9 +620,7 @@ export const canvasView = (input: MapInput, h: H): Html =>
           ...Array.map(modules, module => slotView(input, module.id, h)),
           ...Array.map(neighbourIds, id => neighbourView(input, id, h)),
         ],
-      ),
-    ],
-  )
+      )
 
 const chipsView = (input: MapInput, h: H): Html =>
   Array.match(input.tools, {
@@ -647,6 +691,7 @@ export const mcpMapView = (
   h: H,
   isFull = false,
   aside: Html | undefined = undefined,
+  note: CanvasNote | undefined = undefined,
 ): Html =>
   h.section(
     [
@@ -669,8 +714,8 @@ export const mcpMapView = (
         [isFull ? 'Close · Esc' : 'Full window'],
       ),
       isFull && aside !== undefined
-        ? h.div([h.Class('ws-full-body')], [canvasView(input, h), aside])
-        : canvasView(input, h),
+        ? h.div([h.Class('ws-full-body')], [canvasView(input, h, note), aside])
+        : canvasView(input, h, note),
       h.div(
         [h.Class('ws-under')],
         [
@@ -880,7 +925,10 @@ const entryNotes = (
       : []),
 ]
 
-export const entryMap = (entry: MapEntry): MapInput => {
+export const entryMap = (
+  entry: MapEntry,
+  openModule: Option.Option<string> = Option.none(),
+): MapInput => {
   const slots = Array.dedupe(entry.slots.filter(isModuleId))
   const reaches = Array.dedupe(entry.reaches.filter(isNeighbourId))
   return {
@@ -895,8 +943,8 @@ export const entryMap = (entry: MapEntry): MapInput => {
       slot,
       reach: reaches,
       aria: `${entry.name}, described as ${moduleWord(slot)}`,
-      message: Option.none(),
-      isSelected: false,
+      message: Option.some(Message.SelectedModule({ slot })),
+      isSelected: Option.contains(openModule, slot),
       isCalled: false,
       isActive: false,
     })),

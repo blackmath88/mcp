@@ -16,7 +16,14 @@ import {
   ownEntryCritters,
 } from './critters/catalog.ts'
 import { lineIcon, neighbourIcons, slotIcons } from './icons.ts'
-import { type MapInput, emptyMap, entryMap, mcpMapView } from './mcpmap.ts'
+import {
+  type CanvasNote,
+  type MapInput,
+  emptyMap,
+  entryMap,
+  mcpMapView,
+} from './mcpmap.ts'
+import { noteFor } from './module-notes.ts'
 import { Message } from './message.ts'
 import type { Model, Station } from './model.ts'
 import { stationNames } from './names.ts'
@@ -512,7 +519,14 @@ const stageCanvasView = (model: Model, h: H): Html => {
       ),
       Option.match(picked, {
         onNone: () => mcpMapView(emptyMap(), h, model.canvasFull),
-        onSome: entry => mcpMapView(exampleMapOf(entry), h, model.canvasFull),
+        onSome: entry =>
+          mcpMapView(
+            exampleMapOf(entry, model.maybeModule),
+            h,
+            model.canvasFull,
+            undefined,
+            moduleNoteOf(model, entry, h),
+          ),
       }),
       Option.match(picked, {
         onNone: () => emptyDetailView(h),
@@ -580,8 +594,75 @@ const railStationView = (
 export const pickedEntryHere = (model: Model): Option.Option<Entry> =>
   Option.filter(pickedEntry(model), entry => entry.station === model.station)
 
-export const exampleMapOf = (entry: Entry): MapInput =>
-  entryMap({ ...entry, subtitle: kindCaptions[kindOf(entry)] })
+export const exampleMapOf = (
+  entry: Entry,
+  openModule: Option.Option<string> = Option.none(),
+): MapInput =>
+  entryMap({ ...entry, subtitle: kindCaptions[kindOf(entry)] }, openModule)
+
+// The card pinned to an opened slot. A researched note if there is one for
+// this server and this slot, otherwise the card's own words, labelled so
+// the difference is visible rather than smoothed over.
+export const moduleNoteOf = (
+  model: Model,
+  entry: Entry,
+  h: H,
+): CanvasNote | undefined => {
+  const slot = Option.getOrUndefined(
+    Option.filter(model.maybeModule, isModuleId),
+  )
+  if (slot === undefined || !entry.slots.some(value => value === slot)) {
+    return undefined
+  }
+  const module = modules.find(value => value.id === slot)
+  const found = noteFor(entry.station, entry.kind, entry.name, slot)
+  return {
+    slot,
+    body: h.div(
+      [h.Class('ws-note-body'), h.Role('note')],
+      [
+        h.div(
+          [h.Class('ws-note-top')],
+          [
+            lineIcon(slotIcons[slot], `ic lib-ic place-${module?.place}`, h),
+            h.b([], [module?.word ?? slot]),
+            h.button(
+              [
+                h.Type('button'),
+                h.Class('ws-note-close'),
+                h.AriaLabel('Close this note'),
+                h.OnClick(Message.ClosedModule()),
+              ],
+              ['×'],
+            ),
+          ],
+        ),
+        Option.match(found, {
+          onNone: () => h.p([], [entry.what]),
+          onSome: note => h.p([], [note.note]),
+        }),
+        Option.match(found, {
+          onNone: () =>
+            h.p(
+              [h.Class('ws-note-src')],
+              ['From this server’s card. No note yet for this slot.'],
+            ),
+          onSome: note =>
+            h.p(
+              [h.Class('ws-note-src'), h.Title(note.evidenceNote)],
+              [
+                evidenceNames[
+                  isEvidence(note.evidenceKind) ? note.evidenceKind : 'author'
+                ],
+                ' · ',
+                note.evidenceNote,
+              ],
+            ),
+        }),
+      ],
+    ),
+  }
+}
 
 // This step's real servers, as a rail beside the drawing.
 export const exampleRailView = (model: Model, h: H): Html =>

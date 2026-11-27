@@ -949,6 +949,29 @@ describe('out in the world', () => {
     )
   })
 
+  test('a slot opens what this server does there, with its source', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'library' }),
+      click(role('button', { name: /^LSD MCP, Weird/ })),
+      click(role('button', { name: /^Read: named on the card/ })),
+      expect(text(/reusing a saved query is ACCORDING TO/)).toExist(),
+      expect(text(/Source read 2026-11-27/)).toExist(),
+      click(role('button', { name: 'Close this note' })),
+      expect(text(/reusing a saved query is ACCORDING TO/)).not.toExist(),
+    )
+  })
+
+  test('a slot with no researched note falls back to the card, and says so', () => {
+    scene(
+      { update, view },
+      given({ ...initialModel, screen: 'library' }),
+      click(role('button', { name: /^Firecrawl MCP, Most used/ })),
+      click(role('button', { name: /^Read: named on the card/ })),
+      expect(text('From this server’s card. No note yet for this slot.')).toExist(),
+    )
+  })
+
   test('a server only a critter brings in draws like any other', () => {
     scene(
       { update, view },

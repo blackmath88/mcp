@@ -47,6 +47,8 @@ export const Message = defineMessageUnion({
   SelectedCapability: { name: CapabilityName },
   SelectedExample: { id: Schema.String },
   ClearedExample: {},
+  SelectedModule: { slot: Schema.String },
+  ClosedModule: {},
   SelectedFrom: { value: Schema.String },
   SelectedTo: { value: Schema.String },
   SelectedWeather: { weather: Weather },

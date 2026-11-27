@@ -261,6 +261,7 @@ export const initialModel: Model = {
   world: worldFor('calm'),
   maybeSelected: Option.none(),
   maybeExample: Option.none(),
+  maybeModule: Option.none(),
   from: 'forge',
   to: 'dock',
   run: RunState.Idle(),
@@ -621,6 +622,7 @@ export const update = (current: Model, message: Message): UpdateReturn => {
         screen: () => 'bench',
         maybeSelected: () => defaultCapability(station),
         maybeExample: () => Option.none(),
+        maybeModule: () => Option.none(),
         savedRuns: saved => [
           ...Array.filter(saved, entry => entry.station !== model.station),
           {
@@ -797,11 +799,28 @@ export const update = (current: Model, message: Message): UpdateReturn => {
     SelectedCapability: ({ name }) => ({ model: select(model, name) }),
 
     SelectedExample: ({ id }) => ({
-      model: modifyFields(model, { maybeExample: () => Option.some(id) }),
+      model: modifyFields(model, {
+        maybeExample: () => Option.some(id),
+        maybeModule: () => Option.none(),
+      }),
     }),
 
     ClearedExample: () => ({
-      model: modifyFields(model, { maybeExample: () => Option.none() }),
+      model: modifyFields(model, {
+        maybeExample: () => Option.none(),
+        maybeModule: () => Option.none(),
+      }),
+    }),
+
+    SelectedModule: ({ slot }) => ({
+      model: modifyFields(model, {
+        maybeModule: open =>
+          Option.contains(open, slot) ? Option.none() : Option.some(slot),
+      }),
+    }),
+
+    ClosedModule: () => ({
+      model: modifyFields(model, { maybeModule: () => Option.none() }),
     }),
 
     SelectedFrom: ({ value }) => ({

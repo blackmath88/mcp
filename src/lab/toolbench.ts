@@ -20,6 +20,7 @@ import {
   exampleDetailView,
   exampleMapOf,
   exampleRailView,
+  moduleNoteOf,
   pickedEntryHere,
 } from './library.ts'
 import { mcpMapView, serverMap } from './mcpmap.ts'
@@ -177,7 +178,13 @@ const mapRowView = (model: Model, story: Html, h: H): Html => {
                 h.div([h.Class('ws-full-aside')], [drawerView(model, h)]),
               ),
             onSome: entry =>
-              mcpMapView(exampleMapOf(entry), h, model.canvasFull),
+              mcpMapView(
+                exampleMapOf(entry, model.maybeModule),
+                h,
+                model.canvasFull,
+                undefined,
+                moduleNoteOf(model, entry, h),
+              ),
           }),
           Option.match(pickedEntryHere(model), {
             onNone: () => h.empty,
