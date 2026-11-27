@@ -309,16 +309,6 @@ const roomView = (input: MapInput, h: H): ReadonlyArray<Html> => {
         ].join(' '),
       ),
     ]),
-    label(
-      x + 16,
-      y + height - 14,
-      'ws-zone',
-      input.scene.building === 'mall'
-        ? 'Several servers behind one desk'
-        : `${input.title} · ${input.subtitle}`,
-      h,
-      'start',
-    ),
     ...Array.map(furniture, ([fx, fy, fw, fh]) =>
       h.rect([
         h.Class('ws-furn'),
@@ -328,6 +318,16 @@ const roomView = (input: MapInput, h: H): ReadonlyArray<Html> => {
         h.Height(String(fh)),
         h.Rx('8'),
       ]),
+    ),
+    label(
+      x + 16,
+      y + height - 14,
+      'ws-zone',
+      input.scene.building === 'mall'
+        ? 'Several servers behind one desk'
+        : `${input.title} · ${input.subtitle}`,
+      h,
+      'start',
     ),
     label(x + w / 2, y + 108, 'ws-furn-label', 'shelf · records', h),
     label(x + 320, y + 340, 'ws-furn-label', 'workbench', h),
