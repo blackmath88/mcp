@@ -1,5 +1,18 @@
 # Handoff
 
+## Bubbles on the drawing — 2026-11-27 (branch `lab/entry-canvas`)
+
+Owner, on the module notes: "i would love to have the information for the examples somewhat on the canvas … like bubbles or cards, going out from the modules that explain the speciality of the example specimen … this is great, because then we could have that in fullscreen view also."
+
+- **Drawn in the SVG, not over it.** The previous note card was HTML floated on top, which would not scale in the full-window view. Bubbles are now SVG, so they scale with the drawing and full window carries the whole note for free.
+- **Two registers, chosen from measurement.** The embedded canvas renders at scale 0.652 (808px for a 1240-unit viewBox); full window at 1.01. So 13-unit body text is 8.5px embedded and 13.1px full. The bubble therefore shows only its headline at 18 units (13px embedded) in place, and headline + note + source in the full window. 13 headlines authored from the existing notes, longest 33 characters.
+- **Placement is proven, not eyeballed.** The room owns x 380–980, so bubbles only ever use the gutters: `LEFT_TOP`, `LEFT_FOOT` (x 10, w 320) and `RIGHT_TOP`, `RIGHT_FOOT` (x 985, w 245, because the right gutter is only 260 wide). Four berths for at most three bubbles — no card in the library declares more than three slots. A script checked all 8 annotated servers in both collapsed and expanded states for bubble overlap, room collision and running off the canvas: 0 problems. Slots sharing a berth (compute/sequence/share, invent/delegate/act, write/ask) never co-occur on any annotated card today; a ninth annotated server could break that, so re-run the check when one is added.
+- An earlier placement put a berth at bottom-centre and it covered the room's own name. That is why the gutters rule exists.
+- The leader is grey, dotted and has no head, because solid lines in this drawing already mean a call.
+- Wrap widths derive from the berth width rather than being hardcoded, so the narrow right gutter wraps tighter. The bubble's source line is the first sentence of the evidence note only; the full caveats stay in the panel under the drawing.
+- The HTML click-card is kept for the embedded canvas, where it is the only readable way to see a full note, and suppressed in the full window so it cannot duplicate the bubble.
+- Checks: typecheck, lint, 250 tests (1 new, asserting the headline shows in place and the body only in the full window), build. Browser at 1680x1000: LSD MCP's single bubble, Seestar's three, embedded and full window.
+
 ## Examples on each step's bench, and a note on every module — 2026-11-27 (branch `lab/entry-canvas`)
 
 Owner, after using the first version: "i found the function. its good! but i feel i needs to life in the same view as the escalating complexity phases … i almost feel this needs to sit on the right side … and the in the wire thing must be a little bit layered hidden somewhere else … i want to click lsd mcp and have the canvas mapped like now, but also have an explainer what happens and why its funny, special or dangerous, like maybe an info card on the modules in the canvas". Three ambiguities were put back to the owner as a question card; the answers were: into each step's page, "Where the picture simplifies" is the thing to hide, and nest the existing text while authoring the weird ones properly.
