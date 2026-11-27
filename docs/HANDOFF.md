@@ -1,5 +1,16 @@
 # Handoff
 
+## The heading over the drawing, and the deploy — 2026-11-27 (branch `lab/entry-canvas`)
+
+Found while verifying the bench rail from the session that built it, and fixed there on the owner's go-ahead.
+
+- **The heading did not follow the drawing.** With an example picked the canvas drew, say, LSD MCP, and the room label inside the SVG said so, but the `stepLabel` above it still read "What the Fetch server hands the AI · its tools/list answer". Wrong twice over: the wrong server, and a `tools/list` answer the lab never asked for — which the desk board in the same drawing already denies with `(no list read)`.
+- Fixed in `e95dcba`. `mapRowView` called `pickedEntryHere` twice; it is now one `const` and the heading, the canvas and the detail panel all read from it. With a pick the heading is `What <name> says it does · as its own page describes it, drawn as the same workshop · click a lit slot for what it does there`.
+- The new `scene.test.ts` assertion covers the toggle in both directions and, importantly, negative-asserts that the `tools/list` subtitle is gone — the regression that would otherwise pass unnoticed.
+- **Deployed on owner's instruction.** `npm run build && npx --yes wrangler@4 deploy` from a clean `e95dcba`; version `55087ed2-8b0b-4cc9-a478-68194c398253`, live on `mcp-lab.bridge-work.ai`. Wrangler reported "No updated asset files to upload" because these exact bytes were already in the content-addressed asset store from an earlier upload; the deployment, not the upload, is what moved.
+- **Verified by bytes, not by filename.** The SPA fallback returns `index.html` with 200 for any missing asset, so a filename check alone proves nothing. Live `assets/index-N-h8el6t.js` and the local build share sha256 `f5338694505b21b1…`, `content-type: text/javascript`, and `index.html` itself contains 0 occurrences of the new string. On the live host at 1680x1000 the heading tracked the pick and reverted on "Back to this step's server", with no console errors.
+- Production still carries `fdc9763`, the critter-shelf commit open as blackmath88/mcp#4, because this branch is stacked on it.
+
 ## Bubbles on the drawing — 2026-11-27 (branch `lab/entry-canvas`)
 
 Owner, on the module notes: "i would love to have the information for the examples somewhat on the canvas … like bubbles or cards, going out from the modules that explain the speciality of the example specimen … this is great, because then we could have that in fullscreen view also."
