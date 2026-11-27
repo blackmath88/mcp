@@ -34,7 +34,7 @@ export const scrollToCanvasOnPick = (root: Document): void => {
   root.addEventListener('click', event => {
     if (
       !(event.target instanceof Element) ||
-      event.target.closest('.lib-mini:not(.flat)') === null ||
+      event.target.closest('.lib-mini') === null ||
       !window.matchMedia(STACKED).matches
     ) {
       return

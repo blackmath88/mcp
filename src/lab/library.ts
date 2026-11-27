@@ -368,9 +368,35 @@ const stationLabel = (station: string): string => {
   return step === undefined ? station : stationNames[step.station]
 }
 
+// A server only a critter brings in is an Entry like any other: its card
+// carries the same shape, so it draws and reads the same way.
+export const critterEntry = (critter: Critter): Entry => ({
+  station: critter.station,
+  kind: critter.kind,
+  name: critter.server,
+  by: critter.by,
+  url: critter.url,
+  what: critter.what,
+  why: '',
+  slots: critter.slots,
+  reaches: critter.reaches,
+  evidence: critter.evidence,
+})
+
+export const ownEntriesFor = (station: string): ReadonlyArray<Entry> =>
+  Array.map(
+    ownEntryCritters.filter(critter => critter.station === station),
+    critterEntry,
+  )
+
+const allEntries: ReadonlyArray<Entry> = [
+  ...entries,
+  ...Array.map(ownEntryCritters, critterEntry),
+]
+
 export const pickedEntry = (model: Model): Option.Option<Entry> =>
   Option.flatMap(model.maybeExample, id =>
-    Option.fromNullishOr(entries.find(entry => entryId(entry) === id)),
+    Option.fromNullishOr(allEntries.find(entry => entryId(entry) === id)),
   )
 
 // A card shrunk to what the canvas cannot say: which of the four kinds it
@@ -406,23 +432,6 @@ export const miniCardView = (entry: Entry, isPicked: boolean, h: H): Html => {
     ],
   )
 }
-
-// A server only a critter brings in has no slots or neighbours on its card,
-// so there is nothing to draw: it sits in the rail unselectable and says so.
-export const flatMiniView = (critter: Critter, h: H): Html =>
-  h.keyed('div')(
-    `critter-${critter.id}`,
-    [h.Class(`lib-mini flat kind-weird crit-${critter.sprite}`)],
-    [
-      h.span([h.Class('lib-kind kind-weird')], ['Weird, too']),
-      h.b(
-        [h.Class('lib-mini-name')],
-        [stickerView(critter, h), critter.server],
-      ),
-      h.span([h.Class('lib-by')], [critter.by]),
-      h.span([h.Class('lib-mini-none')], ['Its card names no slots to draw.']),
-    ],
-  )
 
 export const exampleDetailView = (entry: Entry, h: H): Html => {
   const kind = kindOf(entry)
@@ -553,11 +562,12 @@ const railStationView = (
               h,
             ),
           ),
-          ...Array.map(
-            ownEntryCritters.filter(
-              critter => critter.station === step.station,
+          ...Array.map(ownEntriesFor(step.station), entry =>
+            miniCardView(
+              entry,
+              Option.contains(model.maybeExample, entryId(entry)),
+              h,
             ),
-            critter => flatMiniView(critter, h),
           ),
         ],
       ),
@@ -595,11 +605,12 @@ export const exampleRailView = (model: Model, h: H): Html =>
               h,
             ),
           ),
-          ...Array.map(
-            ownEntryCritters.filter(
-              critter => critter.station === model.station,
+          ...Array.map(ownEntriesFor(model.station), entry =>
+            miniCardView(
+              entry,
+              Option.contains(model.maybeExample, entryId(entry)),
+              h,
             ),
-            critter => flatMiniView(critter, h),
           ),
           Option.match(pickedEntryHere(model), {
             onNone: () => h.empty,

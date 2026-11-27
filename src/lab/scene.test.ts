@@ -949,12 +949,13 @@ describe('out in the world', () => {
     )
   })
 
-  test('a server whose card names no slots cannot be picked', () => {
+  test('a server only a critter brings in draws like any other', () => {
     scene(
       { update, view },
       given({ ...initialModel, screen: 'library' }),
-      expect(text('LSD MCP')).toExist(),
-      expect(text('Its card names no slots to draw.')).toExist(),
+      click(role('button', { name: /^LSD MCP, Weird/ })),
+      expect(role('group', { name: 'The workshop of LSD MCP' })).toExist(),
+      expect(text(/Drawing LSD MCP, a weird one/)).toExist(),
     )
   })
 })

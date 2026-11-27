@@ -76,10 +76,19 @@ describe('the critter catalogue', () => {
     )
   })
 
-  test('the two servers outside the library are labelled as research', () => {
+  test('the two servers outside the library carry a shape and their evidence', () => {
     const own = rawCritters.filter(raw => raw.entry !== undefined)
     expect(own.map(raw => raw.id).sort()).toEqual(['soul', 'trippy'])
-    own.forEach(raw => expect(raw.entry?.evidence.kind).toBe('research'))
+    own.forEach(raw => {
+      expect(['checked', 'research', 'author']).toContain(
+        raw.entry?.evidence.kind,
+      )
+      expect(raw.entry?.evidence.note).not.toBe('')
+      // Every example must draw, so an own entry declares a shape like any
+      // other card does.
+      expect(raw.entry?.slots.length).toBeGreaterThan(0)
+      expect(raw.entry?.reaches.length).toBeGreaterThan(0)
+    })
   })
 })
 

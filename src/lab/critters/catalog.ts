@@ -25,6 +25,8 @@ export type Critter = Readonly<{
   by: string
   url: string
   what: string
+  slots: ReadonlyArray<string>
+  reaches: ReadonlyArray<string>
   evidence: Evidence
 }>
 
@@ -35,6 +37,8 @@ type RawEntry = Readonly<{
   by: string
   url: string
   what: string
+  slots: ReadonlyArray<string>
+  reaches: ReadonlyArray<string>
   evidence: Evidence
 }>
 
@@ -82,6 +86,8 @@ const toCritter = (raw: RawCritter): Critter | undefined => {
     by: entry.by,
     url: entry.url,
     what: entry.what,
+    slots: entry.slots,
+    reaches: entry.reaches,
     evidence: entry.evidence,
   }
 }
